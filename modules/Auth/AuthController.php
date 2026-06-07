@@ -33,6 +33,16 @@ final class AuthController
         Response::html($content);
     }
 
+    public function showLanding(): void
+    {
+        $content = View::render(base_path('modules/Auth/views/landing.php'), [
+            'title' => 'Welcome',
+            'success' => Session::pullFlash('success'),
+        ], null);
+
+        Response::html($content);
+    }
+
     public function login(Request $request): void
     {
         $username = (string) $request->input('username', '');
@@ -60,7 +70,7 @@ final class AuthController
     {
         Auth::logout();
         Session::flash('success', 'You have been logged out successfully.');
-        redirect('/login');
+        redirect('/');
     }
 
     public function showChangePassword(): void

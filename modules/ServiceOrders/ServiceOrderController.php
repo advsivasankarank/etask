@@ -34,7 +34,7 @@ final class ServiceOrderController
     public function index(Request $request): void
     {
         $search = trim((string) $request->input('search', ''));
-        $clientId = Auth::can('portal.self_access') ? Auth::clientId() : null;
+        $clientId = Auth::isPortalUser() ? Auth::clientId() : null;
         $page = max(1, (int) $request->input('page', 1));
         $pagination = $this->serviceOrders->paginateForIndex($search, $clientId, $page, 12);
 
@@ -125,7 +125,7 @@ final class ServiceOrderController
         $context = $this->workflows->getWorkflowContext($id);
         $order = $context['order'];
 
-        if (Auth::can('portal.self_access') && Auth::clientId() !== (int) ($order['client_id'] ?? 0)) {
+        if (Auth::isPortalUser() && Auth::clientId() !== (int) ($order['client_id'] ?? 0)) {
             Response::abort(403, 'You are not allowed to view this service order.');
         }
 

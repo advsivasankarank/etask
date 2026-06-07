@@ -949,7 +949,7 @@ final class RegressionSuite
         $_FILES = [];
         $_SERVER['REQUEST_METHOD'] = strtoupper($method);
         $_SERVER['REQUEST_URI'] = $uri;
-        $_SERVER['SCRIPT_NAME'] = '/e-task/public/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/etask/public/index.php';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] = 'RegressionSuite/1.0';
 
@@ -961,7 +961,7 @@ final class RegressionSuite
         $_SERVER['HTTPS'] = 'off';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] = 'RegressionSuite/1.0';
-        $_SERVER['SCRIPT_NAME'] = '/e-task/public/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/etask/public/index.php';
         Csrf::token();
     }
 
