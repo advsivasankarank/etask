@@ -16,7 +16,7 @@ use Modules\ServiceOrders\ServiceOrderController;
 use Modules\Users\UserController;
 use Modules\Workflow\WorkflowController;
 
-$router->get('/', [DashboardController::class, 'index'], ['auth']);
+$router->get('/', [AuthController::class, 'showLanding'], ['guest']);
 $router->get('/login', [AuthController::class, 'showLogin'], ['guest']);
 $router->post('/login', [AuthController::class, 'login'], ['guest']);
 $router->get('/change-password', [AuthController::class, 'showChangePassword'], ['auth']);

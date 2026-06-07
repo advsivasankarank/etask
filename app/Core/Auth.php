@@ -47,7 +47,7 @@ final class Auth
 
     public static function isPortalUser(): bool
     {
-        return self::actorType() === self::ACTOR_TYPE_PORTAL || self::can('portal.self_access');
+        return self::actorType() === self::ACTOR_TYPE_PORTAL;
     }
 
     public static function isConsultantUser(): bool

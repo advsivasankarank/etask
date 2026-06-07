@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /e-task/public/
+    RewriteBase /etask/public/
 
     Options -Indexes
 
