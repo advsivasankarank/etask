@@ -24,6 +24,14 @@ if (is_file($envFile)) {
 \App\Core\Config::set('database', require base_path('config/database.php'));
 \App\Core\Config::set('razorpay', require base_path('config/razorpay.php'));
 
+$resolvedAppUrl = rtrim((string) resolve_base_url(), '/');
+if ($resolvedAppUrl !== '') {
+    \App\Core\Config::set('app', array_merge(
+        (array) config('app', []),
+        ['url' => $resolvedAppUrl]
+    ));
+}
+
 $appKey = trim((string) config('app.encryption_key', ''));
 if ($appKey === '') {
     throw new RuntimeException('APP_KEY must be configured before the application can start.');
