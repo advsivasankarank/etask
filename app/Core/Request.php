@@ -23,6 +23,12 @@ final class Request
             $uri = substr($uri, strlen($baseDir));
         }
 
+        if (str_starts_with($uri, '/index.php/')) {
+            $uri = substr($uri, strlen('/index.php'));
+        } elseif ($uri === '/index.php') {
+            $uri = '/';
+        }
+
         $normalized = '/' . trim($uri, '/');
         return $normalized === '//' ? '/' : $normalized;
     }
