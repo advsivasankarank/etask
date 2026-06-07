@@ -1,0 +1,7 @@
+.env
+/private_storage/
+/storage/logs/
+/storage/cache/
+/backups/
+/vendor/
+/node_modules/
