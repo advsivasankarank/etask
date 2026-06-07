@@ -59,7 +59,17 @@ if (!function_exists('url')) {
             ? rtrim(BASE_URL, '/')
             : rtrim(resolve_base_url(), '/');
 
-        return $path === '' ? $baseUrl : $baseUrl . '/' . ltrim($path, '/');
+        if ($path === '') {
+            return $baseUrl;
+        }
+
+        $normalizedPath = ltrim($path, '/');
+
+        if (should_use_index_routes()) {
+            return $baseUrl . '/index.php/' . $normalizedPath;
+        }
+
+        return $baseUrl . '/' . $normalizedPath;
     }
 }
 
@@ -96,6 +106,27 @@ if (!function_exists('resolve_base_url')) {
 
         $derived = $scheme . '://' . $host;
         return $basePath === '' ? $derived : $derived . '/' . $basePath;
+    }
+}
+
+if (!function_exists('should_use_index_routes')) {
+    function should_use_index_routes(): bool
+    {
+        if (PHP_SAPI === 'cli') {
+            return false;
+        }
+
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        if ($host === '' || $host === 'localhost' || str_starts_with($host, '127.0.0.1') || str_starts_with($host, '[::1]')) {
+            return false;
+        }
+
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        if (str_contains($requestUri, '/index.php/')) {
+            return true;
+        }
+
+        return true;
     }
 }
 
