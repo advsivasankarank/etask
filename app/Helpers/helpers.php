@@ -57,9 +57,45 @@ if (!function_exists('url')) {
     {
         $baseUrl = defined('BASE_URL')
             ? rtrim(BASE_URL, '/')
-            : rtrim((string) config('app.url', ''), '/');
+            : rtrim(resolve_base_url(), '/');
 
         return $path === '' ? $baseUrl : $baseUrl . '/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('resolve_base_url')) {
+    function resolve_base_url(): string
+    {
+        $configured = rtrim((string) config('app.url', ''), '/');
+
+        if (PHP_SAPI === 'cli') {
+            return $configured;
+        }
+
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        $isLocalConfigured = $configured === ''
+            || str_contains(strtolower($configured), 'localhost')
+            || str_contains(strtolower($configured), '127.0.0.1');
+
+        if ($host === '') {
+            return $configured;
+        }
+
+        $isLocalHost = $host === 'localhost'
+            || str_starts_with($host, '127.0.0.1')
+            || str_starts_with($host, '[::1]');
+
+        if (!$isLocalConfigured || $isLocalHost) {
+            return $configured;
+        }
+
+        $https = $_SERVER['HTTPS'] ?? '';
+        $scheme = (!empty($https) && strtolower((string) $https) !== 'off') ? 'https' : 'http';
+        $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $basePath = trim(dirname($scriptName), '/');
+
+        $derived = $scheme . '://' . $host;
+        return $basePath === '' ? $derived : $derived . '/' . $basePath;
     }
 }
 
