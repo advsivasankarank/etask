@@ -1,0 +1,6 @@
+<section class="panel">
+    <div class="toolbar"><div><div class="eyebrow">Report</div><h3 style="margin:0 0 6px;">Escalation Report</h3></div><a href="<?= e(url('/reminders')) ?>" class="button button-secondary">Back</a></div>
+    <?= \App\Core\View::render(base_path('modules/Reminders/views/partials/filters.php'), ['filters' => $filters, 'options' => $options, 'path' => '/reminders/escalation-report'], null) ?>
+    <div style="overflow:auto;"><table><thead><tr><th>Type</th><th>Client / SO</th><th>Level</th><th>Action By</th><th>Action Time</th><th>Note</th></tr></thead><tbody><?php foreach (($report['items'] ?? []) as $row): ?><tr><td><?= e($row['reminder_type']) ?></td><td><?= e($row['client_name'] ?: '-') ?><br><span class="subtle"><?= e($row['so_no'] ?: '-') ?></span></td><td><?= e((string) $row['escalation_level']) ?></td><td><?= e($row['action_by_name'] ?: 'System') ?></td><td><?= e($row['action_at']) ?></td><td><?= e($row['action_note'] ?: '-') ?></td></tr><?php endforeach; ?></tbody></table></div>
+    <?= \App\Core\View::render(base_path('app/Views/partials/pagination.php'), ['pagination' => $report, 'path' => '/reminders/escalation-report', 'query' => $filters], null) ?>
+</section>

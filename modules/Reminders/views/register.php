@@ -1,0 +1,6 @@
+<section class="panel">
+    <div class="toolbar"><div><div class="eyebrow">Report</div><h3 style="margin:0 0 6px;">Reminder Register</h3></div><a href="<?= e(url('/reminders')) ?>" class="button button-secondary">Back</a></div>
+    <?= \App\Core\View::render(base_path('modules/Reminders/views/partials/filters.php'), ['filters' => $filters, 'options' => $options, 'path' => '/reminders/register'], null) ?>
+    <div style="overflow:auto;"><table><thead><tr><th>Type</th><th>Title</th><th>Client / Ref</th><th>Status</th><th>Due</th><th>Escalation</th><th>Assigned</th></tr></thead><tbody><?php foreach (($report['items'] ?? []) as $row): ?><tr><td><?= e($row['reminder_type']) ?></td><td><?= e($row['title'] ?: '-') ?></td><td><?= e($row['client_name'] ?: '-') ?><br><span class="subtle"><?= e($row['so_no'] ?: ($row['pso_no'] ?: ($row['invoice_no'] ?: '-'))) ?></span></td><td><?= e($row['status']) ?></td><td><?= e($row['due_at']) ?></td><td><?= e((string) $row['escalation_level']) ?></td><td><?= e($row['assigned_user_name'] ?: '-') ?></td></tr><?php endforeach; ?></tbody></table></div>
+    <?= \App\Core\View::render(base_path('app/Views/partials/pagination.php'), ['pagination' => $report, 'path' => '/reminders/register', 'query' => $filters], null) ?>
+</section>
