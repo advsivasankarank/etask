@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>e-Task Regression Suite Report</title>
+    <style>
+        body{font-family:Segoe UI,Arial,sans-serif;background:#f4f8fb;color:#15324b;margin:0;padding:32px;}
+        .shell{max-width:1200px;margin:0 auto;}
+        .hero{background:#ffffff;border-radius:18px;padding:28px 32px;box-shadow:0 18px 50px rgba(15,76,92,.10);margin-bottom:24px;}
+        h1,h2{margin:0 0 12px;}
+        .meta{display:flex;gap:18px;flex-wrap:wrap;color:#516579;font-size:14px;}
+        .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0;}
+        .card{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 10px 30px rgba(15,76,92,.08);}
+        .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6a7b8c;margin-bottom:6px;}
+        .value{font-size:28px;font-weight:700;color:#0f4c5c;}
+        .accent{color:#f47a20;}
+        table{width:100%;border-collapse:collapse;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(15,76,92,.08);}
+        th,td{padding:16px 18px;border-bottom:1px solid #e5edf4;vertical-align:top;text-align:left;}
+        th{background:#edf7f8;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#35556c;}
+        tr:last-child td{border-bottom:none;}
+        .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;}
+        .badge.pass{background:#dff6e5;color:#196b3f;}
+        .badge.fail{background:#fde4e1;color:#b42318;}
+        .badge.skip{background:#eef2f6;color:#45576b;}
+        ul{margin:0 0 10px 18px;padding:0;}
+        li{margin-bottom:4px;}
+        .error{margin-top:10px;color:#b42318;}
+        .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;}
+        .panel{background:#fff;border-radius:18px;padding:22px 24px;box-shadow:0 10px 30px rgba(15,76,92,.08);}
+        @media (max-width:900px){body{padding:18px}.grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="hero">
+        <h1>e-Task Regression Suite</h1>
+        <div class="meta">
+            <span>Started: 2026-06-07 22:35:57</span>
+            <span>Finished: 2026-06-07 22:35:58</span>
+            <span>Execution Mode: Transaction rollback smoke tests</span>
+            <span>Report: C:\xampp\htdocs\e-task\storage/reports/regression\regression_report_20260607_223558.html</span>
+        </div>
+        <div class="cards">
+            <div class="card"><div class="label">Total Tests</div><div class="value">13</div></div>
+            <div class="card"><div class="label">Passed</div><div class="value">12</div></div>
+            <div class="card"><div class="label">Failed</div><div class="value accent">1</div></div>
+            <div class="card"><div class="label">Skipped</div><div class="value">0</div></div>
+            <div class="card"><div class="label">Duration</div><div class="value">0.55 s</div></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="panel">
+            <h2>Execution Results</h2>
+            <table>
+                <thead>
+                    <tr><th>Test</th><th>Status</th><th>Time</th><th>Observations</th></tr>
+                </thead>
+                <tbody><tr><td>Authentication</td><td><span class="badge pass">PASS</span></td><td>137 ms</td><td><ul><li>Valid login succeeds for a test-created internal user.</li><li>Invalid password is rejected cleanly.</li></ul><div><strong>username:</strong> reg.internal.d6aaad3d</div><div><strong>success_message:</strong> Login successful.</div><div><strong>failure_message:</strong> Invalid login credentials.</div></td></tr><tr><td>Client Creation</td><td><span class="badge pass">PASS</span></td><td>14 ms</td><td><ul><li>Client master record is created successfully.</li><li>Primary contact is created automatically.</li><li>Aadhaar is stored in encrypted form.</li></ul><div><strong>client_id:</strong> 6</div><div><strong>pan:</strong> RGXPA0B9E6</div><div><strong>assigned_crm_id:</strong> 3</div></td></tr><tr><td>Portal Credential Creation</td><td><span class="badge pass">PASS</span></td><td>6 ms</td><td><ul><li>Standard portal credential is stored.</li><li>Custom portal credential is supported.</li><li>Portal passwords are stored encrypted.</li></ul><div><strong>credential_count:</strong> 2</div><div><strong>standard_portal:</strong> INCOME_TAX</div></td></tr><tr><td>PSO Creation</td><td><span class="badge pass">PASS</span></td><td>79 ms</td><td><ul><li>Portal-linked client contact can create a PSO.</li><li>PSO numbering is generated automatically.</li></ul><div><strong>pso_id:</strong> 7</div><div><strong>pso_no:</strong> PSO/ETAX/2026-27/0003</div></td></tr><tr><td>RBAC Permissions</td><td><span class="badge pass">PASS</span></td><td>0 ms</td><td><ul><li>Portal manager retains portal user management permission.</li><li>Portal user can create PSO.</li><li>Portal user cannot access financial report permission surface.</li></ul><div><strong>portal_manager:</strong> superadmin</div><div><strong>portal_user:</strong> reg.portal.75fd240c</div></td></tr><tr><td>Service Order Creation</td><td><span class="badge pass">PASS</span></td><td>13 ms</td><td><ul><li>Service Order can be created directly from the master workflow.</li><li>SO number is immutable and auto-generated.</li><li>A second SO is seeded for reminder validation.</li></ul><div><strong>service_order_id:</strong> 13</div><div><strong>so_no:</strong> SO/ETAX/2026-27/0003</div><div><strong>reminder_so_id:</strong> 14</div></td></tr><tr><td>Workflow Progression</td><td><span class="badge pass">PASS</span></td><td>34 ms</td><td><ul><li>Workflow advances through GST milestone stages.</li><li>Payment transition auto-moves from Payment Pending to Paid.</li><li>Acknowledgement capture and procedural closure complete successfully.</li></ul><div><strong>final_stage:</strong> PROCEDURALLY_CLOSED</div><div><strong>acknowledgement_no:</strong> ARN-REG-001</div></td></tr><tr><td>Invoice Creation</td><td><span class="badge pass">PASS</span></td><td>12 ms</td><td><ul><li>Recoverable disbursement can be added to billing context.</li><li>Final invoice is generated with invoice numbering.</li><li>Recoverable disbursement is included in the invoice totals.</li></ul><div><strong>invoice_id:</strong> 5</div><div><strong>invoice_no:</strong> INV/ETAX/2026-27/0002</div><div><strong>net_payable:</strong> 2020.00</div></td></tr><tr><td>Receipt Creation</td><td><span class="badge pass">PASS</span></td><td>14 ms</td><td><ul><li>Receipt is generated from payment recording.</li><li>Invoice payment status becomes paid.</li><li>Service order accounting payment flag is synchronized.</li></ul><div><strong>receipt_id:</strong> 5</div><div><strong>receipt_no:</strong> RCPT/ETAX/2026-27/0002</div></td></tr><tr><td>Secure Document Download</td><td><span class="badge pass">PASS</span></td><td>7 ms</td><td><ul><li>Authorized owner can download through the secure document service.</li><li>Unauthorized user is blocked.</li><li>Document access attempts are logged.</li></ul><div><strong>document_id:</strong> 6</div><div><strong>audit_entries:</strong> 2</div></td></tr><tr><td>Search</td><td><span class="badge fail">FAIL</span></td><td>6 ms</td><td><ul></ul><div class="error"><strong>Error:</strong> SQLSTATE[23000]: Integrity constraint violation: 1048 Column &#039;entity_id&#039; cannot be null</div></td></tr><tr><td>Reminders</td><td><span class="badge pass">PASS</span></td><td>39 ms</td><td><ul><li>Reminder overview loads successfully.</li><li>Reminder scheduler executes and returns counters.</li><li>Reminder summary remains queryable after execution.</li></ul><div><strong>open_before:</strong> 0</div><div><strong>created:</strong> 12</div><div><strong>triggered:</strong> 1</div><div><strong>escalated:</strong> 2</div><div><strong>open_after:</strong> 12</div></td></tr><tr><td>Reports</td><td><span class="badge pass">PASS</span></td><td>7 ms</td><td><ul><li>Client register exposes the created client.</li><li>Service order, invoice, and receipt registers expose created billing chain.</li><li>GST summary and document access report are queryable.</li></ul><div><strong>client_total:</strong> 1</div><div><strong>service_order_total:</strong> 1</div><div><strong>invoice_total:</strong> 1</div><div><strong>receipt_total:</strong> 1</div><div><strong>document_access_total:</strong> 2</div></td></tr></tbody>
+            </table>
+        </div>
+        <div class="panel">
+            <h2>Coverage Summary</h2>
+            <table>
+                <tbody><tr><th>Execution model</th><td>CLI smoke suite with nested transaction rollback</td></tr><tr><th>Command</th><td>php database/scripts/run_regression_suite.php</td></tr><tr><th>Covered modules</th><td>Authentication, RBAC, Clients, Portal Credentials, PSO, Service Orders, Workflow, Billing, Documents, Search, Reminders, Reports</td></tr><tr><th>Total smoke tests</th><td>13</td></tr><tr><th>Passed</th><td>12</td></tr><tr><th>Failed</th><td>1</td></tr><tr><th>Database cleanup</th><td>Full rollback after execution</td></tr><tr><th>Execution target</th><td>Under 5 minutes</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
