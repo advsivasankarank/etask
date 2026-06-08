@@ -40,6 +40,9 @@ $value = static function (string $key, array $old, array $userData): string {
             <label style="display:grid;gap:8px;">
                 <span>Username</span>
                 <input type="text" name="username" value="<?= e($value('username', $old, $userData)) ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                <?php if ($userType === 'PORTAL'): ?>
+                    <small style="color:#64748b;">Portal username must exactly match the linked client PAN, TAN, or Aadhaar number.</small>
+                <?php endif; ?>
             </label>
 
             <label style="display:grid;gap:8px;">

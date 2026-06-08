@@ -199,12 +199,44 @@ final class ClientRepository
             "INSERT INTO client_contacts (
                 client_id, contact_name, designation, email, mobile, is_primary, can_login, created_at, updated_at
              ) VALUES (
-                :client_id, :contact_name, :designation, :email, :mobile, 1, 0, NOW(), NOW()
+                :client_id, :contact_name, :designation, :email, :mobile, 1, :can_login, NOW(), NOW()
              )"
         );
-        $statement->execute($payload);
+        $statement->execute([
+            'client_id' => $payload['client_id'],
+            'contact_name' => $payload['contact_name'],
+            'designation' => $payload['designation'],
+            'email' => $payload['email'],
+            'mobile' => $payload['mobile'],
+            'can_login' => !empty($payload['can_login']) ? 1 : 0,
+        ]);
 
         return (int) Database::connection()->lastInsertId();
+    }
+
+    public function findContactWithClientById(int $contactId): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT cc.id,
+                    cc.client_id,
+                    cc.contact_name,
+                    cc.email,
+                    cc.mobile,
+                    cc.can_login,
+                    c.legal_name,
+                    c.pan,
+                    c.tan,
+                    c.aadhaar_ciphertext,
+                    c.aadhaar_iv
+             FROM client_contacts cc
+             INNER JOIN clients c ON c.id = cc.client_id
+             WHERE cc.id = :id
+             LIMIT 1"
+        );
+        $statement->execute(['id' => $contactId]);
+
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+        return $record === false ? null : $record;
     }
 
     public function updatePrimaryContact(int $contactId, array $payload): void

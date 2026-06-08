@@ -21,10 +21,16 @@ final class AuthController
     ) {
     }
 
-    public function showLogin(): void
+    public function showLogin(Request $request): void
     {
+        $audience = strtolower((string) $request->input('audience', 'internal'));
+        if (!in_array($audience, ['internal', 'portal'], true)) {
+            $audience = 'internal';
+        }
+
         $content = View::render(base_path('modules/Auth/views/login.php'), [
             'title' => 'Login',
+            'audience' => $audience,
             'error' => Session::pullFlash('error'),
             'success' => Session::pullFlash('success'),
             'old_username' => Session::pullFlash('old_username'),
@@ -47,13 +53,29 @@ final class AuthController
     {
         $username = (string) $request->input('username', '');
         $password = (string) $request->input('password', '');
+        $audience = strtolower((string) $request->input('audience', 'internal'));
+        if ($audience === 'portal') {
+            $username = $this->normalizePortalLoginUsername($username);
+        }
         Session::flash('old_username', $username);
 
         $result = $this->authService->attempt($username, $password, $request);
 
         if (!$result['success']) {
             Session::flash('error', $result['message']);
-            redirect('/login');
+            redirect('/login?audience=' . $audience);
+        }
+
+        if ($audience === 'portal' && !Auth::isPortalUser()) {
+            Auth::logout();
+            Session::flash('error', 'Use Internal User login for staff and consultants.');
+            redirect('/login?audience=portal');
+        }
+
+        if ($audience === 'internal' && Auth::isPortalUser()) {
+            Auth::logout();
+            Session::flash('error', 'Use Portal User login for client accounts.');
+            redirect('/login?audience=internal');
         }
 
         Session::flash('success', 'Welcome back, ' . (Auth::user()['full_name'] ?? 'User') . '.');
@@ -121,5 +143,17 @@ final class AuthController
             Session::flash('error', $throwable->getMessage());
             redirect('/change-password');
         }
+    }
+
+    private function normalizePortalLoginUsername(string $username): string
+    {
+        $trimmed = preg_replace('/\s+/', '', trim($username)) ?? '';
+        $digits = preg_replace('/\D+/', '', $trimmed) ?? '';
+
+        if (strlen($digits) === 12) {
+            return $digits;
+        }
+
+        return strtoupper($trimmed);
     }
 }
