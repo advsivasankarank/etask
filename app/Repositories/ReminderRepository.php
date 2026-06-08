@@ -443,6 +443,7 @@ final class ReminderRepository
             "SELECT pso.id AS pso_id,
                     pso.client_id,
                     pso.pso_no,
+                    pso.submitted_at AS reference_at,
                     c.legal_name AS client_name,
                     NULL AS assigned_user_id
              FROM pre_service_orders pso

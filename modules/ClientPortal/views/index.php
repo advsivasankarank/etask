@@ -22,6 +22,11 @@
     <?php else: ?>
         <div class="card-grid">
             <?php foreach ($psos as $pso): ?>
+                <?php
+                    $canConvertToSo = !\App\Core\Auth::isPortalUser()
+                        && \App\Core\Auth::can('portal.pso.approve')
+                        && !in_array((string) $pso['current_status'], ['REJECTED', 'CONVERTED_TO_SO'], true);
+                ?>
                 <article class="data-card">
                     <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
                         <div>
@@ -33,7 +38,17 @@
                     <div class="stat-line"><span>Service</span><strong><?= e($pso['service_type_name']) ?></strong></div>
                     <div class="stat-line"><span>Company</span><strong><?= e($pso['company_name']) ?></strong></div>
                     <div class="stat-line"><span>Converted SO</span><strong><?= e($pso['converted_so_no'] ?: '-') ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+                    <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:10px;">
+                        <?php if (!empty($pso['converted_so_id'])): ?>
+                            <a href="<?= e(url('/service-orders/show?id=' . $pso['converted_so_id'])) ?>" class="button">Open SO</a>
+                        <?php elseif ($canConvertToSo): ?>
+                            <form method="post" action="<?= e(url('/client-portal/pso/approve')) ?>" style="margin:0;">
+                                <?= \App\Core\Csrf::inputField() ?>
+                                <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
+                                <input type="hidden" name="remarks" value="Converted from PSO list">
+                                <button type="submit" class="button">Convert to SO</button>
+                            </form>
+                        <?php endif; ?>
                         <a href="<?= e(url('/client-portal/pso/show?id=' . $pso['id'])) ?>" class="button button-secondary">View PSO</a>
                     </div>
                 </article>
