@@ -5,6 +5,11 @@
     <?php if (!empty($error)): ?>
         <div class="flash" style="background:#fef3f2;color:#b42318;border:1px solid #fecdca;"><?= e($error) ?></div>
     <?php endif; ?>
+    <?php
+        $canConvertToSo = !\App\Core\Auth::isPortalUser()
+            && \App\Core\Auth::can('portal.pso.approve')
+            && !in_array((string) $pso['current_status'], ['REJECTED', 'CONVERTED_TO_SO'], true);
+    ?>
 
     <div class="toolbar">
         <div>
@@ -12,7 +17,19 @@
             <h3 style="margin:0 0 6px;"><?= e($pso['pso_no']) ?></h3>
             <div class="subtle"><?= e($pso['title']) ?></div>
         </div>
-        <a href="<?= e(url('/client-portal/pso')) ?>" class="button button-secondary">Back to PSOs</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+            <?php if (!empty($pso['converted_so_id'])): ?>
+                <a href="<?= e(url('/service-orders/show?id=' . $pso['converted_so_id'])) ?>" class="button">Open Service Order</a>
+            <?php elseif ($canConvertToSo): ?>
+                <form method="post" action="<?= e(url('/client-portal/pso/approve')) ?>" style="margin:0;">
+                    <?= \App\Core\Csrf::inputField() ?>
+                    <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
+                    <input type="hidden" name="remarks" value="Converted from PSO detail">
+                    <button type="submit" class="button">Convert to SO</button>
+                </form>
+            <?php endif; ?>
+            <a href="<?= e(url('/client-portal/pso')) ?>" class="button button-secondary">Back to PSOs</a>
+        </div>
     </div>
 
     <div class="grid">
@@ -74,7 +91,7 @@
         </div>
     </div>
 
-    <?php if (\App\Core\Auth::canAny('portal.pso.review', 'portal.pso.approve')): ?>
+    <?php if (\App\Core\Auth::can('portal.pso.review') && !in_array((string) $pso['current_status'], ['REJECTED', 'CONVERTED_TO_SO'], true)): ?>
         <div class="grid" style="margin-top:18px;">
             <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6fafb);">
                 <h4 style="margin-top:0;">CRM Review</h4>
@@ -86,15 +103,17 @@
                 </form>
             </div>
 
-            <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6fafb);">
-                <h4 style="margin-top:0;">Approval</h4>
-                <form method="post" action="<?= e(url('/client-portal/pso/approve')) ?>" style="display:grid;gap:10px;">
-                    <?= \App\Core\Csrf::inputField() ?>
-                    <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
-                    <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Approval remarks"></textarea>
-                    <button type="submit" class="button">Approve and Create SO</button>
-                </form>
-            </div>
+            <?php if ($canConvertToSo): ?>
+                <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6fafb);">
+                    <h4 style="margin-top:0;">Convert to Service Order</h4>
+                    <form method="post" action="<?= e(url('/client-portal/pso/approve')) ?>" style="display:grid;gap:10px;">
+                        <?= \App\Core\Csrf::inputField() ?>
+                        <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
+                        <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Conversion remarks"></textarea>
+                        <button type="submit" class="button">Convert to SO</button>
+                    </form>
+                </div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 

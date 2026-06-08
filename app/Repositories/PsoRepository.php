@@ -19,6 +19,7 @@ final class PsoRepository
                        c.legal_name AS client_name,
                        st.name AS service_type_name,
                        comp.display_name AS company_name,
+                       so.id AS converted_so_id,
                        so.so_no AS converted_so_no
                 FROM pre_service_orders pso
                 INNER JOIN clients c ON c.id = pso.client_id
@@ -80,6 +81,7 @@ final class PsoRepository
                     st.code AS service_type_code,
                     comp.display_name AS company_name,
                     requester.contact_name AS requested_by_name,
+                    so.id AS converted_so_id,
                     so.so_no AS converted_so_no
              FROM pre_service_orders pso
              INNER JOIN clients c ON c.id = pso.client_id

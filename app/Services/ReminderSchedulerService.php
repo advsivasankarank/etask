@@ -288,6 +288,8 @@ final class ReminderSchedulerService
             $dueAt = date('Y-m-d 09:00:00', strtotime((string) $row['due_date']));
         } elseif (!empty($row['sla_due_at'])) {
             $dueAt = date('Y-m-d H:i:s', strtotime((string) $row['sla_due_at']));
+        } elseif ($reminderType === 'PENDING_PSO' && !empty($row['reference_at'])) {
+            $dueAt = date('Y-m-d H:i:s', strtotime((string) $row['reference_at']));
         } elseif (!empty($row['reference_at'])) {
             $dueAt = date('Y-m-d H:i:s', strtotime((string) $row['reference_at'] . ' +1 day'));
         } elseif (!empty($row['raised_at'])) {
