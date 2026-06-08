@@ -181,6 +181,7 @@ final class UserController
 
     public function rights(Request $request): void
     {
+        $this->guardRightsManagementAccess();
         $userId = (int) $request->input('id', 0);
         $catalog = $this->userService->rightsCatalogForUser($userId);
 
@@ -198,6 +199,7 @@ final class UserController
 
     public function saveRights(Request $request): void
     {
+        $this->guardRightsManagementAccess();
         $userId = (int) $request->input('id', 0);
 
         try {
@@ -208,6 +210,15 @@ final class UserController
         }
 
         redirect('/users/rights?id=' . $userId);
+    }
+
+    private function guardRightsManagementAccess(): void
+    {
+        if (Auth::can('users.manage.rights') || Auth::hasRole('SUPER_ADMIN')) {
+            return;
+        }
+
+        Response::abort(403, 'Only Super Admin can manage user rights.');
     }
 
     private function findAccessibleUser(int $userId): array
