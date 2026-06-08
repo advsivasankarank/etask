@@ -57,6 +57,11 @@ final class Auth
 
     public static function hasRole(string ...$roles): bool
     {
+        $assignedRoles = array_map(
+            static fn (mixed $role): string => strtoupper((string) $role),
+            self::user()['roles'] ?? []
+        );
+
         foreach ($roles as $role) {
             $normalizedRole = strtoupper(trim($role));
             if ($normalizedRole === 'CLIENT' && self::isPortalUser()) {
@@ -64,6 +69,10 @@ final class Auth
             }
 
             if ($normalizedRole === 'CONSULTANT' && self::isConsultantUser()) {
+                return true;
+            }
+
+            if (in_array($normalizedRole, $assignedRoles, true)) {
                 return true;
             }
         }

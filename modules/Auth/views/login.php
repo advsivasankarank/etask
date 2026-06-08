@@ -2,11 +2,11 @@
 <div class="auth-wrap">
     <section class="auth-copy">
         <div class="eyebrow">e-pani</div>
-        <h1><?= $audience === 'portal' ? 'Client portal access for e-Pani.' : 'Office management, compliance workflow, and client operations.' ?></h1>
+        <h1><?= $audience === 'portal' ? 'Client access for e-Pani.' : 'Staff access for e-Pani operations.' ?></h1>
         <p class="copy-text">
             <?= $audience === 'portal'
                 ? 'Portal users can sign in using their PAN, TAN, or Aadhaar-based username. If you do not yet have portal access, register your client account first.'
-                : 'Internal users can sign in to manage service orders, workflow milestones, billing, reminders, attendance, consultant coordination, and client collaboration across companies.' ?>
+                : 'Staff users can sign in to manage service orders, workflow milestones, billing, reminders, attendance, consultant coordination, and client collaboration across companies.' ?>
         </p>
         <div class="badge-grid">
             <?php if ($audience === 'portal'): ?>
@@ -21,8 +21,8 @@
         </div>
     </section>
     <section class="auth-form">
-        <div class="eyebrow" style="margin-bottom:8px;"><?= $audience === 'portal' ? 'Portal Login' : 'Internal Login' ?></div>
-        <h2 style="margin-top:0;"><?= $audience === 'portal' ? 'Login to client portal' : 'Login to internal workspace' ?></h2>
+        <div class="eyebrow" style="margin-bottom:8px;"><?= $audience === 'portal' ? 'Client Login' : 'Staff Login' ?></div>
+        <h2 style="margin-top:0;"><?= $audience === 'portal' ? 'Login to client portal' : 'Login to staff workspace' ?></h2>
         <p class="hint" style="color:#5d6b82;">Enter your username and password to continue.</p>
 
         <?php if (!empty($error)): ?>
@@ -47,8 +47,8 @@
             <button type="submit" class="button">Sign In</button>
         </form>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
-            <a href="<?= e(url('/login?audience=internal')) ?>" class="button button-secondary">Internal User</a>
-            <a href="<?= e(url('/login?audience=portal')) ?>" class="button button-secondary">Portal User</a>
+            <a href="<?= e(url('/login?audience=internal')) ?>" class="button button-secondary">Staff Login</a>
+            <a href="<?= e(url('/login?audience=portal')) ?>" class="button button-secondary">Client Login</a>
             <?php if ($audience === 'portal'): ?>
                 <a href="<?= e(url('/register-client')) ?>" class="button button-secondary">Register Client</a>
             <?php endif; ?>

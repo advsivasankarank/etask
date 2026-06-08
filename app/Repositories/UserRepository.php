@@ -330,6 +330,74 @@ final class UserRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function permissionCatalog(): array
+    {
+        $statement = Database::connection()->query(
+            "SELECT id, code, module_code, action_code, label, description
+             FROM permissions
+             WHERE is_active = 1
+             ORDER BY module_code ASC, label ASC"
+        );
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function directGrantedPermissionCodes(int $userId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT p.code
+             FROM user_permissions up
+             INNER JOIN permissions p ON p.id = up.permission_id
+             WHERE up.user_id = :user_id
+               AND up.is_granted = 1
+               AND p.is_active = 1
+             ORDER BY p.code ASC"
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return array_column($statement->fetchAll(PDO::FETCH_ASSOC), 'code');
+    }
+
+    public function rolePermissionCodes(int $userId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT DISTINCT p.code
+             FROM user_role_map urm
+             INNER JOIN role_permissions rp ON rp.role_id = urm.role_id
+             INNER JOIN permissions p ON p.id = rp.permission_id
+             WHERE urm.user_id = :user_id
+               AND rp.is_granted = 1
+               AND p.is_active = 1
+             ORDER BY p.code ASC"
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return array_column($statement->fetchAll(PDO::FETCH_ASSOC), 'code');
+    }
+
+    public function clearUserPermissions(int $userId): void
+    {
+        $statement = Database::connection()->prepare("DELETE FROM user_permissions WHERE user_id = :user_id");
+        $statement->execute(['user_id' => $userId]);
+    }
+
+    public function grantUserPermission(int $userId, int $permissionId, ?int $assignedBy, ?string $notes = null): void
+    {
+        $statement = Database::connection()->prepare(
+            "INSERT INTO user_permissions (
+                user_id, permission_id, is_granted, assigned_by, notes, assigned_at, created_at, updated_at
+             ) VALUES (
+                :user_id, :permission_id, 1, :assigned_by, :notes, NOW(), NOW(), NOW()
+             )"
+        );
+        $statement->execute([
+            'user_id' => $userId,
+            'permission_id' => $permissionId,
+            'assigned_by' => $assignedBy,
+            'notes' => $notes,
+        ]);
+    }
+
     public function effectivePermissionCodes(int $userId): array
     {
         $grantedPermissions = [];

@@ -57,6 +57,8 @@ $router->post('/users', [UserController::class, 'store'], ['auth', 'permission:u
 $router->get('/users/show', [UserController::class, 'show'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->get('/users/edit', [UserController::class, 'edit'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/update', [UserController::class, 'update'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
+$router->get('/users/rights', [UserController::class, 'rights'], ['auth', 'permission:users.manage.rights']);
+$router->post('/users/rights', [UserController::class, 'saveRights'], ['auth', 'permission:users.manage.rights']);
 $router->post('/users/archive', [UserController::class, 'archive'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/activate', [UserController::class, 'activate'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/reset-password', [UserController::class, 'resetPassword'], ['auth', 'permission:users.manage.portal,users.manage.internal']);

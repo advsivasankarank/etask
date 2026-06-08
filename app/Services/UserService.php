@@ -240,6 +240,87 @@ final class UserService
         $this->users->recordActivity($userId, 'CHANGE_PASSWORD', $userId, 'User completed first-login password change.');
     }
 
+    public function rightsCatalogForUser(int $userId): array
+    {
+        $user = $this->users->findDetailedById($userId);
+        if ($user === null) {
+            throw new RuntimeException('User not found.');
+        }
+
+        $roleCodes = $this->users->rolePermissionCodes($userId);
+        $directCodes = $this->users->directGrantedPermissionCodes($userId);
+        $effectiveCodes = $this->users->effectivePermissionCodes($userId);
+
+        $grouped = [];
+        foreach ($this->users->permissionCatalog() as $permission) {
+            $moduleCode = (string) ($permission['module_code'] ?? 'GENERAL');
+            $code = (string) ($permission['code'] ?? '');
+            $grouped[$moduleCode][] = [
+                'id' => (int) $permission['id'],
+                'code' => $code,
+                'label' => (string) ($permission['label'] ?? $code),
+                'description' => (string) ($permission['description'] ?? ''),
+                'inherited' => in_array($code, $roleCodes, true),
+                'direct' => in_array($code, $directCodes, true),
+                'effective' => in_array($code, $effectiveCodes, true),
+            ];
+        }
+
+        ksort($grouped);
+
+        return [
+            'user' => $user,
+            'groups' => $grouped,
+            'role_codes' => $roleCodes,
+            'direct_codes' => $directCodes,
+            'effective_codes' => $effectiveCodes,
+        ];
+    }
+
+    public function updateGrantedRights(int $userId, array $permissionCodes, array $actor): void
+    {
+        if (!in_array('users.manage.rights', $actor['permissions'] ?? [], true)) {
+            throw new RuntimeException('Only Super Admin can manage user rights.');
+        }
+
+        $user = $this->users->findDetailedById($userId);
+        if ($user === null) {
+            throw new RuntimeException('User not found.');
+        }
+
+        $catalog = [];
+        foreach ($this->users->permissionCatalog() as $permission) {
+            $catalog[(string) $permission['code']] = (int) $permission['id'];
+        }
+
+        $normalizedCodes = [];
+        foreach ($permissionCodes as $permissionCode) {
+            $code = trim((string) $permissionCode);
+            if ($code === '' || !isset($catalog[$code])) {
+                continue;
+            }
+
+            $normalizedCodes[$code] = true;
+        }
+
+        $normalizedCodes = array_keys($normalizedCodes);
+        sort($normalizedCodes);
+
+        $this->runInTransaction(function () use ($userId, $actor, $normalizedCodes, $catalog): void {
+            $this->users->clearUserPermissions($userId);
+            foreach ($normalizedCodes as $code) {
+                $this->users->grantUserPermission($userId, $catalog[$code], $actor['id'] ?? null, 'Assigned from rights control panel');
+            }
+        });
+
+        $this->users->recordActivity(
+            $actor['id'] ?? null,
+            'RIGHTS_UPDATE',
+            $userId,
+            'User rights updated. Direct grants: ' . ($normalizedCodes === [] ? 'none' : implode(', ', $normalizedCodes))
+        );
+    }
+
     private function runInTransaction(callable $callback): mixed
     {
         $connection = Database::connection();
