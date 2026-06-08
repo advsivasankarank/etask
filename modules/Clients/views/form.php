@@ -2,6 +2,8 @@
 $old = is_array($old ?? null) ? $old : [];
 $clientData = $client ?? [];
 $contactData = $contact ?? [];
+$publicRegistration = !empty($publicRegistration);
+$isPublicMode = ($mode ?? '') === 'public_register';
 $value = static function (string $key, array $primary, array $secondary = []): string {
     return (string) ($primary[$key] ?? $secondary[$key] ?? '');
 };
@@ -9,17 +11,17 @@ $value = static function (string $key, array $primary, array $secondary = []): s
 <section class="panel">
     <div class="toolbar">
         <div>
-            <div class="eyebrow">Client Onboarding</div>
-            <h3 style="margin:0 0 6px;"><?= $mode === 'edit' ? 'Edit Client' : 'Create Client' ?></h3>
-            <div class="subtle">Capture tax identity, contacts, ownership, and onboarding documents in one place.</div>
+            <div class="eyebrow"><?= $publicRegistration ? 'Client Registration' : 'Client Onboarding' ?></div>
+            <h3 style="margin:0 0 6px;"><?= $mode === 'edit' ? 'Edit Client' : ($publicRegistration ? 'Register for Client Portal Access' : 'Create Client') ?></h3>
+            <div class="subtle"><?= $publicRegistration ? 'Create your client record and portal login in one step.' : 'Capture tax identity, contacts, ownership, and onboarding documents in one place.' ?></div>
         </div>
-        <a href="<?= e(url('/clients')) ?>" class="button button-secondary">Back to Clients</a>
+        <a href="<?= e($publicRegistration ? url('/login?audience=portal') : url('/clients')) ?>" class="button button-secondary"><?= $publicRegistration ? 'Portal Login' : 'Back to Clients' ?></a>
     </div>
     <?php if (!empty($error)): ?>
         <div class="flash" style="background:#fef3f2;color:#b42318;border:1px solid #fecdca;"><?= e($error) ?></div>
     <?php endif; ?>
 
-    <form method="post" action="<?= e($mode === 'edit' ? url('/clients/update') : url('/clients')) ?>" enctype="multipart/form-data" style="display:grid;gap:18px;">
+    <form method="post" action="<?= e($mode === 'edit' ? url('/clients/update') : ($publicRegistration ? url('/register-client') : url('/clients'))) ?>" enctype="multipart/form-data" style="display:grid;gap:18px;">
         <?= \App\Core\Csrf::inputField() ?>
         <?php if ($mode === 'edit'): ?>
             <input type="hidden" name="id" value="<?= e((string) $clientData['id']) ?>">
@@ -87,17 +89,19 @@ $value = static function (string $key, array $primary, array $secondary = []): s
                 <input type="text" name="landline" value="<?= e($value('landline', $old, $clientData)) ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
             </label>
 
-            <label style="display:grid;gap:8px;">
-                <span>Assigned CRM</span>
-                <select name="assigned_crm_id">
-                    <option value="">Select CRM</option>
-                    <?php foreach ($crmUsers as $crm): ?>
-                        <option value="<?= e((string) $crm['id']) ?>" <?= $value('assigned_crm_id', $old, $clientData) === (string) $crm['id'] ? 'selected' : '' ?>>
-                            <?= e($crm['full_name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
+            <?php if (!$publicRegistration): ?>
+                <label style="display:grid;gap:8px;">
+                    <span>Assigned CRM</span>
+                    <select name="assigned_crm_id">
+                        <option value="">Select CRM</option>
+                        <?php foreach ($crmUsers as $crm): ?>
+                            <option value="<?= e((string) $crm['id']) ?>" <?= $value('assigned_crm_id', $old, $clientData) === (string) $crm['id'] ? 'selected' : '' ?>>
+                                <?= e($crm['full_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+            <?php endif; ?>
         </div>
         </div>
 
@@ -122,6 +126,33 @@ $value = static function (string $key, array $primary, array $secondary = []): s
             </label>
         </div>
         </div>
+
+        <?php if ($publicRegistration): ?>
+            <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
+                <div class="eyebrow">Portal Access</div>
+                <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
+                    <label style="display:grid;gap:8px;">
+                        <span>Username Basis</span>
+                        <select name="username_basis" required>
+                            <?php foreach (['PAN', 'TAN', 'AADHAAR'] as $basis): ?>
+                                <option value="<?= e($basis) ?>" <?= $value('username_basis', $old, ['username_basis' => 'PAN']) === $basis ? 'selected' : '' ?>><?= e($basis) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small style="color:#64748b;">Your portal username will be assigned from the selected PAN, TAN, or Aadhaar with structural validation.</small>
+                    </label>
+
+                    <label style="display:grid;gap:8px;">
+                        <span>Password</span>
+                        <input type="password" name="password" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                    </label>
+
+                    <label style="display:grid;gap:8px;">
+                        <span>Confirm Password</span>
+                        <input type="password" name="confirm_password" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                    </label>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
             <div class="eyebrow">Documents</div>
@@ -164,8 +195,8 @@ $value = static function (string $key, array $primary, array $secondary = []): s
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <button type="submit" class="button"><?= $mode === 'edit' ? 'Update Client' : 'Create Client' ?></button>
-            <a href="<?= e(url('/clients')) ?>" class="button button-secondary">Back to Clients</a>
+            <button type="submit" class="button"><?= $mode === 'edit' ? 'Update Client' : ($publicRegistration ? 'Create Portal Account' : 'Create Client') ?></button>
+            <a href="<?= e($publicRegistration ? url('/login?audience=portal') : url('/clients')) ?>" class="button button-secondary"><?= $publicRegistration ? 'Back to Portal Login' : 'Back to Clients' ?></a>
         </div>
     </form>
 </section>

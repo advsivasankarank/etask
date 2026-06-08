@@ -19,6 +19,8 @@ use Modules\Workflow\WorkflowController;
 $router->get('/', [AuthController::class, 'showLanding'], ['guest']);
 $router->get('/login', [AuthController::class, 'showLogin'], ['guest']);
 $router->post('/login', [AuthController::class, 'login'], ['guest']);
+$router->get('/register-client', [ClientController::class, 'publicCreate'], ['guest']);
+$router->post('/register-client', [ClientController::class, 'publicStore'], ['guest']);
 $router->get('/change-password', [AuthController::class, 'showChangePassword'], ['auth']);
 $router->post('/change-password', [AuthController::class, 'changePassword'], ['auth']);
 $router->post('/logout', [AuthController::class, 'logout'], ['auth']);

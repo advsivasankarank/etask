@@ -46,6 +46,7 @@ final class ClientController
             'title' => 'Create Client',
             'activeMenu' => 'clients',
             'mode' => 'create',
+            'publicRegistration' => false,
             'client' => null,
             'contact' => null,
             'crmUsers' => $this->clients->crmUsers(),
@@ -111,6 +112,7 @@ final class ClientController
             'title' => 'Edit Client',
             'activeMenu' => 'clients',
             'mode' => 'edit',
+            'publicRegistration' => false,
             'client' => $client,
             'contact' => $this->clients->primaryContact($clientId),
             'crmUsers' => $this->clients->crmUsers(),
@@ -194,6 +196,41 @@ final class ClientController
         } catch (Throwable $throwable) {
             Session::flash('error', $throwable->getMessage());
             redirect('/clients/credentials?id=' . $clientId);
+        }
+    }
+
+    public function publicCreate(): void
+    {
+        $content = View::render(base_path('modules/Clients/views/form.php'), [
+            'title' => 'Client Registration',
+            'activeMenu' => null,
+            'mode' => 'public_register',
+            'publicRegistration' => true,
+            'client' => null,
+            'contact' => null,
+            'crmUsers' => [],
+            'old' => Session::pullFlash('old', []),
+            'error' => Session::pullFlash('error'),
+        ], 'auth');
+
+        Response::html($content);
+    }
+
+    public function publicStore(Request $request): void
+    {
+        $payload = $request->all();
+        Session::flash('old', $payload);
+
+        try {
+            $result = $this->clientService->registerPortalClient($payload, [
+                'pan_document' => $request->file('pan_document'),
+                'aadhaar_document' => $request->file('aadhaar_document'),
+            ]);
+            Session::flash('success', 'Portal account created successfully. Your username is ' . $result['username'] . '. Please sign in using the password you set.');
+            redirect('/login?audience=portal');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+            redirect('/register-client');
         }
     }
 }

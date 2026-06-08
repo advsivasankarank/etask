@@ -15,7 +15,8 @@ final class ClientService
     public function __construct(
         private readonly ClientRepository $clients = new ClientRepository(),
         private readonly DocumentUploadService $documentUploads = new DocumentUploadService(),
-        private readonly EncryptionService $encryption = new EncryptionService()
+        private readonly EncryptionService $encryption = new EncryptionService(),
+        private readonly UserService $users = new UserService()
     ) {
     }
 
@@ -72,6 +73,7 @@ final class ClientService
                 'designation' => trim((string) ($input['designation'] ?? '')) ?: null,
                 'email' => trim((string) ($input['contact_email'] ?? $input['email'] ?? '')) ?: null,
                 'mobile' => trim((string) ($input['contact_mobile'] ?? $input['mobile'] ?? '')) ?: null,
+                'can_login' => 0,
             ]);
 
             return $clientId;
@@ -298,6 +300,108 @@ final class ClientService
             'client_id' => $clientId,
             'updated_by' => $updatedBy,
         ]);
+    }
+
+    public function registerPortalClient(array $input, array $files = []): array
+    {
+        $password = (string) ($input['password'] ?? '');
+        $confirmPassword = (string) ($input['confirm_password'] ?? '');
+        $usernameBasis = strtoupper(trim((string) ($input['username_basis'] ?? 'PAN')));
+        $email = trim((string) ($input['contact_email'] ?? $input['email'] ?? ''));
+
+        if ($email === '') {
+            throw new RuntimeException('Contact email is required for portal registration.');
+        }
+
+        if ($password === '' || $confirmPassword === '') {
+            throw new RuntimeException('Password and confirmation password are required.');
+        }
+
+        if ($password !== $confirmPassword) {
+            throw new RuntimeException('Password and confirmation password must match.');
+        }
+
+        $portalAccount = null;
+        $clientId = $this->runInTransaction(function () use ($input, $usernameBasis, $password, &$portalAccount): int {
+            $pan = strtoupper(trim((string) ($input['pan'] ?? '')));
+            $legalName = trim((string) ($input['legal_name'] ?? ''));
+            $aadhaar = preg_replace('/\D+/', '', (string) ($input['aadhaar_no'] ?? ''));
+
+            if ($pan === '' || $legalName === '') {
+                throw new RuntimeException('PAN and legal name are required.');
+            }
+
+            if ($aadhaar !== '' && strlen($aadhaar) !== 12) {
+                throw new RuntimeException('Aadhaar number must be 12 digits.');
+            }
+
+            if ($this->clients->panExists($pan)) {
+                throw new RuntimeException('A client with this PAN already exists.');
+            }
+
+            $clientCode = 'CLT/' . date('Y') . '/' . strtoupper(substr(md5(uniqid('', true)), 0, 6));
+            $encryptedAadhaar = $aadhaar !== '' ? $this->encryption->encrypt($aadhaar) : null;
+
+            $clientId = $this->clients->create([
+                'client_code' => $clientCode,
+                'client_type' => (string) ($input['client_type'] ?? 'INDIVIDUAL'),
+                'legal_name' => $legalName,
+                'trade_name' => trim((string) ($input['trade_name'] ?? '')) ?: null,
+                'pan' => $pan,
+                'tan' => strtoupper(trim((string) ($input['tan'] ?? ''))) ?: null,
+                'gstin' => strtoupper(trim((string) ($input['gstin'] ?? ''))) ?: null,
+                'aadhaar_no' => null,
+                'aadhaar_ciphertext' => $encryptedAadhaar['ciphertext'] ?? null,
+                'aadhaar_iv' => $encryptedAadhaar['iv'] ?? null,
+                'aadhaar_last4' => $aadhaar !== '' ? substr($aadhaar, -4) : null,
+                'email' => trim((string) ($input['email'] ?? '')) ?: null,
+                'mobile' => trim((string) ($input['mobile'] ?? '')) ?: null,
+                'alternate_mobile' => trim((string) ($input['alternate_mobile'] ?? '')) ?: null,
+                'landline' => trim((string) ($input['landline'] ?? '')) ?: null,
+                'address_line1' => trim((string) ($input['address_line1'] ?? '')) ?: null,
+                'address_line2' => trim((string) ($input['address_line2'] ?? '')) ?: null,
+                'city' => trim((string) ($input['city'] ?? '')) ?: null,
+                'state_name' => trim((string) ($input['state_name'] ?? '')) ?: null,
+                'postal_code' => trim((string) ($input['postal_code'] ?? '')) ?: null,
+                'default_company_id' => null,
+                'assigned_crm_id' => null,
+            ]);
+
+            $contactId = $this->clients->createContact([
+                'client_id' => $clientId,
+                'contact_name' => trim((string) ($input['contact_name'] ?? $legalName)),
+                'designation' => trim((string) ($input['designation'] ?? '')) ?: null,
+                'email' => trim((string) ($input['contact_email'] ?? $input['email'] ?? '')) ?: null,
+                'mobile' => trim((string) ($input['contact_mobile'] ?? $input['mobile'] ?? '')) ?: null,
+                'can_login' => 1,
+            ]);
+
+            $portalAccount = $this->users->createPortalUserForClientContact(
+                $contactId,
+                $usernameBasis,
+                $password,
+                trim((string) ($input['contact_name'] ?? $legalName)),
+                trim((string) ($input['contact_email'] ?? $input['email'] ?? '')),
+                trim((string) ($input['contact_mobile'] ?? $input['mobile'] ?? '')) ?: null,
+                null
+            );
+
+            return $clientId;
+        });
+
+        $this->uploadIdentityDocuments($clientId, $files, (int) ($portalAccount['user_id'] ?? 0));
+
+        Logger::info('client.portal_registered', [
+            'client_id' => $clientId,
+            'username' => $portalAccount['username'] ?? null,
+            'user_id' => $portalAccount['user_id'] ?? null,
+        ]);
+
+        return [
+            'client_id' => $clientId,
+            'user_id' => (int) ($portalAccount['user_id'] ?? 0),
+            'username' => (string) ($portalAccount['username'] ?? ''),
+        ];
     }
 
     public static function portalDefinitions(): array
