@@ -179,6 +179,37 @@ final class UserController
         redirect('/users/show?id=' . $userId);
     }
 
+    public function rights(Request $request): void
+    {
+        $userId = (int) $request->input('id', 0);
+        $catalog = $this->userService->rightsCatalogForUser($userId);
+
+        $content = View::render(base_path('modules/Users/views/rights.php'), [
+            'title' => 'Manage Rights',
+            'activeMenu' => 'users',
+            'rightsUser' => $catalog['user'],
+            'rightsGroups' => $catalog['groups'],
+            'success' => Session::pullFlash('success'),
+            'error' => Session::pullFlash('error'),
+        ]);
+
+        Response::html($content);
+    }
+
+    public function saveRights(Request $request): void
+    {
+        $userId = (int) $request->input('id', 0);
+
+        try {
+            $this->userService->updateGrantedRights($userId, (array) $request->input('granted_permissions', []), Auth::user() ?? []);
+            Session::flash('success', 'User rights updated successfully.');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+        }
+
+        redirect('/users/rights?id=' . $userId);
+    }
+
     private function findAccessibleUser(int $userId): array
     {
         $user = $this->users->findDetailedById($userId);

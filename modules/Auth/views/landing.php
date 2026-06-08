@@ -748,8 +748,8 @@
             </nav>
             <div class="actions">
                 <a class="button button-primary" href="#contact">Request a Demo</a>
-                <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Internal User</a>
-                <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Portal User</a>
+                <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
+                <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
             </div>
         </div>
     </header>
@@ -767,8 +767,8 @@
                         <p class="hero-subtitle">e-Pani is a professional SaaS platform for Tax Practitioners, Chartered Accountants, GST Consultants, Advocates, and Compliance Teams managing client work, assignments, billing, records, and follow-up.</p>
                         <div class="hero-actions">
                             <a class="button button-primary" href="#features">Explore Features</a>
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Internal User Login</a>
-                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Portal User Login</a>
+                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
+                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
                         </div>
                         <p class="hero-note">Derived from the Tamil word “பணி” (Pani), meaning work, duty, assignment, or task, e-Pani gives professional work a disciplined digital operating model.</p>
                     </div>
@@ -807,8 +807,8 @@
                             </div>
                         </div>
                         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Internal User Access</a>
-                            <a class="button button-primary" href="<?= e(url('/login?audience=portal')) ?>">Portal User Access</a>
+                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
+                            <a class="button button-primary" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
                             <a class="button button-ghost" href="<?= e(url('/register-client')) ?>">Register as Client</a>
                         </div>
                     </div>
@@ -1024,8 +1024,8 @@
                         <p>Request a guided walkthrough to understand how e-Pani can support client onboarding, assignment execution, billing control, reminders, consultant coordination, and reporting in your firm.</p>
                         <div class="cta-actions">
                             <a class="button button-light" href="mailto:hello@etaxadv.com?subject=e-Pani%20Demo%20Request">Request Demo</a>
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Internal Login</a>
-                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Portal Login</a>
+                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
+                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
                         </div>
                     </div>
                     <div class="card contact-card">

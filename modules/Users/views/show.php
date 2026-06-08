@@ -15,6 +15,9 @@
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <a href="<?= e(url('/users/edit?id=' . $userRecord['id'])) ?>" class="button">Edit</a>
+            <?php if (\App\Core\Auth::can('users.manage.rights')): ?>
+                <a href="<?= e(url('/users/rights?id=' . $userRecord['id'])) ?>" class="button button-secondary">Manage Rights</a>
+            <?php endif; ?>
             <a href="<?= e(url('/users')) ?>" class="button button-secondary">Back</a>
         </div>
     </div>
