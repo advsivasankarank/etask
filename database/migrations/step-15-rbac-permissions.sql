@@ -132,6 +132,7 @@ INNER JOIN permissions p ON p.code IN (
     'dashboard.crm','users.manage.portal',
     'clients.view','clients.create','clients.edit','clients.credentials.manage',
     'portal.pso.review','portal.pso.approve',
+    'billing.disbursements.manage',
     'consultants.view','consultants.assign','consultants.deliverables.upload','consultants.deliverables.review','consultants.bills.create',
     'service_orders.view','service_orders.create',
     'workflow.advance','workflow.payment.record','workflow.acknowledgement.capture',
@@ -146,6 +147,7 @@ FROM roles r
 INNER JOIN permissions p ON p.code IN (
     'dashboard.crm',
     'clients.view',
+    'billing.disbursements.manage',
     'service_orders.view','service_orders.create',
     'workflow.advance','workflow.payment.record','workflow.acknowledgement.capture',
     'workflow.everification.complete','workflow.followup.log'

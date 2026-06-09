@@ -170,12 +170,14 @@ final class ServiceOrderRepository
             "INSERT INTO service_orders (
                 so_no, client_id, company_id, financial_year_id, pre_service_order_id,
                 service_type_id, workflow_definition_id, work_basis, compliance_subtype, assessment_year,
+                itr_case_nature, itr_tax_audit_applicable,
                 period_month, period_quarter, period_year, period_label, title, description, priority_level,
                 assigned_crm_id, assigned_assistant_crm_id, assigned_backend_id, assigned_deo_id,
                 current_stage_code, sla_due_at, created_by, created_at, updated_at
             ) VALUES (
                 :so_no, :client_id, :company_id, :financial_year_id, :pre_service_order_id,
                 :service_type_id, :workflow_definition_id, :work_basis, :compliance_subtype, :assessment_year,
+                :itr_case_nature, :itr_tax_audit_applicable,
                 :period_month, :period_quarter, :period_year, :period_label, :title, :description, :priority_level,
                 :assigned_crm_id, :assigned_assistant_crm_id, :assigned_backend_id, :assigned_deo_id,
                 :current_stage_code, :sla_due_at, :created_by, NOW(), NOW()

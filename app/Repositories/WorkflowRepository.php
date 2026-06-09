@@ -41,10 +41,17 @@ final class WorkflowRepository
     public function stageHistory(int $serviceOrderId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT stage_code, stage_name, entered_at, exited_at, remarks
-             FROM workflow_stage_history
-             WHERE service_order_id = :service_order_id
-             ORDER BY id ASC"
+            "SELECT wsh.stage_code,
+                    wsh.stage_name,
+                    wsh.entered_at,
+                    wsh.exited_at,
+                    wsh.remarks,
+                    wsh.entered_by,
+                    u.full_name AS entered_by_name
+             FROM workflow_stage_history wsh
+             LEFT JOIN users u ON u.id = wsh.entered_by
+             WHERE wsh.service_order_id = :service_order_id
+             ORDER BY wsh.id ASC"
         );
         $statement->execute(['service_order_id' => $serviceOrderId]);
 
@@ -67,10 +74,17 @@ final class WorkflowRepository
     public function closures(int $serviceOrderId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT closure_type, closure_status, closure_at, block_reason, notes
-             FROM service_order_closures
-             WHERE service_order_id = :service_order_id
-             ORDER BY id ASC"
+            "SELECT soc.closure_type,
+                    soc.closure_status,
+                    soc.closure_at,
+                    soc.block_reason,
+                    soc.notes,
+                    soc.closed_by,
+                    u.full_name AS closed_by_name
+             FROM service_order_closures soc
+             LEFT JOIN users u ON u.id = soc.closed_by
+             WHERE soc.service_order_id = :service_order_id
+             ORDER BY soc.id ASC"
         );
         $statement->execute(['service_order_id' => $serviceOrderId]);
 

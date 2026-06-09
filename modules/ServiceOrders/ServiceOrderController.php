@@ -13,10 +13,9 @@ use App\Repositories\ClientRepository;
 use App\Repositories\CompanyRepository;
 use App\Repositories\ServiceOrderRepository;
 use App\Repositories\ServiceTypeRepository;
-use App\Repositories\UserRepository;
+use App\Services\BillingService;
 use App\Services\ServiceOrderService;
 use App\Services\WorkflowService;
-use RuntimeException;
 use Throwable;
 
 final class ServiceOrderController
@@ -27,7 +26,8 @@ final class ServiceOrderController
         private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
         private readonly CompanyRepository $companies = new CompanyRepository(),
         private readonly ServiceOrderService $serviceOrderService = new ServiceOrderService(),
-        private readonly WorkflowService $workflows = new WorkflowService()
+        private readonly WorkflowService $workflows = new WorkflowService(),
+        private readonly BillingService $billingService = new BillingService()
     ) {
     }
 
@@ -69,6 +69,8 @@ final class ServiceOrderController
             'error' => Session::pullFlash('error'),
             'priorityOptions' => ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
             'workBasisOptions' => ['ANNUAL', 'MONTHLY', 'QUARTERLY'],
+            'itrCaseOptions' => ['BUSINESS' => 'Business Case', 'NON_BUSINESS' => 'Other Than Business Case'],
+            'yesNoOptions' => ['YES' => 'Yes', 'NO' => 'No'],
             'quarterOptions' => ['Q1', 'Q2', 'Q3', 'Q4'],
             'monthOptions' => [
                 1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
@@ -93,6 +95,8 @@ final class ServiceOrderController
             'work_basis' => (string) $request->input('work_basis', ''),
             'compliance_subtype' => (string) $request->input('compliance_subtype', ''),
             'assessment_year' => trim((string) $request->input('assessment_year', '')),
+            'itr_case_nature' => (string) $request->input('itr_case_nature', ''),
+            'itr_tax_audit_applicable' => (string) $request->input('itr_tax_audit_applicable', ''),
             'period_month' => (int) $request->input('period_month', 0),
             'period_quarter' => (string) $request->input('period_quarter', ''),
             'period_year' => (int) $request->input('period_year', 0),
@@ -133,6 +137,7 @@ final class ServiceOrderController
             'title' => 'Service Order Details',
             'activeMenu' => 'service_orders',
             'order' => $order,
+            'billing' => $this->billingService->billingDashboard($id),
             'workflowStages' => $context['stages'],
             'workflowHistory' => $context['history'],
             'workflowReminders' => $context['reminders'],
