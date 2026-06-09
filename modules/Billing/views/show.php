@@ -38,13 +38,14 @@
     <div class="grid" style="margin-top:18px;">
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6fafb);">
             <h4 style="margin-top:0;">Add Disbursement</h4>
-            <form method="post" action="<?= e(url('/billing/disbursements')) ?>" style="display:grid;gap:10px;">
+            <form method="post" enctype="multipart/form-data" action="<?= e(url('/billing/disbursements')) ?>" style="display:grid;gap:10px;">
                 <?= \App\Core\Csrf::inputField() ?>
                 <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
                 <input type="date" name="expense_date" value="<?= e(date('Y-m-d')) ?>" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;">
                 <input type="text" name="expense_type" placeholder="Expense type" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;" required>
                 <input type="number" step="0.01" name="amount" placeholder="Amount" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;" required>
                 <input type="text" name="paid_to" placeholder="Paid to" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;">
+                <input type="file" name="proof_document" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;">
                 <label style="display:flex;gap:8px;align-items:center;">
                     <input type="checkbox" name="is_recoverable" value="1" checked> Recoverable from client
                 </label>
@@ -107,6 +108,12 @@
                         <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
                             <div><strong><?= e($item['expense_type']) ?></strong> | INR <?= e(number_format((float) $item['amount'], 2)) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Recoverable: <?= (int) $item['is_recoverable'] === 1 ? 'Yes' : 'No' ?> | Invoiced: <?= e($item['invoiced_at'] ?: 'Pending') ?></div>
+                            <?php if (!empty($item['proof_document_id'])): ?>
+                                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                                    <a href="<?= e(url('/documents/show?id=' . $item['proof_document_id'])) ?>" class="button button-secondary">Open Proof</a>
+                                    <a href="<?= e(url('/documents/' . $item['proof_document_id'] . '/download')) ?>" class="button button-secondary">Download Proof</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -124,6 +131,9 @@
                             <div><strong><?= e($invoice['invoice_no']) ?></strong> | <?= e($invoice['invoice_type']) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Gross: INR <?= e(number_format((float) $invoice['gross_total'], 2)) ?> | Advance adjusted: INR <?= e(number_format((float) $invoice['advance_adjusted'], 2)) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Net payable: INR <?= e(number_format((float) $invoice['net_payable'], 2)) ?> | Status: <?= e($invoice['payment_status']) ?></div>
+                            <div style="margin-top:8px;">
+                                <a href="<?= e(url('/billing/invoice?id=' . $invoice['id'])) ?>" class="button button-secondary">Open Invoice</a>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -141,6 +151,11 @@
                             <div><strong><?= e($payment['transaction_type']) ?></strong> | INR <?= e(number_format((float) $payment['amount'], 2)) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Mode: <?= e($payment['payment_mode']) ?> | Status: <?= e($payment['status']) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Receipt: <?= e($payment['receipt_no'] ?: 'Pending') ?> | Ref: <?= e($payment['reference_no'] ?: '-') ?></div>
+                            <?php if (!empty($payment['receipt_id'])): ?>
+                                <div style="margin-top:8px;">
+                                    <a href="<?= e(url('/billing/receipt?id=' . $payment['receipt_id'])) ?>" class="button button-secondary">Open Receipt</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>

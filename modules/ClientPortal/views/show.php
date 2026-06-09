@@ -64,7 +64,8 @@
                     <?php foreach ($documents as $document): ?>
                         <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#f8fafc;">
                             <div><strong><?= e($document['document_name']) ?></strong></div>
-                            <div style="margin-top:8px;">
+                            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                                <a href="<?= e(url('/documents/show?id=' . $document['id'])) ?>" class="button button-secondary">Open Document</a>
                                 <a href="<?= e(url('/documents/' . $document['id'] . '/download')) ?>" class="button button-secondary">Download Document</a>
                             </div>
                         </div>

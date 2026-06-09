@@ -49,6 +49,97 @@ final class AuthController
         Response::html($content);
     }
 
+    public function showForgotPassword(Request $request): void
+    {
+        $audience = strtolower((string) $request->input('audience', 'portal'));
+        if ($audience !== 'portal') {
+            $audience = 'portal';
+        }
+
+        $content = View::render(base_path('modules/Auth/views/forgot-password.php'), [
+            'title' => 'Forgot Password',
+            'audience' => $audience,
+            'error' => Session::pullFlash('error'),
+            'success' => Session::pullFlash('success'),
+            'old_username' => Session::pullFlash('old_username'),
+            'old_verification' => Session::pullFlash('old_verification'),
+        ], 'auth');
+
+        Response::html($content);
+    }
+
+    public function forgotPassword(Request $request): void
+    {
+        $username = (string) $request->input('username', '');
+        $verification = (string) $request->input('verification', '');
+        Session::flash('old_username', $username);
+        Session::flash('old_verification', $verification);
+
+        try {
+            $token = $this->authService->startPortalPasswordReset(
+                $this->normalizePortalLoginUsername($username),
+                $verification,
+                $request
+            );
+
+            if ($token === null) {
+                Session::flash('error', 'The portal username and verification detail did not match our records.');
+                redirect('/forgot-password?audience=portal');
+            }
+
+            Session::flash('success', 'Verification successful. Set a new password to continue.');
+            redirect('/reset-password?audience=portal&token=' . urlencode($token));
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+            redirect('/forgot-password?audience=portal');
+        }
+    }
+
+    public function showResetPassword(Request $request): void
+    {
+        $token = trim((string) $request->input('token', ''));
+        $audience = strtolower((string) $request->input('audience', 'portal'));
+        if ($audience !== 'portal') {
+            $audience = 'portal';
+        }
+
+        if ($token === '' || $this->authService->validatePortalResetToken($token) === null) {
+            Session::flash('error', 'The password reset link is invalid or has expired.');
+            redirect('/forgot-password?audience=portal');
+        }
+
+        $content = View::render(base_path('modules/Auth/views/reset-password.php'), [
+            'title' => 'Reset Password',
+            'audience' => $audience,
+            'token' => $token,
+            'error' => Session::pullFlash('error'),
+            'success' => Session::pullFlash('success'),
+        ], 'auth');
+
+        Response::html($content);
+    }
+
+    public function resetPassword(Request $request): void
+    {
+        $token = trim((string) $request->input('token', ''));
+        $newPassword = (string) $request->input('new_password', '');
+        $confirmPassword = (string) $request->input('confirm_password', '');
+
+        if ($newPassword !== $confirmPassword) {
+            Session::flash('error', 'New password and confirmation password must match.');
+            redirect('/reset-password?audience=portal&token=' . urlencode($token));
+        }
+
+        try {
+            $this->authService->completePortalPasswordReset($token, $newPassword);
+            Session::flash('success', 'Password reset successful. Please sign in with your new password.');
+            redirect('/login?audience=portal');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+            redirect('/reset-password?audience=portal&token=' . urlencode($token));
+        }
+    }
+
     public function login(Request $request): void
     {
         $username = (string) $request->input('username', '');

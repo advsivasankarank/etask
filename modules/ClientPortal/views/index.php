@@ -12,9 +12,14 @@
             <h3 style="margin:0 0 6px;">Pre-Service Orders</h3>
             <div class="subtle"><?= $internalView ? 'CRM and Admin view across clients.' : 'Submit and track your PSOs from the client portal.' ?></div>
         </div>
-        <?php if (\App\Core\Auth::can('portal.pso.create')): ?>
-            <a href="<?= e(url('/client-portal/pso/create')) ?>" class="button">Create PSO</a>
-        <?php endif; ?>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <?php if (\App\Core\Auth::isPortalUser()): ?>
+                <a href="<?= e(url('/client-portal/account')) ?>" class="button button-secondary">Open Account</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('portal.pso.create')): ?>
+                <a href="<?= e(url('/client-portal/pso/create')) ?>" class="button">Create PSO</a>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php if ($psos === []): ?>

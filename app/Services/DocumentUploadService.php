@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Logger;
+use App\Repositories\DocumentRepository;
 use finfo;
 use RuntimeException;
+use Throwable;
 
 final class DocumentUploadService
 {
@@ -34,6 +36,11 @@ AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .cgi .pl .asp
     Require all denied
 </FilesMatch>
 HTACCESS;
+
+    public function __construct(
+        private readonly DocumentRepository $documents = new DocumentRepository()
+    ) {
+    }
 
     public function uploadLinkedDocuments(
         int $clientId,
@@ -75,6 +82,72 @@ HTACCESS;
         return $this->uploadLinkedDocuments($clientId, 'PSO', $psoId, 'PSO_SUPPORTING_DOC', $files, $uploadedBy, 'pso');
     }
 
+    public function replaceDocumentVersion(int $documentId, array $file, int $uploadedBy, ?string $changeNote = null): int
+    {
+        $document = $this->documents->findById($documentId);
+        if ($document === null) {
+            throw new RuntimeException('Document not found.');
+        }
+
+        $connection = Database::connection();
+        $connection->beginTransaction();
+
+        try {
+            $versions = $this->documents->versions($documentId);
+            $nextVersionNo = ((int) ($versions[0]['version_no'] ?? 0)) + 1;
+
+            $stored = $this->storePreparedFile(
+                clientId: (int) $document['client_id'],
+                linkedModule: (string) $document['linked_module'],
+                linkedId: (int) $document['linked_id'],
+                documentCategory: (string) $document['document_category'],
+                file: $file,
+                uploadedBy: $uploadedBy,
+                directoryKey: strtolower((string) $document['linked_module']) ?: 'general',
+                persistDocument: false
+            );
+
+            $this->documents->addVersion(
+                $documentId,
+                $nextVersionNo,
+                $stored['file_name'],
+                $stored['file_path'],
+                $stored['mime_type'],
+                $stored['file_size'],
+                $stored['checksum_sha256'],
+                $changeNote ?: 'Document replaced',
+                $uploadedBy
+            );
+
+            $this->documents->touchCurrentVersion(
+                $documentId,
+                $nextVersionNo,
+                $stored['file_name'],
+                $stored['file_path'],
+                $stored['mime_type'],
+                $stored['file_size'],
+                $stored['checksum_sha256'],
+                $uploadedBy
+            );
+
+            $connection->commit();
+
+            Logger::info('document.replaced', [
+                'document_id' => $documentId,
+                'version_no' => $nextVersionNo,
+                'uploaded_by' => $uploadedBy,
+            ]);
+
+            return $nextVersionNo;
+        } catch (Throwable $throwable) {
+            if ($connection->inTransaction()) {
+                $connection->rollBack();
+            }
+
+            throw $throwable;
+        }
+    }
+
     private function storeSingleDocument(
         int $clientId,
         string $linkedModule,
@@ -84,6 +157,30 @@ HTACCESS;
         int $uploadedBy,
         string $directoryKey
     ): int {
+        $stored = $this->storePreparedFile(
+            clientId: $clientId,
+            linkedModule: $linkedModule,
+            linkedId: $linkedId,
+            documentCategory: $documentCategory,
+            file: $file,
+            uploadedBy: $uploadedBy,
+            directoryKey: $directoryKey,
+            persistDocument: true
+        );
+
+        return (int) $stored['document_id'];
+    }
+
+    private function storePreparedFile(
+        int $clientId,
+        string $linkedModule,
+        int $linkedId,
+        string $documentCategory,
+        array $file,
+        int $uploadedBy,
+        string $directoryKey,
+        bool $persistDocument
+    ): array {
         $originalName = (string) ($file['name'] ?? '');
         $tmpName = (string) ($file['tmp_name'] ?? '');
         $size = (int) ($file['size'] ?? 0);
@@ -122,6 +219,19 @@ HTACCESS;
         $relativePath = str_replace('\\', '/', $relativeDirectory . '/' . $generatedName);
         $checksum = hash_file('sha256', $absolutePath) ?: null;
 
+        $result = [
+            'document_id' => null,
+            'file_name' => $safeName,
+            'file_path' => $relativePath,
+            'mime_type' => $mimeType,
+            'file_size' => $size,
+            'checksum_sha256' => $checksum,
+        ];
+
+        if (!$persistDocument) {
+            return $result;
+        }
+
         $connection = Database::connection();
         $documentStatement = $connection->prepare(
             "INSERT INTO documents (
@@ -148,22 +258,17 @@ HTACCESS;
 
         $documentId = (int) $connection->lastInsertId();
 
-        $versionStatement = $connection->prepare(
-            "INSERT INTO document_versions (
-                document_id, version_no, file_name, file_path, mime_type, file_size, checksum_sha256, change_note, uploaded_by, uploaded_at
-            ) VALUES (
-                :document_id, 1, :file_name, :file_path, :mime_type, :file_size, :checksum_sha256, 'Initial upload', :uploaded_by, NOW()
-            )"
+        $this->documents->addVersion(
+            $documentId,
+            1,
+            $safeName,
+            $relativePath,
+            $mimeType,
+            $size,
+            $checksum,
+            'Initial upload',
+            $uploadedBy
         );
-        $versionStatement->execute([
-            'document_id' => $documentId,
-            'file_name' => $safeName,
-            'file_path' => $relativePath,
-            'mime_type' => $mimeType,
-            'file_size' => $size,
-            'checksum_sha256' => $checksum,
-            'uploaded_by' => $uploadedBy,
-        ]);
 
         Logger::info('document.uploaded', [
             'document_id' => $documentId,
@@ -177,7 +282,9 @@ HTACCESS;
             'file_size' => $size,
         ]);
 
-        return $documentId;
+        $result['document_id'] = $documentId;
+
+        return $result;
     }
 
     private function normalizeFilesArray(array $files): array

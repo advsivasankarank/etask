@@ -90,7 +90,8 @@
                         <?php foreach ($block['deliverables'] as $deliverable): ?>
                             <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
                                 <div><strong><?= e($deliverable['document_name']) ?></strong> | <?= e($deliverable['review_status']) ?></div>
-                                <div style="margin-top:8px;">
+                                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                                    <a href="<?= e(url('/documents/show?id=' . $deliverable['document_id'])) ?>" class="button button-secondary">Open Deliverable</a>
                                     <a href="<?= e(url('/documents/' . $deliverable['document_id'] . '/download')) ?>" class="button button-secondary">Download Deliverable</a>
                                 </div>
                                 <form method="post" action="<?= e(url('/consultants/deliverables/review')) ?>" style="display:grid;gap:8px;margin-top:10px;">
@@ -123,7 +124,8 @@
                             <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
                                 <div><strong><?= e($bill['bill_no']) ?></strong> | <?= e($bill['review_status']) ?> | INR <?= e(number_format((float) $bill['total_amount'], 2)) ?></div>
                                 <?php if (!empty($bill['document_id'])): ?>
-                                    <div style="margin-top:8px;">
+                                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                                        <a href="<?= e(url('/documents/show?id=' . $bill['document_id'])) ?>" class="button button-secondary">Open Bill</a>
                                         <a href="<?= e(url('/documents/' . $bill['document_id'] . '/download')) ?>" class="button button-secondary">Download Bill</a>
                                     </div>
                                 <?php endif; ?>

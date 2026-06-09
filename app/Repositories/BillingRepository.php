@@ -137,7 +137,7 @@ final class BillingRepository
     public function allDisbursements(int $serviceOrderId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT id, expense_date, expense_type, amount, is_recoverable, paid_to, notes, invoiced_at
+            "SELECT id, expense_date, expense_type, amount, is_recoverable, proof_document_id, paid_to, notes, invoiced_at
              FROM disbursements
              WHERE service_order_id = :service_order_id
              ORDER BY id DESC"
@@ -163,7 +163,7 @@ final class BillingRepository
     public function paymentsForServiceOrder(int $serviceOrderId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT p.id, p.payment_date, p.amount, p.payment_mode, p.transaction_type, p.reference_no, p.status, r.receipt_no
+            "SELECT p.id, p.payment_date, p.amount, p.payment_mode, p.transaction_type, p.reference_no, p.status, r.id AS receipt_id, r.receipt_no
              FROM payments p
              LEFT JOIN receipts r ON r.payment_id = p.id
              WHERE p.service_order_id = :service_order_id
@@ -186,6 +186,20 @@ final class BillingRepository
         $statement->execute($payload);
 
         return (int) Database::connection()->lastInsertId();
+    }
+
+    public function updateDisbursementProof(int $disbursementId, int $documentId): void
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE disbursements
+             SET proof_document_id = :proof_document_id,
+                 updated_at = NOW()
+             WHERE id = :id"
+        );
+        $statement->execute([
+            'proof_document_id' => $documentId,
+            'id' => $disbursementId,
+        ]);
     }
 
     public function createInvoice(array $payload): int
@@ -440,5 +454,177 @@ final class BillingRepository
             'entity_id' => $entityId,
             'description' => $description,
         ]);
+    }
+
+    public function portalInvoices(int $clientId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT i.id,
+                    i.service_order_id,
+                    i.invoice_no,
+                    i.invoice_date,
+                    i.due_date,
+                    i.invoice_type,
+                    i.gross_total,
+                    i.net_payable,
+                    i.payment_status,
+                    so.so_no,
+                    so.title,
+                    st.name AS service_type_name,
+                    comp.display_name AS company_name,
+                    GREATEST(i.net_payable - COALESCE(SUM(pa.allocated_amount), 0), 0) AS outstanding_amount
+             FROM invoices i
+             INNER JOIN service_orders so ON so.id = i.service_order_id
+             INNER JOIN service_types st ON st.id = so.service_type_id
+             INNER JOIN companies comp ON comp.id = i.company_id
+             LEFT JOIN payment_allocations pa ON pa.invoice_id = i.id
+             WHERE i.client_id = :client_id
+               AND i.accounting_status <> 'CANCELLED'
+             GROUP BY i.id, i.service_order_id, i.invoice_no, i.invoice_date, i.due_date, i.invoice_type, i.gross_total, i.net_payable, i.payment_status, so.so_no, so.title, st.name, comp.display_name
+             ORDER BY i.invoice_date DESC, i.id DESC"
+        );
+        $statement->execute(['client_id' => $clientId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function portalPayments(int $clientId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT p.id,
+                    p.service_order_id,
+                    p.payment_date,
+                    p.amount,
+                    p.payment_mode,
+                    p.transaction_type,
+                    p.reference_no,
+                    p.status,
+                    so.so_no,
+                    r.id AS receipt_id,
+                    r.receipt_no,
+                    r.receipt_date
+             FROM payments p
+             LEFT JOIN service_orders so ON so.id = p.service_order_id
+             LEFT JOIN receipts r ON r.payment_id = p.id
+             WHERE p.client_id = :client_id
+             ORDER BY p.payment_date DESC, p.id DESC"
+        );
+        $statement->execute(['client_id' => $clientId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function portalInvoiceById(int $invoiceId, int $clientId): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT i.id,
+                    i.client_id,
+                    i.service_order_id,
+                    i.invoice_no,
+                    i.net_payable,
+                    i.payment_status,
+                    GREATEST(i.net_payable - COALESCE(SUM(pa.allocated_amount), 0), 0) AS outstanding_amount
+             FROM invoices i
+             LEFT JOIN payment_allocations pa ON pa.invoice_id = i.id
+             WHERE i.id = :id
+               AND i.client_id = :client_id
+               AND i.accounting_status <> 'CANCELLED'
+             GROUP BY i.id, i.client_id, i.service_order_id, i.invoice_no, i.net_payable, i.payment_status
+             LIMIT 1"
+        );
+        $statement->execute([
+            'id' => $invoiceId,
+            'client_id' => $clientId,
+        ]);
+
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $record === false ? null : $record;
+    }
+
+    public function invoiceDetail(int $invoiceId): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT i.*,
+                    c.legal_name AS client_name,
+                    c.pan,
+                    comp.display_name AS company_name,
+                    fy.label AS financial_year_label,
+                    so.so_no,
+                    so.title AS service_order_title,
+                    st.name AS service_type_name
+             FROM invoices i
+             INNER JOIN clients c ON c.id = i.client_id
+             INNER JOIN companies comp ON comp.id = i.company_id
+             INNER JOIN financial_years fy ON fy.id = i.financial_year_id
+             INNER JOIN service_orders so ON so.id = i.service_order_id
+             INNER JOIN service_types st ON st.id = so.service_type_id
+             WHERE i.id = :id
+             LIMIT 1"
+        );
+        $statement->execute(['id' => $invoiceId]);
+
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $record === false ? null : $record;
+    }
+
+    public function invoiceItems(int $invoiceId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT id, line_type, description, quantity, unit_price, line_total
+             FROM invoice_items
+             WHERE invoice_id = :invoice_id
+             ORDER BY id ASC"
+        );
+        $statement->execute(['invoice_id' => $invoiceId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function receiptDetail(int $receiptId): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT r.*,
+                    c.legal_name AS client_name,
+                    c.pan,
+                    comp.display_name AS company_name,
+                    fy.label AS financial_year_label,
+                    p.payment_mode,
+                    p.transaction_type,
+                    p.reference_no,
+                    p.service_order_id,
+                    so.so_no
+             FROM receipts r
+             INNER JOIN clients c ON c.id = r.client_id
+             INNER JOIN companies comp ON comp.id = r.company_id
+             INNER JOIN financial_years fy ON fy.id = r.financial_year_id
+             INNER JOIN payments p ON p.id = r.payment_id
+             LEFT JOIN service_orders so ON so.id = p.service_order_id
+             WHERE r.id = :id
+             LIMIT 1"
+        );
+        $statement->execute(['id' => $receiptId]);
+
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $record === false ? null : $record;
+    }
+
+    public function receiptItems(int $receiptId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT pri.id,
+                    pri.invoice_id,
+                    pri.allocated_amount,
+                    i.invoice_no
+             FROM payment_receipt_items pri
+             LEFT JOIN invoices i ON i.id = pri.invoice_id
+             WHERE pri.receipt_id = :receipt_id
+             ORDER BY pri.id ASC"
+        );
+        $statement->execute(['receipt_id' => $receiptId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }
