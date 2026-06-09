@@ -80,6 +80,7 @@ VALUES
 ('workflow.close.procedural', 'WORKFLOW', 'CLOSE_PROCEDURAL', 'Procedural Closure', 'Complete procedural closure', 1, NOW(), NOW()),
 ('workflow.close.accounting', 'WORKFLOW', 'CLOSE_ACCOUNTING', 'Accounting Closure', 'Complete accounting closure', 1, NOW(), NOW()),
 ('workflow.close.final', 'WORKFLOW', 'CLOSE_FINAL', 'Final Closure', 'Complete final closure', 1, NOW(), NOW()),
+('workflow.reopen', 'WORKFLOW', 'REOPEN', 'Reopen Workflow', 'Reopen a completed workflow milestone', 1, NOW(), NOW()),
 ('workflow.followup.log', 'WORKFLOW', 'FOLLOWUP_LOG', 'Log Follow Up', 'Log workflow follow-up', 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     code = VALUES(code),
@@ -102,7 +103,7 @@ INNER JOIN permissions p ON p.code IN (
     'service_orders.view','service_orders.create',
     'workflow.advance','workflow.payment.record','workflow.acknowledgement.capture',
     'workflow.everification.complete','workflow.close.procedural','workflow.close.accounting',
-    'workflow.close.final','workflow.followup.log'
+    'workflow.close.final','workflow.reopen','workflow.followup.log'
 )
 WHERE r.code = 'SUPER_ADMIN'
 ON DUPLICATE KEY UPDATE is_granted = VALUES(is_granted), updated_at = CURRENT_TIMESTAMP;
@@ -120,7 +121,7 @@ INNER JOIN permissions p ON p.code IN (
     'service_orders.view','service_orders.create',
     'workflow.advance','workflow.payment.record','workflow.acknowledgement.capture',
     'workflow.everification.complete','workflow.close.procedural','workflow.close.accounting',
-    'workflow.close.final','workflow.followup.log'
+    'workflow.close.final','workflow.reopen','workflow.followup.log'
 )
 WHERE r.code = 'ADMIN'
 ON DUPLICATE KEY UPDATE is_granted = VALUES(is_granted), updated_at = CURRENT_TIMESTAMP;

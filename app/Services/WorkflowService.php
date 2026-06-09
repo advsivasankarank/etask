@@ -260,6 +260,76 @@ final class WorkflowService
         });
     }
 
+    public function reopenMilestone(int $serviceOrderId, string $stageCode, int $userId, string $reason): void
+    {
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new RuntimeException('Reopen reason is required.');
+        }
+
+        $this->runInTransaction(function () use ($serviceOrderId, $stageCode, $userId, $reason): void {
+            $order = $this->serviceOrders->lockForUpdate($serviceOrderId);
+            if ($order === null) {
+                throw new RuntimeException('Service order not found.');
+            }
+
+            $sequence = $this->stageSequence($order);
+            $currentStage = (string) $order['current_stage_code'];
+            $requestedStage = strtoupper(trim($stageCode));
+
+            if (!in_array($requestedStage, $sequence, true)) {
+                throw new RuntimeException('Selected milestone cannot be reopened for this service order.');
+            }
+
+            $currentIndex = array_search($currentStage, $sequence, true);
+            $requestedIndex = array_search($requestedStage, $sequence, true);
+
+            if ($currentIndex === false || $requestedIndex === false) {
+                throw new RuntimeException('Unable to resolve milestone sequence.');
+            }
+
+            if ($requestedIndex >= $currentIndex && $currentStage !== 'PROCEDURALLY_CLOSED') {
+                throw new RuntimeException('Only a previously completed milestone can be reopened.');
+            }
+
+            $this->serviceOrders->closeCurrentStageHistory((int) $order['id']);
+            $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+                'is_locked' => 0,
+                'lock_reason' => null,
+                'final_closed_at' => null,
+                'final_closed_by' => null,
+                'accounting_closed_at' => null,
+                'procedural_closed_at' => null,
+            ]);
+
+            $this->serviceOrders->updateCurrentStage((int) $order['id'], $requestedStage);
+            $this->serviceOrders->appendStageHistory(
+                (int) $order['id'],
+                $userId,
+                $requestedStage,
+                $this->stageMap($order)[$requestedStage] ?? str_replace('_', ' ', $requestedStage),
+                'Milestone reopened: ' . $reason
+            );
+            $this->serviceOrders->appendTransitionLog(
+                (int) $order['id'],
+                $currentStage,
+                $requestedStage,
+                'REOPEN',
+                $reason,
+                $userId
+            );
+            $this->serviceOrders->recordActivity(
+                $userId,
+                (int) $order['id'],
+                'WORKFLOW_REOPEN',
+                'Milestone reopened from ' . $currentStage . ' to ' . $requestedStage . '. Reason: ' . $reason,
+                'WORKFLOW'
+            );
+
+            $this->syncStateAfterReopen((int) $order['id'], $requestedStage, $requestedIndex, $sequence);
+        });
+    }
+
     public function logEVerificationFollowUp(int $serviceOrderId, int $reminderId, int $userId, string $note): void
     {
         $note = trim($note);
@@ -595,6 +665,42 @@ final class WorkflowService
         }
 
         return ['ACKNOWLEDGEMENT_CAPTURED'];
+    }
+
+    private function syncStateAfterReopen(int $serviceOrderId, string $stageCode, int $stageIndex, array $sequence): void
+    {
+        $statusUpdates = [
+            'is_document_pending' => $stageCode === 'DOCUMENT_PENDING' ? 1 : 0,
+            'is_payment_pending' => in_array($stageCode, $this->paymentPendingStages(), true) ? 1 : 0,
+            'is_paid' => $this->isAtOrPast($sequence, $stageIndex, ['PAID', 'TAX_PAID']) ? 1 : 0,
+            'is_filing_done' => $this->isAtOrPast($sequence, $stageIndex, ['FILING_DONE', 'ITR_FILING_DONE']) ? 1 : 0,
+            'is_acknowledgement_captured' => $this->isAtOrPast($sequence, $stageIndex, ['ACKNOWLEDGEMENT_CAPTURED', 'ITR_ACKNOWLEDGEMENT_CAPTURED']) ? 1 : 0,
+            'is_e_verification_done' => $this->isAtOrPast($sequence, $stageIndex, ['E_VERIFICATION_DONE']) ? 1 : 0,
+            'is_overdue' => 0,
+        ];
+        $this->serviceOrders->updateStatusFlags($serviceOrderId, $statusUpdates);
+
+        $this->serviceOrders->updateClosure($serviceOrderId, 'PROCEDURAL', 'PENDING', null, 'Milestone reopened', null);
+        $this->serviceOrders->updateClosure($serviceOrderId, 'ACCOUNTING', 'PENDING', null, 'Milestone reopened', null);
+        $this->serviceOrders->updateClosure($serviceOrderId, 'FINAL', 'PENDING', null, 'Milestone reopened', null);
+    }
+
+    private function isAtOrPast(array $sequence, int $currentIndex, array $candidateStages): bool
+    {
+        foreach ($candidateStages as $candidate) {
+            $candidateIndex = array_search($candidate, $sequence, true);
+            if ($candidateIndex !== false && $currentIndex >= $candidateIndex) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function indexOf(array $sequence, string $stageCode): int
+    {
+        $index = array_search($stageCode, $sequence, true);
+        return $index === false ? PHP_INT_MAX : (int) $index;
     }
 
     private function requireLockedOrder(int $serviceOrderId): array
