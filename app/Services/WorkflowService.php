@@ -33,7 +33,7 @@ final class WorkflowService
 
         return [
             'order' => $order,
-            'stages' => $this->workflows->stageDefinitions((int) $order['workflow_definition_id']),
+            'stages' => $this->stageDefinitions($order),
             'history' => $this->workflows->stageHistory($serviceOrderId),
             'reminders' => $this->workflows->reminders($serviceOrderId),
             'closures' => $this->workflows->closures($serviceOrderId),
@@ -46,18 +46,13 @@ final class WorkflowService
         $this->runInTransaction(function () use ($serviceOrderId, $userId): void {
             $order = $this->requireLockedOrder($serviceOrderId);
             $currentStage = (string) $order['current_stage_code'];
-            $serviceType = (string) $order['service_type_code'];
 
-            if ($currentStage === 'PAYMENT_PENDING') {
-                throw new RuntimeException('Use payment entry to move beyond Payment Pending.');
+            if (in_array($currentStage, ['PAYMENT_PENDING', 'TAX_PAYMENT_PENDING'], true)) {
+                throw new RuntimeException('Use tax payment entry to move beyond Tax Payment Pending.');
             }
 
-            if ($currentStage === 'FILING_DONE') {
-                throw new RuntimeException('Acknowledgement or ARN must be captured before the workflow can move forward.');
-            }
-
-            if ($serviceType === 'ITR' && $currentStage === 'ACKNOWLEDGEMENT_CAPTURED') {
-                throw new RuntimeException('ITR cases move to E-Verification Pending after acknowledgement capture.');
+            if (in_array($currentStage, ['FILING_DONE', 'ITR_FILING_DONE', 'FORM_3CB_FILED'], true)) {
+                throw new RuntimeException('Acknowledgement must be captured before the workflow can move forward.');
             }
 
             if ($currentStage === 'E_VERIFICATION_PENDING') {
@@ -76,7 +71,7 @@ final class WorkflowService
 
             $this->transitionToStage($order, $userId, $nextStage['code'], 'MANUAL_MILESTONE', 'Manual milestone advancement');
 
-            if ($nextStage['code'] === 'FILING_DONE') {
+            if (in_array($nextStage['code'], ['FILING_DONE', 'ITR_FILING_DONE'], true)) {
                 $this->serviceOrders->updateStatusFlags((int) $order['id'], [
                     'is_document_pending' => 0,
                     'is_filing_done' => 1,
@@ -94,9 +89,10 @@ final class WorkflowService
 
         $this->runInTransaction(function () use ($serviceOrderId, $userId, $referenceNo): void {
             $order = $this->requireLockedOrder($serviceOrderId);
+            $currentStage = (string) $order['current_stage_code'];
 
-            if ((string) $order['current_stage_code'] !== 'PAYMENT_PENDING') {
-                throw new RuntimeException('Payment can only be recorded while the workflow is in Payment Pending.');
+            if (!in_array($currentStage, ['PAYMENT_PENDING', 'TAX_PAYMENT_PENDING'], true)) {
+                throw new RuntimeException('Tax payment can only be recorded while the workflow is in Tax Payment Pending.');
             }
 
             $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
@@ -109,7 +105,12 @@ final class WorkflowService
                 'is_paid' => 1,
             ]);
 
-            $this->transitionToStage($order, $userId, 'PAID', 'AUTO_PAYMENT', 'Tax payment captured: ' . $referenceNo);
+            $nextStage = $this->nextStage($order);
+            if ($nextStage === null) {
+                throw new RuntimeException('Unable to determine the next milestone after tax payment.');
+            }
+
+            $this->transitionToStage($order, $userId, $nextStage['code'], 'AUTO_PAYMENT', 'Tax payment captured: ' . $referenceNo);
         });
     }
 
@@ -117,17 +118,34 @@ final class WorkflowService
     {
         $referenceNo = trim($referenceNo);
         if ($referenceNo === '') {
-            throw new RuntimeException('Acknowledgement / ARN reference is required.');
+            throw new RuntimeException('Acknowledgement reference is required.');
         }
 
         $this->runInTransaction(function () use ($serviceOrderId, $userId, $referenceNo): void {
             $order = $this->requireLockedOrder($serviceOrderId);
+            $currentStage = (string) $order['current_stage_code'];
+            $now = date('Y-m-d H:i:s');
 
-            if ((string) $order['current_stage_code'] !== 'FILING_DONE') {
-                throw new RuntimeException('Acknowledgement can only be captured after Filing Done.');
+            if ($currentStage === 'FORM_3CB_FILED') {
+                $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+                    'form_3cb_acknowledgement_no' => $referenceNo,
+                    'form_3cb_acknowledgement_captured_at' => $now,
+                ]);
+
+                $this->transitionToStage($order, $userId, 'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED', 'AUTO_ACK_UPLOAD', 'Form 3CB acknowledgement captured: ' . $referenceNo);
+
+                $updatedOrder = $this->requireLockedOrder($serviceOrderId);
+                $nextStage = $this->nextStage($updatedOrder);
+                if ($nextStage !== null && $nextStage['code'] !== 'PROCEDURALLY_CLOSED') {
+                    $this->transitionToStage($updatedOrder, $userId, $nextStage['code'], 'SYSTEM', 'Form 3CB acknowledgement captured; moved to next milestone');
+                }
+                return;
             }
 
-            $now = date('Y-m-d H:i:s');
+            if (!in_array($currentStage, ['FILING_DONE', 'ITR_FILING_DONE'], true)) {
+                throw new RuntimeException('Acknowledgement can only be captured after ITR Filing Done.');
+            }
+
             $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
                 'filing_reference_no' => $referenceNo,
                 'acknowledgement_no' => $referenceNo,
@@ -138,12 +156,22 @@ final class WorkflowService
                 'is_acknowledgement_captured' => 1,
             ]);
 
-            $this->transitionToStage($order, $userId, 'ACKNOWLEDGEMENT_CAPTURED', 'AUTO_ACK_UPLOAD', 'Acknowledgement captured: ' . $referenceNo);
+            $ackStage = $this->nextStage($order);
+            if ($ackStage === null) {
+                throw new RuntimeException('Unable to determine acknowledgement milestone.');
+            }
+
+            $this->transitionToStage($order, $userId, $ackStage['code'], 'AUTO_ACK_UPLOAD', 'Acknowledgement captured: ' . $referenceNo);
 
             if ((string) $order['service_type_code'] === 'ITR') {
                 $updatedOrder = $this->requireLockedOrder($serviceOrderId);
-                $this->transitionToStage($updatedOrder, $userId, 'E_VERIFICATION_PENDING', 'SYSTEM', 'ITR acknowledgement captured; e-verification window started');
-                $this->createEVerificationReminders($updatedOrder, $userId, new DateTimeImmutable($now));
+                $nextStage = $this->nextStage($updatedOrder);
+                if ($nextStage !== null) {
+                    $this->transitionToStage($updatedOrder, $userId, $nextStage['code'], 'SYSTEM', 'ITR acknowledgement captured; e-verification window started');
+                    if ($nextStage['code'] === 'E_VERIFICATION_PENDING') {
+                        $this->createEVerificationReminders($updatedOrder, $userId, new DateTimeImmutable($now));
+                    }
+                }
             }
         });
     }
@@ -196,13 +224,7 @@ final class WorkflowService
 
             $this->serviceOrders->markAccountingClosed((int) $order['id']);
             $this->serviceOrders->updateClosure((int) $order['id'], 'ACCOUNTING', 'COMPLETED', null, $note, $userId);
-            $this->serviceOrders->recordActivity(
-                $userId,
-                (int) $order['id'],
-                'ACCOUNTING_CLOSE',
-                'Accounting closure completed',
-                'WORKFLOW'
-            );
+            $this->serviceOrders->recordActivity($userId, (int) $order['id'], 'ACCOUNTING_CLOSE', 'Accounting closure completed', 'WORKFLOW');
         });
     }
 
@@ -234,13 +256,7 @@ final class WorkflowService
 
             $this->serviceOrders->markFinalClosed((int) $order['id'], $userId);
             $this->serviceOrders->updateClosure((int) $order['id'], 'FINAL', 'COMPLETED', null, $note, $userId);
-            $this->serviceOrders->recordActivity(
-                $userId,
-                (int) $order['id'],
-                'FINAL_CLOSE',
-                'Final closure completed and order locked',
-                'WORKFLOW'
-            );
+            $this->serviceOrders->recordActivity($userId, (int) $order['id'], 'FINAL_CLOSE', 'Final closure completed and order locked', 'WORKFLOW');
         });
     }
 
@@ -282,22 +298,25 @@ final class WorkflowService
 
     public function availableActions(array $order): array
     {
+        $currentStage = (string) $order['current_stage_code'];
+        $serviceType = (string) $order['service_type_code'];
+        $advanceBlocked = array_merge(
+            ['E_VERIFICATION_PENDING', 'PROCEDURALLY_CLOSED'],
+            $this->paymentPendingStages(),
+            $this->ackCaptureRequiredStages(),
+            $this->ackNowStages($order)
+        );
+
         $actions = [
-            'can_advance' => false,
-            'can_record_payment' => false,
-            'can_capture_ack' => false,
-            'can_mark_everification_done' => false,
+            'can_advance' => !in_array($currentStage, $advanceBlocked, true),
+            'can_record_payment' => in_array($currentStage, $this->paymentPendingStages(), true),
+            'can_capture_ack' => in_array($currentStage, $this->ackCaptureRequiredStages(), true),
+            'can_mark_everification_done' => $serviceType === 'ITR' && $currentStage === 'E_VERIFICATION_PENDING',
             'can_procedural_close' => false,
             'can_accounting_close' => (int) ($order['is_client_paid'] ?? 0) === 1,
             'can_final_close' => false,
         ];
 
-        $currentStage = (string) $order['current_stage_code'];
-        $serviceType = (string) $order['service_type_code'];
-        $actions['can_record_payment'] = $currentStage === 'PAYMENT_PENDING';
-        $actions['can_capture_ack'] = $currentStage === 'FILING_DONE';
-        $actions['can_mark_everification_done'] = $serviceType === 'ITR' && $currentStage === 'E_VERIFICATION_PENDING';
-        $actions['can_advance'] = in_array($currentStage, ['DOCUMENT_PENDING', 'PREPARATION', 'REVIEW', 'PAID', 'FILING_PENDING', 'ACKNOWLEDGEMENT_CAPTURED'], true);
         $actions['can_procedural_close'] = ($serviceType === 'ITR' && $currentStage === 'E_VERIFICATION_DONE')
             || ($serviceType !== 'ITR' && $currentStage === 'ACKNOWLEDGEMENT_CAPTURED');
 
@@ -312,7 +331,7 @@ final class WorkflowService
     private function completeProceduralClosureInsideTransaction(array $order, int $userId, string $note): void
     {
         if (empty($order['acknowledgement_no'])) {
-            throw new RuntimeException('Acknowledgement / ARN is mandatory before procedural closure.');
+            throw new RuntimeException('ITR acknowledgement is mandatory before procedural closure.');
         }
 
         $serviceType = (string) $order['service_type_code'];
@@ -356,7 +375,7 @@ final class WorkflowService
 
     private function transitionToStage(array $order, int $userId, string $toStageCode, string $transitionType, string $note): void
     {
-        $stageMap = $this->stageMap((int) $order['workflow_definition_id']);
+        $stageMap = $this->stageMap($order);
         $fromStageCode = (string) $order['current_stage_code'];
         $toStageName = $stageMap[$toStageCode] ?? str_replace('_', ' ', $toStageCode);
 
@@ -382,7 +401,7 @@ final class WorkflowService
 
     private function nextStage(array $order): ?array
     {
-        $sequence = $this->stageSequence((string) $order['service_type_code']);
+        $sequence = $this->stageSequence($order);
         $currentStage = (string) $order['current_stage_code'];
         $currentIndex = array_search($currentStage, $sequence, true);
 
@@ -391,7 +410,7 @@ final class WorkflowService
         }
 
         $stageCode = $sequence[$currentIndex + 1];
-        $stageMap = $this->stageMap((int) $order['workflow_definition_id']);
+        $stageMap = $this->stageMap($order);
 
         return [
             'code' => $stageCode,
@@ -399,10 +418,87 @@ final class WorkflowService
         ];
     }
 
-    private function stageSequence(string $serviceTypeCode): array
+    private function stageDefinitions(array $order): array
     {
-        return match ($serviceTypeCode) {
-            'ITR' => [
+        $definitions = [];
+        $sortOrder = 1;
+
+        foreach ($this->stageSequence($order) as $stageCode) {
+            $definitions[] = [
+                'stage_code' => $stageCode,
+                'stage_name' => $this->stageMap($order)[$stageCode] ?? str_replace('_', ' ', $stageCode),
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        return $definitions;
+    }
+
+    private function stageSequence(array $order): array
+    {
+        $serviceTypeCode = (string) ($order['service_type_code'] ?? '');
+
+        if ($serviceTypeCode === 'ITR') {
+            $caseNature = (string) ($order['itr_case_nature'] ?? '');
+            $taxAuditApplicable = (int) ($order['itr_tax_audit_applicable'] ?? 0) === 1;
+
+            if ($caseNature === 'BUSINESS' && $taxAuditApplicable) {
+                return [
+                    'DOCUMENT_PENDING',
+                    'BALANCE_SHEET_PREPARATION',
+                    'BALANCE_SHEET_CHECKING',
+                    'FORM_3CB_PREPARED',
+                    'FORM_3CB_CHECKED',
+                    'FORM_3CB_FILED',
+                    'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED',
+                    'IT_COMPUTATION_PREPARATION',
+                    'REVIEW',
+                    'TAX_PAYMENT_PENDING',
+                    'TAX_PAID',
+                    'ITR_FILING_PENDING',
+                    'ITR_FILING_DONE',
+                    'ITR_ACKNOWLEDGEMENT_CAPTURED',
+                    'E_VERIFICATION_PENDING',
+                    'E_VERIFICATION_DONE',
+                    'PROCEDURALLY_CLOSED',
+                ];
+            }
+
+            if ($caseNature === 'BUSINESS') {
+                return [
+                    'DOCUMENT_PENDING',
+                    'BALANCE_SHEET_PREPARATION',
+                    'BALANCE_SHEET_CHECKING',
+                    'IT_COMPUTATION_PREPARATION',
+                    'REVIEW',
+                    'TAX_PAYMENT_PENDING',
+                    'TAX_PAID',
+                    'ITR_FILING_PENDING',
+                    'ITR_FILING_DONE',
+                    'ITR_ACKNOWLEDGEMENT_CAPTURED',
+                    'E_VERIFICATION_PENDING',
+                    'E_VERIFICATION_DONE',
+                    'PROCEDURALLY_CLOSED',
+                ];
+            }
+
+            if ($caseNature === 'NON_BUSINESS') {
+                return [
+                    'DOCUMENT_PENDING',
+                    'IT_COMPUTATION_PREPARATION',
+                    'REVIEW',
+                    'TAX_PAYMENT_PENDING',
+                    'TAX_PAID',
+                    'ITR_FILING_PENDING',
+                    'ITR_FILING_DONE',
+                    'ITR_ACKNOWLEDGEMENT_CAPTURED',
+                    'E_VERIFICATION_PENDING',
+                    'E_VERIFICATION_DONE',
+                    'PROCEDURALLY_CLOSED',
+                ];
+            }
+
+            return [
                 'DOCUMENT_PENDING',
                 'PREPARATION',
                 'REVIEW',
@@ -414,7 +510,10 @@ final class WorkflowService
                 'E_VERIFICATION_PENDING',
                 'E_VERIFICATION_DONE',
                 'PROCEDURALLY_CLOSED',
-            ],
+            ];
+        }
+
+        return match ($serviceTypeCode) {
             'GST' => [
                 'DOCUMENT_PENDING',
                 'PREPARATION',
@@ -438,14 +537,64 @@ final class WorkflowService
         };
     }
 
-    private function stageMap(int $workflowDefinitionId): array
+    private function stageMap(array $order): array
     {
+        $serviceTypeCode = (string) ($order['service_type_code'] ?? '');
+        if ($serviceTypeCode === 'ITR') {
+            return [
+                'DOCUMENT_PENDING' => 'Document Pending',
+                'PREPARATION' => 'IT Computation Preparation',
+                'BALANCE_SHEET_PREPARATION' => 'Balance Sheet Preparation',
+                'BALANCE_SHEET_CHECKING' => 'Balance Sheet Checking',
+                'FORM_3CB_PREPARED' => 'Form 3CB Prepared',
+                'FORM_3CB_CHECKED' => 'Form 3CB Checked',
+                'FORM_3CB_FILED' => 'Form 3CB Filed',
+                'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED' => '3CB Acknowledgement Captured',
+                'IT_COMPUTATION_PREPARATION' => 'IT Computation Preparation',
+                'REVIEW' => 'Review',
+                'PAYMENT_PENDING' => 'Tax Payment Pending',
+                'PAID' => 'Tax Paid',
+                'TAX_PAYMENT_PENDING' => 'Tax Payment Pending',
+                'TAX_PAID' => 'Tax Paid',
+                'FILING_PENDING' => 'ITR Filing Pending',
+                'FILING_DONE' => 'ITR Filing Done',
+                'ACKNOWLEDGEMENT_CAPTURED' => 'ITR Acknowledgement Captured',
+                'ITR_FILING_PENDING' => 'ITR Filing Pending',
+                'ITR_FILING_DONE' => 'ITR Filing Done',
+                'ITR_ACKNOWLEDGEMENT_CAPTURED' => 'ITR Acknowledgement Captured',
+                'E_VERIFICATION_PENDING' => 'E-Verification Pending',
+                'E_VERIFICATION_DONE' => 'E-Verification Done',
+                'PROCEDURALLY_CLOSED' => 'Procedurally Closed',
+            ];
+        }
+
         $map = [];
-        foreach ($this->workflows->stageDefinitions($workflowDefinitionId) as $stage) {
+        foreach ($this->workflows->stageDefinitions((int) $order['workflow_definition_id']) as $stage) {
             $map[(string) $stage['stage_code']] = (string) $stage['stage_name'];
         }
 
         return $map;
+    }
+
+    private function paymentPendingStages(): array
+    {
+        return ['PAYMENT_PENDING', 'TAX_PAYMENT_PENDING'];
+    }
+
+    private function ackCaptureRequiredStages(): array
+    {
+        return ['FILING_DONE', 'ITR_FILING_DONE', 'FORM_3CB_FILED'];
+    }
+
+    private function ackNowStages(array $order): array
+    {
+        $serviceTypeCode = (string) ($order['service_type_code'] ?? '');
+
+        if ($serviceTypeCode === 'ITR') {
+            return ['ACKNOWLEDGEMENT_CAPTURED', 'ITR_ACKNOWLEDGEMENT_CAPTURED', 'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED'];
+        }
+
+        return ['ACKNOWLEDGEMENT_CAPTURED'];
     }
 
     private function requireLockedOrder(int $serviceOrderId): array

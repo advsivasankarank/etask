@@ -482,7 +482,25 @@ final class ReminderRepository
              FROM service_orders so
              INNER JOIN clients c ON c.id = so.client_id
              WHERE so.final_closed_at IS NULL
-               AND so.current_stage_code IN ('PREPARATION', 'REVIEW', 'FILING_PENDING', 'PAYMENT_PENDING', 'PAID', 'ACKNOWLEDGEMENT_CAPTURED', 'E_VERIFICATION_PENDING')"
+               AND so.current_stage_code IN (
+                    'PREPARATION',
+                    'IT_COMPUTATION_PREPARATION',
+                    'BALANCE_SHEET_PREPARATION',
+                    'BALANCE_SHEET_CHECKING',
+                    'FORM_3CB_PREPARED',
+                    'FORM_3CB_CHECKED',
+                    'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED',
+                    'REVIEW',
+                    'FILING_PENDING',
+                    'ITR_FILING_PENDING',
+                    'PAYMENT_PENDING',
+                    'TAX_PAYMENT_PENDING',
+                    'PAID',
+                    'TAX_PAID',
+                    'ACKNOWLEDGEMENT_CAPTURED',
+                    'ITR_ACKNOWLEDGEMENT_CAPTURED',
+                    'E_VERIFICATION_PENDING'
+               )"
         )->fetchAll(PDO::FETCH_ASSOC);
     }
 

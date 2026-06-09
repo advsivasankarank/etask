@@ -102,6 +102,26 @@ foreach ($serviceTypes as $serviceType) {
                     <input type="text" name="assessment_year" id="assessment_year" value="<?= e($old['assessment_year'] ?? '') ?>" placeholder="Example: 2026-27" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
                 </label>
 
+                <label id="itr-case-wrap" style="display:grid;gap:8px;">
+                    <span>ITR Case Type</span>
+                    <select name="itr_case_nature" id="itr_case_nature" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <option value="">Select case type</option>
+                        <?php foreach ($itrCaseOptions as $value => $label): ?>
+                            <option value="<?= e($value) ?>" <?= (string) ($old['itr_case_nature'] ?? '') === (string) $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label id="itr-tax-audit-wrap" style="display:grid;gap:8px;">
+                    <span>Tax Audit Applicable</span>
+                    <select name="itr_tax_audit_applicable" id="itr_tax_audit_applicable" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <option value="">Select option</option>
+                        <?php foreach ($yesNoOptions as $value => $label): ?>
+                            <option value="<?= e($value) ?>" <?= (string) ($old['itr_tax_audit_applicable'] ?? '') === (string) $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
                 <label id="period-month-wrap" style="display:grid;gap:8px;">
                     <span>Month</span>
                     <select name="period_month" id="period_month" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
@@ -153,6 +173,9 @@ foreach ($serviceTypes as $serviceType) {
         const workBasisSelect = document.getElementById('work_basis');
         const gstSubtypeSelect = document.getElementById('compliance_subtype');
         const assessmentYearWrap = document.getElementById('assessment-year-wrap');
+        const itrCaseWrap = document.getElementById('itr-case-wrap');
+        const itrTaxAuditWrap = document.getElementById('itr-tax-audit-wrap');
+        const itrCaseSelect = document.getElementById('itr_case_nature');
         const workBasisWrap = document.getElementById('work-basis-wrap');
         const gstSubtypeWrap = document.getElementById('gst-subtype-wrap');
         const monthWrap = document.getElementById('period-month-wrap');
@@ -182,9 +205,12 @@ foreach ($serviceTypes as $serviceType) {
             const serviceCode = serviceCodeMap[serviceTypeSelect.value] || '';
             const gstSubtype = gstSubtypeSelect.value;
             const workBasis = workBasisSelect.value;
+            const itrCase = itrCaseSelect.value;
 
             toggle(gstSubtypeWrap, serviceCode === 'GST');
             toggle(assessmentYearWrap, serviceCode === 'ITR');
+            toggle(itrCaseWrap, serviceCode === 'ITR');
+            toggle(itrTaxAuditWrap, serviceCode === 'ITR' && itrCase === 'BUSINESS');
 
             if (serviceCode === 'ITR') {
                 workBasisSelect.value = 'ANNUAL';
@@ -222,6 +248,7 @@ foreach ($serviceTypes as $serviceType) {
         serviceTypeSelect.addEventListener('change', applyPeriodRules);
         gstSubtypeSelect.addEventListener('change', applyPeriodRules);
         workBasisSelect.addEventListener('change', applyPeriodRules);
+        itrCaseSelect.addEventListener('change', applyPeriodRules);
         applyDefaultCompany();
         applyPeriodRules();
     }());

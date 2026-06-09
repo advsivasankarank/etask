@@ -71,6 +71,7 @@ final class ServiceOrderService
             }
 
             $period = $this->resolvePeriodMetadata($input, $serviceType, $financialYear);
+            $itrCase = $this->resolveItrCaseMetadata($input, $serviceType);
 
             $serviceOrderId = $this->createResolvedServiceOrder(
                 clientId: $clientId,
@@ -79,6 +80,7 @@ final class ServiceOrderService
                 serviceType: $serviceType,
                 workflow: $workflow,
                 period: $period,
+                itrCase: $itrCase,
                 title: trim((string) ($input['title'] ?? '')),
                 description: trim((string) ($input['description'] ?? '')) ?: null,
                 priorityLevel: (string) ($input['priority_level'] ?? 'MEDIUM'),
@@ -132,6 +134,10 @@ final class ServiceOrderService
                 'period_quarter' => null,
                 'period_year' => null,
                 'period_label' => (string) ($pso['requested_for_period'] ?? ''),
+            ],
+            itrCase: [
+                'itr_case_nature' => (string) ($serviceType['code'] ?? '') === 'ITR' ? 'NON_BUSINESS' : null,
+                'itr_tax_audit_applicable' => (string) ($serviceType['code'] ?? '') === 'ITR' ? 0 : null,
             ],
             title: (string) $pso['title'],
             description: (string) ($pso['description'] ?? ''),
@@ -205,6 +211,7 @@ final class ServiceOrderService
         array $serviceType,
         array $workflow,
         array $period,
+        array $itrCase,
         string $title,
         ?string $description,
         string $priorityLevel,
@@ -233,6 +240,8 @@ final class ServiceOrderService
             'work_basis' => $period['work_basis'],
             'compliance_subtype' => $period['compliance_subtype'],
             'assessment_year' => $period['assessment_year'],
+            'itr_case_nature' => $itrCase['itr_case_nature'],
+            'itr_tax_audit_applicable' => $itrCase['itr_tax_audit_applicable'],
             'period_month' => $period['period_month'],
             'period_quarter' => $period['period_quarter'],
             'period_year' => $period['period_year'],
@@ -379,6 +388,38 @@ final class ServiceOrderService
             'period_quarter' => null,
             'period_year' => null,
             'period_label' => (string) ($financialYear['label'] ?? 'Annual'),
+        ];
+    }
+
+    private function resolveItrCaseMetadata(array $input, array $serviceType): array
+    {
+        $serviceCode = (string) ($serviceType['code'] ?? '');
+        if ($serviceCode !== 'ITR') {
+            return [
+                'itr_case_nature' => null,
+                'itr_tax_audit_applicable' => null,
+            ];
+        }
+
+        $caseNature = strtoupper(trim((string) ($input['itr_case_nature'] ?? '')));
+        if (!in_array($caseNature, ['BUSINESS', 'NON_BUSINESS'], true)) {
+            throw new RuntimeException('Case type is required for ITR service orders.');
+        }
+
+        $taxAuditApplicable = null;
+        if ($caseNature === 'BUSINESS') {
+            $rawValue = strtoupper(trim((string) ($input['itr_tax_audit_applicable'] ?? '')));
+            if (!in_array($rawValue, ['YES', 'NO'], true)) {
+                throw new RuntimeException('Tax Audit Applicable must be selected for business ITR cases.');
+            }
+            $taxAuditApplicable = $rawValue === 'YES' ? 1 : 0;
+        } else {
+            $taxAuditApplicable = 0;
+        }
+
+        return [
+            'itr_case_nature' => $caseNature,
+            'itr_tax_audit_applicable' => $taxAuditApplicable,
         ];
     }
 }
