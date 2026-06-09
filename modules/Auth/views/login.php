@@ -46,6 +46,11 @@
             </label>
             <button type="submit" class="button">Sign In</button>
         </form>
+        <?php if ($audience === 'portal'): ?>
+            <div style="margin-top:12px;">
+                <a href="<?= e(url('/forgot-password?audience=portal')) ?>" class="button button-secondary">Forgot Password</a>
+            </div>
+        <?php endif; ?>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
             <a href="<?= e(url('/login?audience=internal')) ?>" class="button button-secondary">Staff Login</a>
             <a href="<?= e(url('/login?audience=portal')) ?>" class="button button-secondary">Client Login</a>

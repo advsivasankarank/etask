@@ -496,6 +496,102 @@ final class UserRepository
         $connection->commit();
     }
 
+    public function findPortalPasswordResetCandidate(string $username, string $verification): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT u.id,
+                    u.username,
+                    u.full_name,
+                    u.email,
+                    u.mobile,
+                    cc.mobile AS contact_mobile,
+                    cc.email AS contact_email
+             FROM users u
+             INNER JOIN user_role_map urm ON urm.user_id = u.id
+             INNER JOIN roles r ON r.id = urm.role_id AND r.code = 'CLIENT'
+             LEFT JOIN client_contacts cc ON cc.id = u.client_contact_id
+             WHERE u.username = :username
+               AND u.is_active = 1
+             LIMIT 1"
+        );
+        $statement->execute(['username' => $username]);
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($record === false) {
+            return null;
+        }
+
+        $verification = trim($verification);
+        $normalizedVerification = strtolower($verification);
+        $digitsOnly = preg_replace('/\D+/', '', $verification) ?? '';
+
+        $emailMatches = in_array($normalizedVerification, array_filter([
+            strtolower((string) ($record['email'] ?? '')),
+            strtolower((string) ($record['contact_email'] ?? '')),
+        ]), true);
+
+        $mobileMatches = $digitsOnly !== '' && in_array($digitsOnly, array_filter([
+            preg_replace('/\D+/', '', (string) ($record['mobile'] ?? '')) ?: '',
+            preg_replace('/\D+/', '', (string) ($record['contact_mobile'] ?? '')) ?: '',
+        ]), true);
+
+        return ($emailMatches || $mobileMatches) ? $record : null;
+    }
+
+    public function createPasswordResetToken(int $userId, string $selector, string $tokenHash, string $audience, string $expiresAt): void
+    {
+        $statement = Database::connection()->prepare(
+            "INSERT INTO password_reset_tokens (
+                user_id, selector, token_hash, audience, expires_at, created_at
+             ) VALUES (
+                :user_id, :selector, :token_hash, :audience, :expires_at, NOW()
+             )"
+        );
+        $statement->execute([
+            'user_id' => $userId,
+            'selector' => $selector,
+            'token_hash' => $tokenHash,
+            'audience' => $audience,
+            'expires_at' => $expiresAt,
+        ]);
+    }
+
+    public function findActivePasswordResetToken(string $selector, string $audience): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT prt.*,
+                    u.username,
+                    u.full_name,
+                    u.is_active
+             FROM password_reset_tokens prt
+             INNER JOIN users u ON u.id = prt.user_id
+             WHERE prt.selector = :selector
+               AND prt.audience = :audience
+               AND prt.used_at IS NULL
+               AND prt.expires_at >= NOW()
+             ORDER BY prt.id DESC
+             LIMIT 1"
+        );
+        $statement->execute([
+            'selector' => $selector,
+            'audience' => $audience,
+        ]);
+
+        $record = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $record === false ? null : $record;
+    }
+
+    public function consumePasswordResetToken(int $tokenId): void
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE password_reset_tokens
+             SET used_at = NOW()
+             WHERE id = :id"
+        );
+        $statement->execute(['id' => $tokenId]);
+    }
+
     private function getRoleCodes(int $userId): array
     {
         $statement = Database::connection()->prepare(

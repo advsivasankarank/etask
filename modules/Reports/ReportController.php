@@ -68,6 +68,27 @@ final class ReportController
         ]));
     }
 
+    public function pso(Request $request): void
+    {
+        $page = max(1, (int) $request->input('page', 1));
+        $filters = [
+            'search' => trim((string) $request->input('search', '')),
+            'company_id' => (int) $request->input('company_id', 0),
+            'service_type_id' => (int) $request->input('service_type_id', 0),
+            'current_status' => trim((string) $request->input('current_status', '')),
+            'date_from' => trim((string) $request->input('date_from', '')),
+            'date_to' => trim((string) $request->input('date_to', '')),
+        ];
+
+        Response::html(View::render(base_path('modules/Reports/views/pso.php'), [
+            'title' => 'PSO Register',
+            'activeMenu' => 'reports',
+            'filters' => $filters,
+            'options' => $this->reports->filterOptions(),
+            'report' => $this->reports->psoRegister($filters, $page),
+        ]));
+    }
+
     public function invoices(Request $request): void
     {
         $page = max(1, (int) $request->input('page', 1));
@@ -165,6 +186,27 @@ final class ReportController
             'filters' => $filters,
             'options' => $this->reports->filterOptions(),
             'report' => $this->reports->revenueReport($filters),
+        ]));
+    }
+
+    public function consultants(Request $request): void
+    {
+        $page = max(1, (int) $request->input('page', 1));
+        $filters = [
+            'search' => trim((string) $request->input('search', '')),
+            'company_id' => (int) $request->input('company_id', 0),
+            'service_type_id' => (int) $request->input('service_type_id', 0),
+            'status' => trim((string) $request->input('status', '')),
+            'date_from' => trim((string) $request->input('date_from', '')),
+            'date_to' => trim((string) $request->input('date_to', '')),
+        ];
+
+        Response::html(View::render(base_path('modules/Reports/views/consultants.php'), [
+            'title' => 'Consultant Report',
+            'activeMenu' => 'reports',
+            'filters' => $filters,
+            'options' => $this->reports->filterOptions(),
+            'report' => $this->reports->consultantReport($filters, $page),
         ]));
     }
 

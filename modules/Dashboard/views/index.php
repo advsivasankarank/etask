@@ -8,13 +8,26 @@
         <h3 style="margin:10px 0 8px;font-size:2rem;">Welcome, <?= e($user['full_name'] ?? 'User') ?></h3>
         <p class="subtle" style="margin:0 0 22px;">Active dashboard persona: <?= e($dashboard['persona'] ?? 'General') ?></p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <a href="<?= e(url('/clients')) ?>" class="button button-secondary">Open Clients</a>
-            <a href="<?= e(url('/service-orders')) ?>" class="button">Open Service Orders</a>
-            <a href="<?= e(url('/client-portal/pso')) ?>" class="button button-secondary">Open PSOs</a>
-            <a href="<?= e(url('/billing')) ?>" class="button button-secondary">Open Billing</a>
-            <a href="<?= e(url('/consultants')) ?>" class="button button-secondary">Open Consultants</a>
+            <?php if (\App\Core\Auth::can('clients.view')): ?>
+                <a href="<?= e(url('/clients')) ?>" class="button button-secondary">Open Clients</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('service_orders.view')): ?>
+                <a href="<?= e(url('/service-orders')) ?>" class="button">Open Service Orders</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::canAny('portal.self_access', 'portal.pso.create', 'portal.pso.review', 'portal.pso.approve', 'portal.pso.reject')): ?>
+                <a href="<?= e(url('/client-portal/pso')) ?>" class="button button-secondary">Open PSOs</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('billing.view')): ?>
+                <a href="<?= e(url('/billing')) ?>" class="button button-secondary">Open Billing</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('consultants.view')): ?>
+                <a href="<?= e(url('/consultants')) ?>" class="button button-secondary">Open Consultants</a>
+            <?php endif; ?>
             <?php if (\App\Core\Auth::canAny('reports.view', 'reports.financial')): ?>
                 <a href="<?= e(url('/reports')) ?>" class="button button-secondary">Open Reports</a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::isPortalUser()): ?>
+                <a href="<?= e(url('/client-portal/account')) ?>" class="button button-secondary">Open Account</a>
             <?php endif; ?>
         </div>
     </div>

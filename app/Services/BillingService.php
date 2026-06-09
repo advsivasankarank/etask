@@ -7,17 +7,19 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Repositories\BillingRepository;
+use App\Services\DocumentUploadService;
 use RuntimeException;
 use Throwable;
 
 final class BillingService
 {
     public function __construct(
-        private readonly BillingRepository $billing = new BillingRepository()
+        private readonly BillingRepository $billing = new BillingRepository(),
+        private readonly DocumentUploadService $documents = new DocumentUploadService()
     ) {
     }
 
-    public function createDisbursement(array $input, int $userId): int
+    public function createDisbursement(array $input, int $userId, ?array $proofFile = null): int
     {
         $serviceOrderId = (int) ($input['service_order_id'] ?? 0);
         if ($serviceOrderId <= 0) {
@@ -45,6 +47,22 @@ final class BillingService
             'notes' => trim((string) ($input['notes'] ?? '')) ?: null,
             'added_by' => $userId,
         ]);
+
+        if (($proofFile['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $documentIds = $this->documents->uploadLinkedDocuments(
+                clientId: (int) $context['client_id'],
+                linkedModule: 'BILLING',
+                linkedId: $disbursementId,
+                documentCategory: 'DISBURSEMENT_PROOF',
+                files: $proofFile,
+                uploadedBy: $userId,
+                directoryKey: 'billing'
+            );
+
+            if ($documentIds !== []) {
+                $this->billing->updateDisbursementProof($disbursementId, (int) $documentIds[0]);
+            }
+        }
 
         Logger::info('billing.disbursement_created', [
             'disbursement_id' => $disbursementId,

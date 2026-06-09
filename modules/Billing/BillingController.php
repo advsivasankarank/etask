@@ -61,7 +61,7 @@ final class BillingController
         $serviceOrderId = (int) $request->input('service_order_id', 0);
 
         try {
-            $this->billingService->createDisbursement($request->all(), (int) Auth::id());
+            $this->billingService->createDisbursement($request->all(), (int) Auth::id(), $request->file('proof_document'));
             Session::flash('success', 'Disbursement added successfully.');
         } catch (Throwable $throwable) {
             Session::flash('error', $throwable->getMessage());
@@ -96,5 +96,51 @@ final class BillingController
         }
 
         redirect('/billing/show?service_order_id=' . $serviceOrderId);
+    }
+
+    public function invoice(Request $request): void
+    {
+        $invoiceId = (int) $request->input('id', 0);
+        $invoice = $this->billing->invoiceDetail($invoiceId);
+
+        if ($invoice === null) {
+            Response::abort(404, 'Invoice not found.');
+        }
+
+        if (Auth::isPortalUser() && Auth::clientId() !== (int) ($invoice['client_id'] ?? 0)) {
+            Response::abort(403, 'You are not allowed to view this invoice.');
+        }
+
+        $content = View::render(base_path('modules/Billing/views/invoice.php'), [
+            'title' => 'Invoice',
+            'activeMenu' => Auth::isPortalUser() ? 'client_portal' : 'billing',
+            'invoice' => $invoice,
+            'items' => $this->billing->invoiceItems($invoiceId),
+        ]);
+
+        Response::html($content);
+    }
+
+    public function receipt(Request $request): void
+    {
+        $receiptId = (int) $request->input('id', 0);
+        $receipt = $this->billing->receiptDetail($receiptId);
+
+        if ($receipt === null) {
+            Response::abort(404, 'Receipt not found.');
+        }
+
+        if (Auth::isPortalUser() && Auth::clientId() !== (int) ($receipt['client_id'] ?? 0)) {
+            Response::abort(403, 'You are not allowed to view this receipt.');
+        }
+
+        $content = View::render(base_path('modules/Billing/views/receipt.php'), [
+            'title' => 'Receipt',
+            'activeMenu' => Auth::isPortalUser() ? 'client_portal' : 'billing',
+            'receipt' => $receipt,
+            'items' => $this->billing->receiptItems($receiptId),
+        ]);
+
+        Response::html($content);
     }
 }

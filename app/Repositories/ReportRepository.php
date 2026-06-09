@@ -150,6 +150,68 @@ final class ReportRepository
         return $this->paginate($countSql, $dataSql, $params, $page, $perPage, ' ORDER BY so.id DESC');
     }
 
+    public function psoRegister(array $filters, int $page = 1, int $perPage = 25): array
+    {
+        $baseSql = "FROM pre_service_orders pso
+            INNER JOIN clients c ON c.id = pso.client_id
+            INNER JOIN companies comp ON comp.id = pso.company_id
+            INNER JOIN service_types st ON st.id = pso.service_type_id
+            LEFT JOIN client_contacts cc ON cc.id = pso.requested_by_contact_id
+            LEFT JOIN service_orders so ON so.id = pso.converted_so_id
+            WHERE 1 = 1";
+
+        $where = '';
+        $params = [];
+
+        if (trim((string) ($filters['search'] ?? '')) !== '') {
+            $term = '%' . trim((string) $filters['search']) . '%';
+            $where .= " AND (
+                pso.pso_no LIKE :search_pso_no
+                OR c.legal_name LIKE :search_client_name
+                OR c.pan LIKE :search_pan
+                OR c.tan LIKE :search_tan
+            )";
+            $params['search_pso_no'] = $term;
+            $params['search_client_name'] = $term;
+            $params['search_pan'] = $term;
+            $params['search_tan'] = $term;
+        }
+
+        if ((int) ($filters['company_id'] ?? 0) > 0) {
+            $where .= " AND pso.company_id = :company_id";
+            $params['company_id'] = (int) $filters['company_id'];
+        }
+        if ((int) ($filters['service_type_id'] ?? 0) > 0) {
+            $where .= " AND pso.service_type_id = :service_type_id";
+            $params['service_type_id'] = (int) $filters['service_type_id'];
+        }
+        if (trim((string) ($filters['current_status'] ?? '')) !== '') {
+            $where .= " AND pso.current_status = :current_status";
+            $params['current_status'] = trim((string) $filters['current_status']);
+        }
+
+        [$where, $params] = $this->appendDateRange($where, $params, 'pso.submitted_at', $filters);
+
+        $countSql = "SELECT COUNT(*) {$baseSql}{$where}";
+        $dataSql = "SELECT pso.id,
+                pso.pso_no,
+                pso.title,
+                pso.requested_for_period,
+                pso.current_status,
+                pso.submitted_at,
+                pso.reviewed_at,
+                c.legal_name AS client_name,
+                c.pan,
+                c.tan,
+                st.name AS service_type_name,
+                comp.display_name AS company_name,
+                cc.contact_name AS requested_by_name,
+                so.so_no AS converted_so_no
+            {$baseSql}{$where}";
+
+        return $this->paginate($countSql, $dataSql, $params, $page, $perPage, ' ORDER BY pso.id DESC');
+    }
+
     public function invoiceRegister(array $filters, int $page = 1, int $perPage = 25): array
     {
         $baseSql = "FROM invoices i
@@ -404,6 +466,83 @@ final class ReportRepository
             'summary' => $summaryStatement->fetch(PDO::FETCH_ASSOC) ?: [],
             'items' => $rowsStatement->fetchAll(PDO::FETCH_ASSOC),
         ];
+    }
+
+    public function consultantReport(array $filters, int $page = 1, int $perPage = 25): array
+    {
+        $baseSql = "FROM consultant_assignments ca
+            INNER JOIN users consultant ON consultant.id = ca.consultant_user_id
+            INNER JOIN service_orders so ON so.id = ca.service_order_id
+            INNER JOIN clients c ON c.id = so.client_id
+            INNER JOIN companies comp ON comp.id = so.company_id
+            INNER JOIN service_types st ON st.id = so.service_type_id
+            LEFT JOIN users reviewer ON reviewer.id = ca.internal_reviewer_id
+            LEFT JOIN (
+                SELECT consultant_assignment_id, COUNT(*) AS deliverable_count
+                FROM consultant_deliverables
+                GROUP BY consultant_assignment_id
+            ) deliverables ON deliverables.consultant_assignment_id = ca.id
+            LEFT JOIN (
+                SELECT consultant_assignment_id, COUNT(*) AS bill_count, COALESCE(SUM(total_amount), 0) AS billed_total
+                FROM consultant_bills
+                GROUP BY consultant_assignment_id
+            ) bills ON bills.consultant_assignment_id = ca.id
+            LEFT JOIN (
+                SELECT cb.consultant_assignment_id, COALESCE(SUM(cp.amount), 0) AS paid_total
+                FROM consultant_payments cp
+                INNER JOIN consultant_bills cb ON cb.id = cp.consultant_bill_id
+                GROUP BY cb.consultant_assignment_id
+            ) payments ON payments.consultant_assignment_id = ca.id
+            WHERE 1 = 1";
+
+        $where = '';
+        $params = [];
+
+        if (trim((string) ($filters['search'] ?? '')) !== '') {
+            $term = '%' . trim((string) $filters['search']) . '%';
+            $where .= " AND (
+                consultant.full_name LIKE :search_consultant_name
+                OR c.legal_name LIKE :search_client_name
+                OR so.so_no LIKE :search_so_no
+            )";
+            $params['search_consultant_name'] = $term;
+            $params['search_client_name'] = $term;
+            $params['search_so_no'] = $term;
+        }
+
+        if ((int) ($filters['company_id'] ?? 0) > 0) {
+            $where .= " AND so.company_id = :company_id";
+            $params['company_id'] = (int) $filters['company_id'];
+        }
+        if ((int) ($filters['service_type_id'] ?? 0) > 0) {
+            $where .= " AND so.service_type_id = :service_type_id";
+            $params['service_type_id'] = (int) $filters['service_type_id'];
+        }
+        if (trim((string) ($filters['status'] ?? '')) !== '') {
+            $where .= " AND ca.status = :status";
+            $params['status'] = trim((string) $filters['status']);
+        }
+
+        [$where, $params] = $this->appendDateRange($where, $params, 'ca.assigned_at', $filters);
+
+        $countSql = "SELECT COUNT(*) {$baseSql}{$where}";
+        $dataSql = "SELECT ca.id,
+                ca.service_order_id,
+                ca.status,
+                ca.assigned_at,
+                consultant.full_name AS consultant_name,
+                reviewer.full_name AS reviewer_name,
+                so.so_no,
+                c.legal_name AS client_name,
+                comp.display_name AS company_name,
+                st.name AS service_type_name,
+                COALESCE(deliverables.deliverable_count, 0) AS deliverable_count,
+                COALESCE(bills.bill_count, 0) AS bill_count,
+                COALESCE(bills.billed_total, 0) AS billed_total,
+                COALESCE(payments.paid_total, 0) AS paid_total
+            {$baseSql}{$where}";
+
+        return $this->paginate($countSql, $dataSql, $params, $page, $perPage, ' ORDER BY ca.id DESC');
     }
 
     private function paginate(string $countSql, string $dataSql, array $params, int $page, int $perPage, string $orderBy): array

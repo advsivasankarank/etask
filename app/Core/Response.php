@@ -41,4 +41,24 @@ final class Response
         readfile($absolutePath);
         exit;
     }
+
+    public static function inlineFile(string $absolutePath, string $displayName, string $mimeType = 'application/octet-stream'): never
+    {
+        if (!is_file($absolutePath) || !is_readable($absolutePath)) {
+            self::abort(404, 'Requested file not found.');
+        }
+
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: inline; filename="' . rawurlencode($displayName) . '"');
+        header('Content-Length: ' . (string) filesize($absolutePath));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=300');
+
+        readfile($absolutePath);
+        exit;
+    }
 }

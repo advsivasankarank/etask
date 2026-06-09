@@ -9,8 +9,11 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\BillingRepository;
+use App\Repositories\ClientRepository;
 use App\Repositories\PsoRepository;
 use App\Repositories\ServiceTypeRepository;
+use App\Services\BillingService;
 use App\Services\PsoService;
 use Throwable;
 
@@ -19,7 +22,10 @@ final class ClientPortalController
     public function __construct(
         private readonly PsoRepository $psos = new PsoRepository(),
         private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
-        private readonly PsoService $psoService = new PsoService()
+        private readonly PsoService $psoService = new PsoService(),
+        private readonly ClientRepository $clients = new ClientRepository(),
+        private readonly BillingRepository $billing = new BillingRepository(),
+        private readonly BillingService $billingService = new BillingService()
     ) {
     }
 
@@ -144,5 +150,85 @@ final class ClientPortalController
         }
 
         redirect('/client-portal/pso/show?id=' . $psoId);
+    }
+
+    public function account(): void
+    {
+        if (!Auth::isPortalUser()) {
+            Response::abort(403, 'Portal access is required.');
+        }
+
+        $clientId = (int) (Auth::clientId() ?? 0);
+        $client = $this->clients->findById($clientId);
+        if ($client === null) {
+            Response::abort(404, 'Client profile not found.');
+        }
+        $contactId = (int) (Auth::user()['client_contact_id'] ?? 0);
+
+        $content = View::render(base_path('modules/ClientPortal/views/account.php'), [
+            'title' => 'Client Account',
+            'activeMenu' => 'client_portal',
+            'client' => $client,
+            'contact' => $this->clients->primaryContact($clientId),
+            'invoices' => $this->billing->portalInvoices($clientId),
+            'payments' => $this->billing->portalPayments($clientId),
+            'notifications' => $this->portalNotifications($contactId),
+            'success' => Session::pullFlash('success'),
+            'error' => Session::pullFlash('error'),
+        ]);
+
+        Response::html($content);
+    }
+
+    public function payInvoice(Request $request): void
+    {
+        if (!Auth::isPortalUser()) {
+            Response::abort(403, 'Portal access is required.');
+        }
+
+        $invoiceId = (int) $request->input('invoice_id', 0);
+        $clientId = (int) (Auth::clientId() ?? 0);
+        $invoice = $this->billing->portalInvoiceById($invoiceId, $clientId);
+
+        if ($invoice === null) {
+            Session::flash('error', 'Invoice not found for this client.');
+            redirect('/client-portal/account');
+        }
+
+        try {
+            $this->billingService->recordPayment([
+                'service_order_id' => (int) $invoice['service_order_id'],
+                'amount' => $request->input('amount', $invoice['outstanding_amount']),
+                'payment_mode' => (string) $request->input('payment_mode', 'BANK_TRANSFER'),
+                'transaction_type' => 'INVOICE_PAYMENT',
+                'payment_date' => (string) $request->input('payment_date', date('Y-m-d')),
+                'reference_no' => (string) $request->input('reference_no', ''),
+                'notes' => (string) $request->input('notes', 'Client portal payment submission'),
+                'status' => 'SUCCESS',
+            ], (int) Auth::id());
+            Session::flash('success', 'Payment recorded successfully and receipt generated.');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+        }
+
+        redirect('/client-portal/account');
+    }
+
+    private function portalNotifications(int $clientContactId): array
+    {
+        if ($clientContactId <= 0) {
+            return [];
+        }
+
+        $statement = \App\Core\Database::connection()->prepare(
+            "SELECT id, subject, message, linked_module, linked_id, delivery_status, created_at
+             FROM notifications
+             WHERE client_contact_id = :client_contact_id
+             ORDER BY id DESC
+             LIMIT 25"
+        );
+        $statement->execute(['client_contact_id' => $clientContactId]);
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

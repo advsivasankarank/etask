@@ -154,4 +154,91 @@ final class DocumentRepository
             'total_pages' => max(1, (int) ceil($total / $perPage)),
         ];
     }
+
+    public function versions(int $documentId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT id,
+                    version_no,
+                    file_name,
+                    file_path,
+                    mime_type,
+                    file_size,
+                    checksum_sha256,
+                    change_note,
+                    uploaded_by,
+                    uploaded_at
+             FROM document_versions
+             WHERE document_id = :document_id
+             ORDER BY version_no DESC, id DESC"
+        );
+        $statement->execute(['document_id' => $documentId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function touchCurrentVersion(
+        int $documentId,
+        int $versionNo,
+        string $fileName,
+        string $filePath,
+        string $mimeType,
+        int $fileSize,
+        ?string $checksum,
+        int $uploadedBy
+    ): void {
+        $statement = Database::connection()->prepare(
+            "UPDATE documents
+             SET current_version_no = :current_version_no,
+                 latest_file_name = :latest_file_name,
+                 latest_file_path = :latest_file_path,
+                 mime_type = :mime_type,
+                 file_size = :file_size,
+                 checksum_sha256 = :checksum_sha256,
+                 uploaded_by = :uploaded_by,
+                 uploaded_at = NOW()
+             WHERE id = :id"
+        );
+        $statement->execute([
+            'current_version_no' => $versionNo,
+            'latest_file_name' => $fileName,
+            'latest_file_path' => $filePath,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
+            'checksum_sha256' => $checksum,
+            'uploaded_by' => $uploadedBy,
+            'id' => $documentId,
+        ]);
+    }
+
+    public function addVersion(
+        int $documentId,
+        int $versionNo,
+        string $fileName,
+        string $filePath,
+        string $mimeType,
+        int $fileSize,
+        ?string $checksum,
+        ?string $changeNote,
+        int $uploadedBy
+    ): void {
+        $statement = Database::connection()->prepare(
+            "INSERT INTO document_versions (
+                document_id, version_no, file_name, file_path, mime_type, file_size, checksum_sha256, change_note, uploaded_by, uploaded_at
+             ) VALUES (
+                :document_id, :version_no, :file_name, :file_path, :mime_type, :file_size, :checksum_sha256, :change_note, :uploaded_by, NOW()
+             )"
+        );
+        $statement->execute([
+            'document_id' => $documentId,
+            'version_no' => $versionNo,
+            'file_name' => $fileName,
+            'file_path' => $filePath,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
+            'checksum_sha256' => $checksum,
+            'change_note' => $changeNote,
+            'uploaded_by' => $uploadedBy,
+        ]);
+    }
 }

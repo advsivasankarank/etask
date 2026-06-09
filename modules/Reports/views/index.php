@@ -34,11 +34,13 @@
         $tiles = [
             ['title' => 'Client Register', 'path' => '/reports/clients', 'description' => 'Master client list with PAN, GSTIN, TAN, contact and CRM assignment.', 'permission' => 'reports.view'],
             ['title' => 'Service Order Register', 'path' => '/reports/service-orders', 'description' => 'SO lifecycle visibility with company, basis, stage, closure and SLA context.', 'permission' => 'reports.view'],
+            ['title' => 'PSO Register', 'path' => '/reports/pso', 'description' => 'Track pre-service orders, review status, conversion ageing, and converted service orders.', 'permission' => 'reports.view'],
             ['title' => 'Invoice Register', 'path' => '/reports/invoices', 'description' => 'Invoice issue, payment, gross, net and outstanding status.', 'permission' => 'reports.financial'],
             ['title' => 'Receipt Register', 'path' => '/reports/receipts', 'description' => 'Receipt ledger with payment mode, references and allocation count.', 'permission' => 'reports.financial'],
             ['title' => 'Outstanding Report', 'path' => '/reports/outstanding', 'description' => 'Ageing and receivable tracking for unpaid and partially paid invoices.', 'permission' => 'reports.financial'],
             ['title' => 'GST Summary', 'path' => '/reports/gst-summary', 'description' => 'GST workload summary by company, service type, period and filing milestones.', 'permission' => 'reports.view'],
             ['title' => 'Revenue Report', 'path' => '/reports/revenue', 'description' => 'Month-wise billed, tax, net, collected and outstanding revenue view.', 'permission' => 'reports.financial'],
+            ['title' => 'Consultant Report', 'path' => '/reports/consultants', 'description' => 'Assignment, deliverable, billing, and payment visibility across consultant-linked cases.', 'permission' => 'reports.view'],
             ['title' => 'Document Access Report', 'path' => '/reports/document-access', 'description' => 'Audited log of every secure document download attempt and success.', 'permission' => 'documents.report'],
         ];
         ?>
