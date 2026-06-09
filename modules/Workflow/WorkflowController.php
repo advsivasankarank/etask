@@ -125,6 +125,23 @@ final class WorkflowController
         redirect('/service-orders/show?id=' . (int) $request->input('service_order_id', 0));
     }
 
+    public function reopenMilestone(Request $request): void
+    {
+        try {
+            $this->workflows->reopenMilestone(
+                (int) $request->input('service_order_id', 0),
+                (string) $request->input('stage_code', ''),
+                (int) Auth::id(),
+                (string) $request->input('reopen_reason', '')
+            );
+            Session::flash('success', 'Milestone reopened successfully.');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+        }
+
+        redirect('/service-orders/show?id=' . (int) $request->input('service_order_id', 0));
+    }
+
     public function logFollowUp(Request $request): void
     {
         try {

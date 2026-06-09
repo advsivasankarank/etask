@@ -4,10 +4,20 @@ foreach ($workflowHistory as $historyRow) {
     $historyByStage[(string) $historyRow['stage_code']] = $historyRow;
 }
 
+$currentStageCode = (string) ($order['current_stage_code'] ?? '');
+$currentStageIndex = 0;
+foreach ($workflowStages as $stageIndex => $stage) {
+    if ((string) $stage['stage_code'] === $currentStageCode) {
+        $currentStageIndex = $stageIndex;
+        break;
+    }
+}
+
 $canManageExpenses = \App\Core\Auth::can('billing.disbursements.manage');
 $canViewExpenseSection = \App\Core\Auth::canAny('billing.disbursements.manage', 'billing.view');
 $canViewFinancialSnapshot = \App\Core\Auth::canAny('billing.view', 'billing.invoices.manage', 'billing.payments.manage')
     || \App\Core\Auth::canAll('workflow.close.procedural', 'workflow.close.accounting', 'workflow.close.final');
+$canReopenWorkflow = \App\Core\Auth::can('workflow.reopen');
 
 $disbursements = $billing['disbursements'] ?? [];
 $invoices = $billing['invoices'] ?? [];
@@ -16,8 +26,16 @@ $disbursementTotal = array_reduce($disbursements, static fn (float $carry, array
 $recoverableTotal = array_reduce($disbursements, static fn (float $carry, array $row): float => $carry + ((int) ($row['is_recoverable'] ?? 0) === 1 ? (float) ($row['amount'] ?? 0) : 0.0), 0.0);
 $invoiceTotal = array_reduce($invoices, static fn (float $carry, array $row): float => $carry + (float) ($row['net_payable'] ?? 0), 0.0);
 $paymentTotal = array_reduce($payments, static fn (float $carry, array $row): float => $carry + ((string) ($row['status'] ?? '') === 'SUCCESS' ? (float) ($row['amount'] ?? 0) : 0.0), 0.0);
-$currentAckLabel = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILED' ? 'Capture 3CB Acknowledgement' : 'Capture ITR Acknowledgement';
-$currentAckPlaceholder = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILED' ? '3CB acknowledgement number' : 'ITR ARN / acknowledgement number';
+$currentAckLabel = match ($currentStageCode) {
+    'FORM_3CB_FILED' => 'Capture 3CB Acknowledgement',
+    'FILING_DONE', 'ITR_FILING_DONE' => (string) ($order['service_type_code'] ?? '') === 'ITR' ? 'Capture ITR Acknowledgement' : 'Capture Acknowledgement',
+    default => 'Capture Acknowledgement',
+};
+$currentAckPlaceholder = match ($currentStageCode) {
+    'FORM_3CB_FILED' => '3CB acknowledgement number',
+    'FILING_DONE', 'ITR_FILING_DONE' => (string) ($order['service_type_code'] ?? '') === 'ITR' ? 'ITR ARN / acknowledgement number' : 'Acknowledgement / ARN number',
+    default => 'Acknowledgement number',
+};
 ?>
 <section class="panel">
     <?php if (!empty($success)): ?>
@@ -135,8 +153,9 @@ $currentAckPlaceholder = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILE
                             <?php
                             $stageCode = (string) $stage['stage_code'];
                             $historyRow = $historyByStage[$stageCode] ?? null;
-                            $isCurrent = (string) $order['current_stage_code'] === $stageCode;
-                            $isCompleted = $historyRow !== null && !$isCurrent;
+                            $isCurrent = $currentStageCode === $stageCode;
+                            $isCompleted = $index < $currentStageIndex;
+                            $isPending = $index > $currentStageIndex;
                             $rowBackground = $isCurrent ? '#fff7ed' : ($isCompleted ? '#f0fdf4' : '#ffffff');
                             $statusLabel = $isCurrent ? 'In Progress' : ($isCompleted ? 'Completed' : 'Pending');
                             $statusColor = $isCurrent ? '#f97316' : ($isCompleted ? '#15803d' : '#64748b');
@@ -151,21 +170,48 @@ $currentAckPlaceholder = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILE
                                 <td><?= e($historyRow['entered_by_name'] ?? '-') ?></td>
                                 <td><span class="chip" style="border-color:<?= e($statusColor) ?>;color:<?= e($statusColor) ?>;"><?= e($statusLabel) ?></span></td>
                                 <td>
-                                    <?php if ($isCurrent): ?>
-                                        <?php if ($workflowRules['can_record_payment']): ?>
-                                            <span class="chip chip-strong">Tax Payment Action</span>
-                                        <?php elseif ($workflowRules['can_capture_ack']): ?>
-                                            <span class="chip chip-strong">Acknowledgement Action</span>
-                                        <?php elseif ($workflowRules['can_mark_everification_done']): ?>
-                                            <span class="chip chip-strong">E-Verification Action</span>
-                                        <?php elseif ($workflowRules['can_advance']): ?>
-                                            <span class="chip chip-strong">Advance Available</span>
+                                    <div style="display:grid;gap:8px;min-width:240px;">
+                                        <?php if ($isCurrent && $workflowRules['can_record_payment']): ?>
+                                            <form method="post" action="<?= e(url('/workflow/payment')) ?>" style="display:grid;gap:8px;">
+                                                <?= \App\Core\Csrf::inputField() ?>
+                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
+                                                <input type="text" name="payment_reference_no" placeholder="Tax challan / payment reference" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
+                                                <button type="submit" class="button">Mark Done</button>
+                                            </form>
+                                        <?php elseif ($isCurrent && $workflowRules['can_capture_ack']): ?>
+                                            <form method="post" action="<?= e(url('/workflow/acknowledgement')) ?>" style="display:grid;gap:8px;">
+                                                <?= \App\Core\Csrf::inputField() ?>
+                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
+                                                <input type="text" name="acknowledgement_no" placeholder="<?= e($currentAckPlaceholder) ?>" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
+                                                <button type="submit" class="button"><?= e($currentAckLabel) ?></button>
+                                            </form>
+                                        <?php elseif ($isCurrent && $workflowRules['can_mark_everification_done']): ?>
+                                            <form method="post" action="<?= e(url('/workflow/e-verification-done')) ?>" style="display:grid;gap:8px;">
+                                                <?= \App\Core\Csrf::inputField() ?>
+                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
+                                                <input type="text" name="note" placeholder="Optional e-verification note" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;">
+                                                <button type="submit" class="button">Mark Done</button>
+                                            </form>
+                                        <?php elseif ($isCurrent && $workflowRules['can_advance']): ?>
+                                            <form method="post" action="<?= e(url('/workflow/advance')) ?>">
+                                                <?= \App\Core\Csrf::inputField() ?>
+                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
+                                                <button type="submit" class="button">Mark Done</button>
+                                            </form>
                                         <?php else: ?>
-                                            <span class="chip">Current</span>
+                                            <span class="chip"><?= $isCompleted ? 'Done' : ($isPending ? 'Waiting' : 'Current') ?></span>
                                         <?php endif; ?>
-                                    <?php else: ?>
-                                        <span class="chip"><?= $isCompleted ? 'Done' : 'Waiting' ?></span>
-                                    <?php endif; ?>
+
+                                        <?php if ($isCompleted && $canReopenWorkflow): ?>
+                                            <form method="post" action="<?= e(url('/workflow/reopen')) ?>" style="display:grid;gap:8px;">
+                                                <?= \App\Core\Csrf::inputField() ?>
+                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
+                                                <input type="hidden" name="stage_code" value="<?= e($stageCode) ?>">
+                                                <input type="text" name="reopen_reason" placeholder="Reason to re-open this milestone" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
+                                                <button type="submit" class="button button-secondary">Re-Open</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -175,48 +221,7 @@ $currentAckPlaceholder = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILE
         </details>
     </div>
 
-    <div class="grid" style="margin-top:18px;">
-        <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
-            <h4 style="margin-top:0;">Milestone Actions</h4>
-            <div style="display:grid;gap:14px;">
-                <?php if ($workflowRules['can_advance']): ?>
-                    <form method="post" action="<?= e(url('/workflow/advance')) ?>" style="display:grid;gap:10px;">
-                        <?= \App\Core\Csrf::inputField() ?>
-                        <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                        <button type="submit" class="button">Complete Current Milestone</button>
-                    </form>
-                <?php endif; ?>
-
-                <?php if ($workflowRules['can_record_payment']): ?>
-                    <form method="post" action="<?= e(url('/workflow/payment')) ?>" style="display:grid;gap:10px;">
-                        <?= \App\Core\Csrf::inputField() ?>
-                        <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                        <input type="text" name="payment_reference_no" placeholder="Tax challan / payment reference" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;" required>
-                        <button type="submit" class="button">Record Tax Payment</button>
-                    </form>
-                <?php endif; ?>
-
-                <?php if ($workflowRules['can_capture_ack']): ?>
-                    <form method="post" action="<?= e(url('/workflow/acknowledgement')) ?>" style="display:grid;gap:10px;">
-                        <?= \App\Core\Csrf::inputField() ?>
-                        <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                        <input type="text" name="acknowledgement_no" placeholder="<?= e($currentAckPlaceholder) ?>" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;" required>
-                        <button type="submit" class="button"><?= e($currentAckLabel) ?></button>
-                    </form>
-                <?php endif; ?>
-
-                <?php if ($workflowRules['can_mark_everification_done']): ?>
-                    <form method="post" action="<?= e(url('/workflow/e-verification-done')) ?>" style="display:grid;gap:10px;">
-                        <?= \App\Core\Csrf::inputField() ?>
-                        <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                        <input type="text" name="note" placeholder="Optional e-verification note" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;">
-                        <button type="submit" class="button">Mark E-Verification Done</button>
-                    </form>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
+    <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin-top:18px;">
             <h4 style="margin-top:0;">Closure Controls</h4>
             <div style="display:grid;gap:14px;">
                 <?php if (\App\Core\Auth::can('workflow.close.procedural')): ?>
@@ -246,7 +251,6 @@ $currentAckPlaceholder = ($order['current_stage_code'] ?? '') === 'FORM_3CB_FILE
                     </form>
                 <?php endif; ?>
             </div>
-        </div>
     </div>
 
     <?php if ($canViewExpenseSection || $canViewFinancialSnapshot): ?>

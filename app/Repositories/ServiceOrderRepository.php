@@ -423,8 +423,8 @@ final class ServiceOrderRepository
         $statement = Database::connection()->prepare(
             "UPDATE service_order_closures
              SET closure_status = :closure_status_set,
-                 closure_at = CASE WHEN :closure_status_case = 'COMPLETED' THEN NOW() ELSE closure_at END,
-                 closed_by = CASE WHEN :closure_status_closed_by = 'COMPLETED' THEN :closed_by_value ELSE closed_by END,
+                 closure_at = CASE WHEN :closure_status_case = 'COMPLETED' THEN NOW() ELSE NULL END,
+                 closed_by = CASE WHEN :closure_status_closed_by = 'COMPLETED' THEN :closed_by_value ELSE NULL END,
                  block_reason = :block_reason,
                  notes = :notes,
                  updated_at = NOW()

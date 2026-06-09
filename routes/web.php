@@ -115,4 +115,5 @@ $router->post('/workflow/e-verification-done', [WorkflowController::class, 'mark
 $router->post('/workflow/close-procedural', [WorkflowController::class, 'completeProceduralClosure'], ['auth', 'permission:workflow.close.procedural']);
 $router->post('/workflow/close-accounting', [WorkflowController::class, 'completeAccountingClosure'], ['auth', 'permission:workflow.close.accounting']);
 $router->post('/workflow/close-final', [WorkflowController::class, 'completeFinalClosure'], ['auth', 'permission:workflow.close.final']);
+$router->post('/workflow/reopen', [WorkflowController::class, 'reopenMilestone'], ['auth', 'permission:workflow.reopen']);
 $router->post('/workflow/follow-up', [WorkflowController::class, 'logFollowUp'], ['auth', 'permission:workflow.followup.log']);
