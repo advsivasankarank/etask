@@ -4,6 +4,11 @@ foreach ($workflowHistory as $historyRow) {
     $historyByStage[(string) $historyRow['stage_code']] = $historyRow;
 }
 
+$milestoneByStage = [];
+foreach ($workflowMilestones as $milestoneRow) {
+    $milestoneByStage[(string) $milestoneRow['stage_code']] = $milestoneRow;
+}
+
 $currentStageCode = (string) ($order['current_stage_code'] ?? '');
 $currentStageIndex = 0;
 foreach ($workflowStages as $stageIndex => $stage) {
@@ -36,6 +41,13 @@ $currentAckPlaceholder = match ($currentStageCode) {
     'FILING_DONE', 'ITR_FILING_DONE' => (string) ($order['service_type_code'] ?? '') === 'ITR' ? 'ITR ARN / acknowledgement number' : 'Acknowledgement / ARN number',
     default => 'Acknowledgement number',
 };
+$statusOptions = [
+    'PENDING' => 'Pending',
+    'DOCS_RECD' => 'Docs Recd',
+    'QUERY_PENDING' => 'Query Pending',
+    'QUERY_COMPLIED' => 'Query Complied',
+    'DONE' => 'Done',
+];
 ?>
 <section class="panel">
     <?php if (!empty($success)): ?>
@@ -142,10 +154,10 @@ $currentAckPlaceholder = match ($currentStageCode) {
                         <tr>
                             <th>Seq. No.</th>
                             <th>Milestone Name</th>
-                            <th>Completion Date</th>
+                            <th>Completed On</th>
                             <th>Completed By</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th>Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,12 +165,37 @@ $currentAckPlaceholder = match ($currentStageCode) {
                             <?php
                             $stageCode = (string) $stage['stage_code'];
                             $historyRow = $historyByStage[$stageCode] ?? null;
+                            $milestoneRow = $milestoneByStage[$stageCode] ?? null;
                             $isCurrent = $currentStageCode === $stageCode;
                             $isCompleted = $index < $currentStageIndex;
                             $isPending = $index > $currentStageIndex;
+                            $isEditable = $isCurrent || $isCompleted;
                             $rowBackground = $isCurrent ? '#fff7ed' : ($isCompleted ? '#f0fdf4' : '#ffffff');
-                            $statusLabel = $isCurrent ? 'In Progress' : ($isCompleted ? 'Completed' : 'Pending');
+                            $selectedStatus = (string) ($milestoneRow['tracking_status'] ?? ($isCompleted ? 'DONE' : 'PENDING'));
+                            if (!$isCurrent && $isCompleted) {
+                                $selectedStatus = 'DONE';
+                            }
+                            if (!$isCurrent && $isPending) {
+                                $selectedStatus = 'PENDING';
+                            }
+                            $statusLabel = $statusOptions[$selectedStatus] ?? ($isCurrent ? 'Pending' : ($isCompleted ? 'Done' : 'Pending'));
                             $statusColor = $isCurrent ? '#f97316' : ($isCompleted ? '#15803d' : '#64748b');
+                            $remarksValue = (string) ($milestoneRow['remarks'] ?? ($historyRow['remarks'] ?? ''));
+                            $completedOn = (string) ($milestoneRow['completed_at'] ?? '');
+                            $completedBy = (string) ($milestoneRow['completed_by_name'] ?? '');
+
+                            if ($completedOn === '' && $isCompleted && isset($workflowStages[$index + 1])) {
+                                $nextStageCode = (string) $workflowStages[$index + 1]['stage_code'];
+                                $nextHistory = $historyByStage[$nextStageCode] ?? null;
+                                $completedOn = (string) ($nextHistory['entered_at'] ?? '');
+                                $completedBy = (string) ($nextHistory['entered_by_name'] ?? '');
+                            }
+
+                            if ($stageCode === 'PROCEDURALLY_CLOSED' && $completedOn === '') {
+                                $completedOn = (string) ($order['procedural_closed_at'] ?? '');
+                            }
+
+                            $formId = 'milestone-form-' . $index;
                             ?>
                             <tr style="background:<?= e($rowBackground) ?>;">
                                 <td><?= e((string) ($index + 1)) ?></td>
@@ -166,40 +203,48 @@ $currentAckPlaceholder = match ($currentStageCode) {
                                     <strong><?= e($stage['stage_name']) ?></strong><br>
                                     <span class="subtle"><?= e($stageCode) ?></span>
                                 </td>
-                                <td><?= e($historyRow['entered_at'] ?? '-') ?></td>
-                                <td><?= e($historyRow['entered_by_name'] ?? '-') ?></td>
-                                <td><span class="chip" style="border-color:<?= e($statusColor) ?>;color:<?= e($statusColor) ?>;"><?= e($statusLabel) ?></span></td>
+                                <td><?= e($completedOn !== '' ? $completedOn : '-') ?></td>
+                                <td><?= e($completedBy !== '' ? $completedBy : '-') ?></td>
                                 <td>
-                                    <div style="display:grid;gap:8px;min-width:240px;">
-                                        <?php if ($isCurrent && $workflowRules['can_record_payment']): ?>
-                                            <form method="post" action="<?= e(url('/workflow/payment')) ?>" style="display:grid;gap:8px;">
+                                    <?php if ($isEditable): ?>
+                                        <select name="tracking_status" form="<?= e($formId) ?>" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;min-width:160px;">
+                                            <?php foreach ($statusOptions as $statusCode => $statusName): ?>
+                                                <?php
+                                                $isAllowedChoice = $isCurrent || $statusCode === 'DONE';
+                                                if (!$isAllowedChoice) {
+                                                    continue;
+                                                }
+                                                ?>
+                                                <option value="<?= e($statusCode) ?>" <?= $selectedStatus === $statusCode ? 'selected' : '' ?>><?= e($statusName) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div style="margin-top:8px;">
+                                            <span class="chip" style="border-color:<?= e($statusColor) ?>;color:<?= e($statusColor) ?>;"><?= e($statusLabel) ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="chip" style="border-color:<?= e($statusColor) ?>;color:<?= e($statusColor) ?>;"><?= e($statusLabel) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <div style="display:grid;gap:8px;min-width:260px;">
+                                        <?php if ($isEditable): ?>
+                                            <form id="<?= e($formId) ?>" method="post" action="<?= e(url('/workflow/milestone-update')) ?>" style="display:grid;gap:8px;">
                                                 <?= \App\Core\Csrf::inputField() ?>
                                                 <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                                                <input type="text" name="payment_reference_no" placeholder="Tax challan / payment reference" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
-                                                <button type="submit" class="button">Mark Done</button>
-                                            </form>
-                                        <?php elseif ($isCurrent && $workflowRules['can_capture_ack']): ?>
-                                            <form method="post" action="<?= e(url('/workflow/acknowledgement')) ?>" style="display:grid;gap:8px;">
-                                                <?= \App\Core\Csrf::inputField() ?>
-                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                                                <input type="text" name="acknowledgement_no" placeholder="<?= e($currentAckPlaceholder) ?>" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
-                                                <button type="submit" class="button"><?= e($currentAckLabel) ?></button>
-                                            </form>
-                                        <?php elseif ($isCurrent && $workflowRules['can_mark_everification_done']): ?>
-                                            <form method="post" action="<?= e(url('/workflow/e-verification-done')) ?>" style="display:grid;gap:8px;">
-                                                <?= \App\Core\Csrf::inputField() ?>
-                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                                                <input type="text" name="note" placeholder="Optional e-verification note" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;">
-                                                <button type="submit" class="button">Mark Done</button>
-                                            </form>
-                                        <?php elseif ($isCurrent && $workflowRules['can_advance']): ?>
-                                            <form method="post" action="<?= e(url('/workflow/advance')) ?>">
-                                                <?= \App\Core\Csrf::inputField() ?>
-                                                <input type="hidden" name="service_order_id" value="<?= e($order['id']) ?>">
-                                                <button type="submit" class="button">Mark Done</button>
+                                                <input type="hidden" name="stage_code" value="<?= e($stageCode) ?>">
+                                                <textarea name="remarks" rows="3" placeholder="Enter milestone remarks" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;resize:vertical;"><?= e($remarksValue) ?></textarea>
+                                                <?php if ($isCurrent && $workflowRules['can_record_payment']): ?>
+                                                    <input type="text" name="payment_reference_no" placeholder="Tax challan / payment reference" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;">
+                                                <?php endif; ?>
+                                                <?php if ($isCurrent && $workflowRules['can_capture_ack']): ?>
+                                                    <input type="text" name="acknowledgement_no" placeholder="<?= e($currentAckPlaceholder) ?>" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;">
+                                                <?php endif; ?>
+                                                <button type="submit" class="button"><?= $isCurrent ? 'Save Milestone' : 'Save Remarks' ?></button>
                                             </form>
                                         <?php else: ?>
-                                            <span class="chip"><?= $isCompleted ? 'Done' : ($isPending ? 'Waiting' : 'Current') ?></span>
+                                            <div style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;background:#f8fafc;min-height:74px;color:#475569;">
+                                                <?= e($remarksValue !== '' ? $remarksValue : '-') ?>
+                                            </div>
                                         <?php endif; ?>
 
                                         <?php if ($isCompleted && $canReopenWorkflow): ?>
@@ -210,6 +255,10 @@ $currentAckPlaceholder = match ($currentStageCode) {
                                                 <input type="text" name="reopen_reason" placeholder="Reason to re-open this milestone" style="padding:10px 12px;border:1px solid #d8e1eb;border-radius:10px;" required>
                                                 <button type="submit" class="button button-secondary">Re-Open</button>
                                             </form>
+                                        <?php else: ?>
+                                            <?php if (!$isEditable): ?>
+                                                <span class="chip"><?= $isPending ? 'Waiting for current milestone' : 'Current milestone' ?></span>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </td>

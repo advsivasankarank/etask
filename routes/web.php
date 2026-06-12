@@ -116,4 +116,5 @@ $router->post('/workflow/close-procedural', [WorkflowController::class, 'complet
 $router->post('/workflow/close-accounting', [WorkflowController::class, 'completeAccountingClosure'], ['auth', 'permission:workflow.close.accounting']);
 $router->post('/workflow/close-final', [WorkflowController::class, 'completeFinalClosure'], ['auth', 'permission:workflow.close.final']);
 $router->post('/workflow/reopen', [WorkflowController::class, 'reopenMilestone'], ['auth', 'permission:workflow.reopen']);
+$router->post('/workflow/milestone-update', [WorkflowController::class, 'updateMilestone'], ['auth', 'permission:workflow.advance,workflow.payment.record,workflow.acknowledgement.capture,workflow.everification.complete']);
 $router->post('/workflow/follow-up', [WorkflowController::class, 'logFollowUp'], ['auth', 'permission:workflow.followup.log']);

@@ -399,6 +399,70 @@ final class ServiceOrderRepository
         $statement->execute($params);
     }
 
+    public function upsertMilestoneTracker(
+        int $serviceOrderId,
+        string $stageCode,
+        string $stageName,
+        string $trackingStatus,
+        ?string $remarks,
+        ?int $updatedBy,
+        ?string $completedAt = null,
+        ?int $completedBy = null
+    ): void {
+        $statement = Database::connection()->prepare(
+            "INSERT INTO service_order_milestones (
+                service_order_id, stage_code, stage_name, tracking_status, remarks, completed_at, completed_by, updated_by, created_at, updated_at
+             ) VALUES (
+                :service_order_id, :stage_code, :stage_name, :tracking_status, :remarks, :completed_at, :completed_by, :updated_by, NOW(), NOW()
+             )
+             ON DUPLICATE KEY UPDATE
+                stage_name = VALUES(stage_name),
+                tracking_status = VALUES(tracking_status),
+                remarks = VALUES(remarks),
+                completed_at = COALESCE(VALUES(completed_at), completed_at),
+                completed_by = COALESCE(VALUES(completed_by), completed_by),
+                updated_by = VALUES(updated_by),
+                updated_at = NOW()"
+        );
+        $statement->execute([
+            'service_order_id' => $serviceOrderId,
+            'stage_code' => $stageCode,
+            'stage_name' => $stageName,
+            'tracking_status' => $trackingStatus,
+            'remarks' => $remarks,
+            'completed_at' => $completedAt,
+            'completed_by' => $completedBy,
+            'updated_by' => $updatedBy,
+        ]);
+    }
+
+    public function resetMilestoneTrackers(int $serviceOrderId, array $stageCodes): void
+    {
+        if ($stageCodes === []) {
+            return;
+        }
+
+        $placeholders = [];
+        $params = ['service_order_id' => $serviceOrderId];
+
+        foreach (array_values($stageCodes) as $index => $stageCode) {
+            $key = 'stage_code_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $stageCode;
+        }
+
+        $statement = Database::connection()->prepare(
+            "UPDATE service_order_milestones
+             SET tracking_status = 'PENDING',
+                 completed_at = NULL,
+                 completed_by = NULL,
+                 updated_at = NOW()
+             WHERE service_order_id = :service_order_id
+               AND stage_code IN (" . implode(', ', $placeholders) . ')'
+        );
+        $statement->execute($params);
+    }
+
     public function updateWorkflowMetadata(int $serviceOrderId, array $fields): void
     {
         if ($fields === []) {

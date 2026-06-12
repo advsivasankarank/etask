@@ -140,6 +140,7 @@ final class ServiceOrderController
             'billing' => $this->billingService->billingDashboard($id),
             'workflowStages' => $context['stages'],
             'workflowHistory' => $context['history'],
+            'workflowMilestones' => $context['milestones'],
             'workflowReminders' => $context['reminders'],
             'workflowClosures' => $context['closures'],
             'workflowRules' => $context['rules'],
