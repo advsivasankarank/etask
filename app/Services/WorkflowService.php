@@ -35,6 +35,7 @@ final class WorkflowService
             'order' => $order,
             'stages' => $this->stageDefinitions($order),
             'history' => $this->workflows->stageHistory($serviceOrderId),
+            'milestones' => $this->workflows->milestoneTrackers($serviceOrderId),
             'reminders' => $this->workflows->reminders($serviceOrderId),
             'closures' => $this->workflows->closures($serviceOrderId),
             'rules' => $this->availableActions($order),
@@ -65,10 +66,12 @@ final class WorkflowService
             }
 
             if ($nextStage['code'] === 'PROCEDURALLY_CLOSED') {
+                $this->markMilestoneDone($order, $currentStage, $userId, 'Milestone completed');
                 $this->completeProceduralClosureInsideTransaction($order, $userId, 'Milestone closure');
                 return;
             }
 
+            $this->markMilestoneDone($order, $currentStage, $userId, 'Milestone completed');
             $this->transitionToStage($order, $userId, $nextStage['code'], 'MANUAL_MILESTONE', 'Manual milestone advancement');
 
             if (in_array($nextStage['code'], ['FILING_DONE', 'ITR_FILING_DONE'], true)) {
@@ -110,6 +113,7 @@ final class WorkflowService
                 throw new RuntimeException('Unable to determine the next milestone after tax payment.');
             }
 
+            $this->markMilestoneDone($order, $currentStage, $userId, 'Tax payment captured: ' . $referenceNo);
             $this->transitionToStage($order, $userId, $nextStage['code'], 'AUTO_PAYMENT', 'Tax payment captured: ' . $referenceNo);
         });
     }
@@ -132,6 +136,7 @@ final class WorkflowService
                     'form_3cb_acknowledgement_captured_at' => $now,
                 ]);
 
+                $this->markMilestoneDone($order, $currentStage, $userId, 'Form 3CB acknowledgement captured: ' . $referenceNo);
                 $this->transitionToStage($order, $userId, 'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED', 'AUTO_ACK_UPLOAD', 'Form 3CB acknowledgement captured: ' . $referenceNo);
 
                 $updatedOrder = $this->requireLockedOrder($serviceOrderId);
@@ -161,6 +166,7 @@ final class WorkflowService
                 throw new RuntimeException('Unable to determine acknowledgement milestone.');
             }
 
+            $this->markMilestoneDone($order, $currentStage, $userId, 'Acknowledgement captured: ' . $referenceNo);
             $this->transitionToStage($order, $userId, $ackStage['code'], 'AUTO_ACK_UPLOAD', 'Acknowledgement captured: ' . $referenceNo);
 
             if ((string) $order['service_type_code'] === 'ITR') {
@@ -199,7 +205,85 @@ final class WorkflowService
             $this->serviceOrders->markReminderDone((int) $order['id']);
 
             $transitionNote = trim($note) !== '' ? $note : 'E-verification completed';
+            $this->markMilestoneDone($order, 'E_VERIFICATION_PENDING', $userId, $transitionNote);
             $this->transitionToStage($order, $userId, 'E_VERIFICATION_DONE', 'MANUAL_MILESTONE', $transitionNote);
+
+            $updatedOrder = $this->requireLockedOrder($serviceOrderId);
+            $this->markMilestoneDone($updatedOrder, 'E_VERIFICATION_DONE', $userId, 'Auto closed after e-verification');
+            $this->completeProceduralClosureInsideTransaction($updatedOrder, $userId, 'Auto procedural closure after e-verification');
+        });
+    }
+
+    public function updateMilestone(int $serviceOrderId, string $stageCode, string $status, string $remarks, int $userId, array $meta = []): void
+    {
+        $status = $this->normalizeMilestoneStatus($status);
+        $remarks = trim($remarks);
+
+        $this->runInTransaction(function () use ($serviceOrderId, $stageCode, $status, $remarks, $userId, $meta): void {
+            $order = $this->requireLockedOrder($serviceOrderId);
+            $requestedStage = strtoupper(trim($stageCode));
+            $sequence = $this->stageSequence($order);
+            $currentStage = (string) $order['current_stage_code'];
+            $currentIndex = array_search($currentStage, $sequence, true);
+            $requestedIndex = array_search($requestedStage, $sequence, true);
+
+            if ($requestedIndex === false || $currentIndex === false) {
+                throw new RuntimeException('Unable to resolve the selected milestone.');
+            }
+
+            if ($requestedIndex > $currentIndex) {
+                throw new RuntimeException('Future milestones cannot be updated yet.');
+            }
+
+            if ($requestedIndex < $currentIndex) {
+                $this->upsertMilestoneStatus($order, $requestedStage, 'DONE', $remarks, $userId);
+                $this->serviceOrders->recordActivity($userId, (int) $order['id'], 'WORKFLOW_MILESTONE_NOTE', 'Updated remarks for completed milestone ' . $requestedStage, 'WORKFLOW');
+                return;
+            }
+
+            if ($status !== 'DONE') {
+                $this->upsertMilestoneStatus($order, $requestedStage, $status, $remarks, $userId);
+                $this->serviceOrders->recordActivity($userId, (int) $order['id'], 'WORKFLOW_STATUS_UPDATE', 'Updated milestone status for ' . $requestedStage . ' to ' . $status, 'WORKFLOW');
+                return;
+            }
+
+            if (in_array($requestedStage, $this->paymentPendingStages(), true)) {
+                $paymentReferenceNo = trim((string) ($meta['payment_reference_no'] ?? ''));
+                $this->recordTaxPaymentInsideTransaction($order, $userId, $paymentReferenceNo, $remarks);
+                return;
+            }
+
+            if (in_array($requestedStage, $this->ackCaptureRequiredStages(), true)) {
+                $acknowledgementNo = trim((string) ($meta['acknowledgement_no'] ?? ''));
+                $this->captureAcknowledgementInsideTransaction($order, $userId, $acknowledgementNo, $remarks);
+                return;
+            }
+
+            if ($requestedStage === 'E_VERIFICATION_PENDING') {
+                $this->markEVerificationDoneInsideTransaction($order, $userId, $remarks);
+                return;
+            }
+
+            $this->upsertMilestoneStatus($order, $requestedStage, 'DONE', $remarks, $userId, true);
+            $nextStage = $this->nextStage($order);
+            if ($nextStage === null) {
+                throw new RuntimeException('No further milestone is available from the current stage.');
+            }
+
+            if ($nextStage['code'] === 'PROCEDURALLY_CLOSED') {
+                $this->completeProceduralClosureInsideTransaction($order, $userId, $remarks !== '' ? $remarks : 'Milestone closure');
+                return;
+            }
+
+            $transitionNote = $remarks !== '' ? $remarks : 'Manual milestone advancement';
+            $this->transitionToStage($order, $userId, $nextStage['code'], 'MANUAL_MILESTONE', $transitionNote);
+
+            if (in_array($nextStage['code'], ['FILING_DONE', 'ITR_FILING_DONE'], true)) {
+                $this->serviceOrders->updateStatusFlags((int) $order['id'], [
+                    'is_document_pending' => 0,
+                    'is_filing_done' => 1,
+                ]);
+            }
         });
     }
 
@@ -418,6 +502,11 @@ final class WorkflowService
         $this->transitionToStage($order, $userId, 'PROCEDURALLY_CLOSED', 'MANUAL_MILESTONE', $note !== '' ? $note : 'Procedural closure completed');
         $this->serviceOrders->markProceduralClosed((int) $order['id'], $userId);
         $this->serviceOrders->updateClosure((int) $order['id'], 'PROCEDURAL', 'COMPLETED', null, $note, $userId);
+
+        $updatedOrder = $this->serviceOrders->lockForUpdate((int) $order['id']);
+        if ($updatedOrder !== null) {
+            $this->markMilestoneDone($updatedOrder, 'PROCEDURALLY_CLOSED', $userId, $note !== '' ? $note : 'Procedural closure completed');
+        }
     }
 
     private function createEVerificationReminders(array $order, int $userId, DateTimeImmutable $baseDate): void
@@ -679,6 +768,7 @@ final class WorkflowService
             'is_overdue' => 0,
         ];
         $this->serviceOrders->updateStatusFlags($serviceOrderId, $statusUpdates);
+        $this->serviceOrders->resetMilestoneTrackers($serviceOrderId, array_slice($sequence, $stageIndex));
 
         $this->serviceOrders->updateClosure($serviceOrderId, 'PROCEDURAL', 'PENDING', null, 'Milestone reopened', null);
         $this->serviceOrders->updateClosure($serviceOrderId, 'ACCOUNTING', 'PENDING', null, 'Milestone reopened', null);
@@ -732,5 +822,161 @@ final class WorkflowService
 
             throw $throwable;
         }
+    }
+
+    private function recordTaxPaymentInsideTransaction(array $order, int $userId, string $referenceNo, string $remarks = ''): void
+    {
+        $referenceNo = trim($referenceNo);
+        if ($referenceNo === '') {
+            throw new RuntimeException('Payment reference is required.');
+        }
+
+        $currentStage = (string) $order['current_stage_code'];
+        if (!in_array($currentStage, ['PAYMENT_PENDING', 'TAX_PAYMENT_PENDING'], true)) {
+            throw new RuntimeException('Tax payment can only be recorded while the workflow is in Tax Payment Pending.');
+        }
+
+        $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+            'payment_reference_no' => $referenceNo,
+            'payment_recorded_at' => date('Y-m-d H:i:s'),
+        ]);
+        $this->serviceOrders->updateStatusFlags((int) $order['id'], [
+            'is_payment_pending' => 0,
+            'is_paid' => 1,
+        ]);
+
+        $note = $remarks !== '' ? $remarks : 'Tax payment captured: ' . $referenceNo;
+        $this->markMilestoneDone($order, $currentStage, $userId, $note);
+        $nextStage = $this->nextStage($order);
+        if ($nextStage === null) {
+            throw new RuntimeException('Unable to determine the next milestone after tax payment.');
+        }
+
+        $this->transitionToStage($order, $userId, $nextStage['code'], 'AUTO_PAYMENT', 'Tax payment captured: ' . $referenceNo);
+    }
+
+    private function captureAcknowledgementInsideTransaction(array $order, int $userId, string $referenceNo, string $remarks = ''): void
+    {
+        $referenceNo = trim($referenceNo);
+        if ($referenceNo === '') {
+            throw new RuntimeException('Acknowledgement reference is required.');
+        }
+
+        $currentStage = (string) $order['current_stage_code'];
+        $now = date('Y-m-d H:i:s');
+
+        if ($currentStage === 'FORM_3CB_FILED') {
+            $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+                'form_3cb_acknowledgement_no' => $referenceNo,
+                'form_3cb_acknowledgement_captured_at' => $now,
+            ]);
+
+            $note = $remarks !== '' ? $remarks : 'Form 3CB acknowledgement captured: ' . $referenceNo;
+            $this->markMilestoneDone($order, $currentStage, $userId, $note);
+            $this->transitionToStage($order, $userId, 'FORM_3CB_ACKNOWLEDGEMENT_CAPTURED', 'AUTO_ACK_UPLOAD', 'Form 3CB acknowledgement captured: ' . $referenceNo);
+
+            $updatedOrder = $this->requireLockedOrder((int) $order['id']);
+            $nextStage = $this->nextStage($updatedOrder);
+            if ($nextStage !== null && $nextStage['code'] !== 'PROCEDURALLY_CLOSED') {
+                $this->transitionToStage($updatedOrder, $userId, $nextStage['code'], 'SYSTEM', 'Form 3CB acknowledgement captured; moved to next milestone');
+            }
+            return;
+        }
+
+        if (!in_array($currentStage, ['FILING_DONE', 'ITR_FILING_DONE'], true)) {
+            throw new RuntimeException('Acknowledgement can only be captured after ITR Filing Done.');
+        }
+
+        $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+            'filing_reference_no' => $referenceNo,
+            'acknowledgement_no' => $referenceNo,
+            'acknowledgement_captured_at' => $now,
+        ]);
+        $this->serviceOrders->updateStatusFlags((int) $order['id'], [
+            'is_acknowledgement_captured' => 1,
+        ]);
+
+        $ackStage = $this->nextStage($order);
+        if ($ackStage === null) {
+            throw new RuntimeException('Unable to determine acknowledgement milestone.');
+        }
+
+        $note = $remarks !== '' ? $remarks : 'Acknowledgement captured: ' . $referenceNo;
+        $this->markMilestoneDone($order, $currentStage, $userId, $note);
+        $this->transitionToStage($order, $userId, $ackStage['code'], 'AUTO_ACK_UPLOAD', 'Acknowledgement captured: ' . $referenceNo);
+
+        if ((string) $order['service_type_code'] === 'ITR') {
+            $updatedOrder = $this->requireLockedOrder((int) $order['id']);
+            $nextStage = $this->nextStage($updatedOrder);
+            if ($nextStage !== null) {
+                $this->transitionToStage($updatedOrder, $userId, $nextStage['code'], 'SYSTEM', 'ITR acknowledgement captured; e-verification window started');
+                if ($nextStage['code'] === 'E_VERIFICATION_PENDING') {
+                    $this->createEVerificationReminders($updatedOrder, $userId, new DateTimeImmutable($now));
+                }
+            }
+        }
+    }
+
+    private function markEVerificationDoneInsideTransaction(array $order, int $userId, string $note = ''): void
+    {
+        if ((string) $order['service_type_code'] !== 'ITR') {
+            throw new RuntimeException('E-verification applies only to ITR workflows.');
+        }
+
+        if ((string) $order['current_stage_code'] !== 'E_VERIFICATION_PENDING') {
+            throw new RuntimeException('E-verification can only be completed from E-Verification Pending.');
+        }
+
+        $this->serviceOrders->updateWorkflowMetadata((int) $order['id'], [
+            'e_verification_completed_at' => date('Y-m-d H:i:s'),
+        ]);
+        $this->serviceOrders->updateStatusFlags((int) $order['id'], [
+            'is_e_verification_done' => 1,
+            'is_overdue' => 0,
+        ]);
+        $this->serviceOrders->markReminderDone((int) $order['id']);
+
+        $transitionNote = trim($note) !== '' ? trim($note) : 'E-verification completed';
+        $this->markMilestoneDone($order, 'E_VERIFICATION_PENDING', $userId, $transitionNote);
+        $this->transitionToStage($order, $userId, 'E_VERIFICATION_DONE', 'MANUAL_MILESTONE', $transitionNote);
+
+        $updatedOrder = $this->requireLockedOrder((int) $order['id']);
+        $this->markMilestoneDone($updatedOrder, 'E_VERIFICATION_DONE', $userId, 'Auto closed after e-verification');
+        $this->completeProceduralClosureInsideTransaction($updatedOrder, $userId, 'Auto procedural closure after e-verification');
+    }
+
+    private function normalizeMilestoneStatus(string $status): string
+    {
+        $normalized = strtoupper(trim($status));
+        $allowed = ['PENDING', 'DONE', 'DOCS_RECD', 'QUERY_PENDING', 'QUERY_COMPLIED'];
+
+        if (!in_array($normalized, $allowed, true)) {
+            throw new RuntimeException('Invalid milestone status selected.');
+        }
+
+        return $normalized;
+    }
+
+    private function markMilestoneDone(array $order, string $stageCode, int $userId, string $remarks = ''): void
+    {
+        $this->upsertMilestoneStatus($order, $stageCode, 'DONE', $remarks, $userId, true);
+    }
+
+    private function upsertMilestoneStatus(array $order, string $stageCode, string $status, string $remarks, int $userId, bool $markCompleted = false): void
+    {
+        $stageName = $this->stageMap($order)[$stageCode] ?? str_replace('_', ' ', $stageCode);
+        $completedAt = $markCompleted ? date('Y-m-d H:i:s') : null;
+        $completedBy = $markCompleted ? $userId : null;
+
+        $this->serviceOrders->upsertMilestoneTracker(
+            (int) $order['id'],
+            $stageCode,
+            $stageName,
+            $status,
+            $remarks !== '' ? $remarks : null,
+            $userId,
+            $completedAt,
+            $completedBy
+        );
     }
 }

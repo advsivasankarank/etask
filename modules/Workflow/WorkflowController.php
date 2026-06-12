@@ -142,6 +142,28 @@ final class WorkflowController
         redirect('/service-orders/show?id=' . (int) $request->input('service_order_id', 0));
     }
 
+    public function updateMilestone(Request $request): void
+    {
+        try {
+            $this->workflows->updateMilestone(
+                (int) $request->input('service_order_id', 0),
+                (string) $request->input('stage_code', ''),
+                (string) $request->input('tracking_status', 'PENDING'),
+                (string) $request->input('remarks', ''),
+                (int) Auth::id(),
+                [
+                    'payment_reference_no' => (string) $request->input('payment_reference_no', ''),
+                    'acknowledgement_no' => (string) $request->input('acknowledgement_no', ''),
+                ]
+            );
+            Session::flash('success', 'Milestone updated successfully.');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+        }
+
+        redirect('/service-orders/show?id=' . (int) $request->input('service_order_id', 0));
+    }
+
     public function logFollowUp(Request $request): void
     {
         try {

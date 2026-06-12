@@ -91,6 +91,30 @@ final class WorkflowRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function milestoneTrackers(int $serviceOrderId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT som.stage_code,
+                    som.stage_name,
+                    som.tracking_status,
+                    som.remarks,
+                    som.completed_at,
+                    som.completed_by,
+                    som.updated_at,
+                    som.updated_by,
+                    cu.full_name AS completed_by_name,
+                    uu.full_name AS updated_by_name
+             FROM service_order_milestones som
+             LEFT JOIN users cu ON cu.id = som.completed_by
+             LEFT JOIN users uu ON uu.id = som.updated_by
+             WHERE som.service_order_id = :service_order_id
+             ORDER BY som.id ASC"
+        );
+        $statement->execute(['service_order_id' => $serviceOrderId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function consultantOutstandingAmount(int $serviceOrderId): float
     {
         $statement = Database::connection()->prepare(
