@@ -226,6 +226,11 @@ $navItems = [
             flex-wrap: wrap;
         }
 
+        .universal-search {
+            position: relative;
+            width: 100%;
+        }
+
         .header-search {
             width: 100%;
             min-width: 250px;
@@ -247,6 +252,84 @@ $navItems = [
 
         .header-search input:focus {
             box-shadow: none;
+        }
+
+        .search-shortcut {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 54px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            background: #f3fbfc;
+            border: 1px solid rgba(20, 113, 135, 0.10);
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .search-palette {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.98);
+            border: 1px solid rgba(20, 113, 135, 0.10);
+            box-shadow: 0 24px 60px rgba(20, 113, 135, 0.16);
+            display: none;
+            z-index: 70;
+        }
+
+        .search-palette.open {
+            display: grid;
+            gap: 14px;
+        }
+
+        .palette-section {
+            display: grid;
+            gap: 10px;
+        }
+
+        .palette-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .palette-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .palette-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(20, 113, 135, 0.08);
+            background: linear-gradient(180deg, rgba(255,255,255,1), rgba(244,248,245,0.92));
+            cursor: pointer;
+        }
+
+        .palette-item:hover,
+        .palette-item:focus {
+            outline: none;
+            border-color: rgba(20, 113, 135, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .palette-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
         }
 
         .subtle { color: var(--muted); font-size: 0.95rem; }
@@ -431,6 +514,50 @@ $navItems = [
             border-color: rgba(201, 109, 66, 0.16);
         }
 
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .result-card {
+            padding: 18px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), #f6fbfb 100%);
+            border: 1px solid rgba(20, 113, 135, 0.08);
+            display: grid;
+            gap: 14px;
+        }
+
+        .result-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e8f6f8;
+            color: var(--primary-dark);
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #fff8ee;
+            color: #8a4b15;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .stat-line {
             display: flex;
             justify-content: space-between;
@@ -469,6 +596,7 @@ $navItems = [
             .header-nav { flex-direction: column; align-items: stretch; }
             .welcome-block { width: 100%; justify-content: space-between; }
             .welcome-text { text-align: left; }
+            .search-palette { left: 0; right: 0; }
         }
 
         @media (max-width: 760px) {
@@ -532,10 +660,22 @@ $navItems = [
                     </nav>
                     <div class="header-tools">
                         <?php if (Auth::canAny('search.view', 'search.quick')): ?>
-                            <form method="get" action="<?= e(url('/search/quick')) ?>" class="header-search">
-                                <span style="font-weight:800;color:var(--primary-dark);">GO</span>
-                                <input type="text" name="q" value="" placeholder="Client name, PAN, SO no, invoice, receipt or document">
-                            </form>
+                            <div class="universal-search" data-universal-search>
+                                <form method="get" action="<?= e(url('/search')) ?>" class="header-search" data-search-form>
+                                    <span style="font-weight:800;color:var(--primary-dark);">Go</span>
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        value=""
+                                        autocomplete="off"
+                                        placeholder="Search clients, service orders, invoices, PAN, GSTIN, mobile, documents..."
+                                        data-search-input
+                                        data-endpoint="<?= e(url('/search/quick?format=json')) ?>"
+                                    >
+                                    <span class="search-shortcut">Ctrl + K</span>
+                                </form>
+                                <div class="search-palette" data-search-palette></div>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -544,5 +684,176 @@ $navItems = [
             <footer class="app-footer">e-pani : Office Management Suite from E Tax Advisors Private Limited</footer>
         </main>
     </div>
+    <script>
+        (function () {
+            const wrapper = document.querySelector('[data-universal-search]');
+            if (!wrapper) {
+                return;
+            }
+
+            const form = wrapper.querySelector('[data-search-form]');
+            const input = wrapper.querySelector('[data-search-input]');
+            const palette = wrapper.querySelector('[data-search-palette]');
+            const endpoint = input ? input.getAttribute('data-endpoint') : '';
+            let debounceTimer = null;
+
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
+            const renderMeta = (items) => {
+                if (!Array.isArray(items) || items.length === 0) {
+                    return '';
+                }
+
+                return '<div class="palette-meta">' + items.map((item) => '<span class="chip">' + escapeHtml(item) + '</span>').join('') + '</div>';
+            };
+
+            const resultItem = (item) => {
+                return `
+                    <a href="${escapeHtml(item.url || '#')}" class="palette-item">
+                        <div style="min-width:0;">
+                            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                <span class="result-type">${escapeHtml(item.type || 'RESULT')}</span>
+                                ${item.badge ? `<span class="result-badge">${escapeHtml(item.badge)}</span>` : ''}
+                            </div>
+                            <div style="margin-top:8px;font-weight:700;">${escapeHtml(item.title || 'Result')}</div>
+                            ${item.subtitle ? `<div class="subtle" style="margin-top:4px;">${escapeHtml(item.subtitle)}</div>` : ''}
+                            ${renderMeta(item.meta)}
+                        </div>
+                        <span class="chip chip-strong">${escapeHtml(item.action_label || 'Open')}</span>
+                    </a>
+                `;
+            };
+
+            const simpleItem = (label, description, url) => {
+                return `
+                    <a href="${escapeHtml(url || '#')}" class="palette-item">
+                        <div>
+                            <div style="font-weight:700;">${escapeHtml(label || 'Open')}</div>
+                            ${description ? `<div class="subtle" style="margin-top:4px;">${escapeHtml(description)}</div>` : ''}
+                        </div>
+                        <span class="chip chip-strong">Open</span>
+                    </a>
+                `;
+            };
+
+            const searchHistoryItem = (entry) => {
+                const query = entry.query_text || '';
+                const url = '<?= e(url('/search?q=')) ?>' + encodeURIComponent(query);
+                return simpleItem(query, entry.searched_at || 'Recent search', url);
+            };
+
+            const renderPalette = (payload) => {
+                const sections = [];
+                const items = Array.isArray(payload.items) ? payload.items : [];
+                const recentSearches = Array.isArray(payload.recent_searches) ? payload.recent_searches : [];
+                const recentRecords = Array.isArray(payload.recent_records) ? payload.recent_records : [];
+                const quickAccess = Array.isArray(payload.quick_access) ? payload.quick_access : [];
+
+                if (items.length > 0) {
+                    sections.push(`
+                        <section class="palette-section">
+                            <div class="palette-section-title">Results</div>
+                            <div class="palette-list">${items.slice(0, 8).map(resultItem).join('')}</div>
+                        </section>
+                    `);
+                }
+
+                if (items.length === 0 && payload.query) {
+                    sections.push(`
+                        <section class="palette-section">
+                            <div class="palette-section-title">No Results</div>
+                            <article class="data-card" style="padding:14px 16px;">
+                                <span class="subtle">No matching workspaces were found. Press Enter to open the detailed search page.</span>
+                            </article>
+                        </section>
+                    `);
+                }
+
+                if (recentSearches.length > 0) {
+                    sections.push(`
+                        <section class="palette-section">
+                            <div class="palette-section-title">Recent Searches</div>
+                            <div class="palette-list">${recentSearches.map(searchHistoryItem).join('')}</div>
+                        </section>
+                    `);
+                }
+
+                if (recentRecords.length > 0) {
+                    sections.push(`
+                        <section class="palette-section">
+                            <div class="palette-section-title">Recent Records</div>
+                            <div class="palette-list">${recentRecords.slice(0, 5).map(resultItem).join('')}</div>
+                        </section>
+                    `);
+                }
+
+                if (quickAccess.length > 0) {
+                    sections.push(`
+                        <section class="palette-section">
+                            <div class="palette-section-title">Quick Access</div>
+                            <div class="palette-list">${quickAccess.map((item) => simpleItem(item.label, item.description, item.url)).join('')}</div>
+                        </section>
+                    `);
+                }
+
+                palette.innerHTML = sections.join('');
+                palette.classList.add('open');
+            };
+
+            const loadPalette = () => {
+                if (!endpoint) {
+                    return;
+                }
+
+                const query = input.value.trim();
+                fetch(endpoint + '&q=' + encodeURIComponent(query), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then((response) => response.json())
+                    .then((payload) => renderPalette(payload))
+                    .catch(() => {
+                        palette.innerHTML = '<article class="data-card" style="padding:14px 16px;"><span class="subtle">Search suggestions are temporarily unavailable.</span></article>';
+                        palette.classList.add('open');
+                    });
+            };
+
+            input.addEventListener('focus', loadPalette);
+            input.addEventListener('input', () => {
+                window.clearTimeout(debounceTimer);
+                debounceTimer = window.setTimeout(loadPalette, 180);
+            });
+
+            form.addEventListener('submit', (event) => {
+                if (input.value.trim() === '') {
+                    event.preventDefault();
+                    loadPalette();
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!wrapper.contains(event.target)) {
+                    palette.classList.remove('open');
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                    event.preventDefault();
+                    input.focus();
+                    input.select();
+                    loadPalette();
+                }
+
+                if (event.key === 'Escape') {
+                    palette.classList.remove('open');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
