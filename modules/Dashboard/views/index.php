@@ -60,7 +60,7 @@
         <?php endforeach; ?>
     </div>
 
-    <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
+    <div class="panel" id="workspace-notifications" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
         <div class="toolbar">
             <div>
                 <div class="eyebrow">Alerts</div>

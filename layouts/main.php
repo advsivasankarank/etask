@@ -5,18 +5,26 @@ $appName = config('app.name', 'Compliance Management System');
 $activeMenu = $activeMenu ?? 'dashboard';
 $currentUser = Auth::user();
 
+$hasUniversalSearch = Auth::canAny('search.view', 'search.quick');
+$notificationLink = Auth::isPortalUser() ? '/client-portal/account#portal-notifications' : '/dashboard#workspace-notifications';
+$profileLink = Auth::isPortalUser() ? '/client-portal/account' : '/change-password';
+
 $navItems = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'path' => '/dashboard', 'permissions' => []],
-    ['key' => 'users', 'label' => 'Users', 'path' => '/users', 'permissions' => ['users.manage.portal', 'users.manage.internal']],
     ['key' => 'clients', 'label' => 'Clients', 'path' => '/clients', 'permissions' => ['clients.view']],
     ['key' => 'service_orders', 'label' => 'Service Orders', 'path' => '/service-orders', 'permissions' => ['service_orders.view']],
     ['key' => 'client_portal', 'label' => 'Client Portal', 'path' => Auth::isPortalUser() ? '/client-portal/account' : '/client-portal/pso', 'permissions' => ['portal.self_access', 'portal.pso.create', 'portal.pso.review', 'portal.pso.approve', 'portal.pso.reject']],
-    ['key' => 'support', 'label' => 'Support', 'path' => '/client-portal/support', 'permissions' => ['portal.self_access']],
     ['key' => 'billing', 'label' => 'Billing', 'path' => '/billing', 'permissions' => ['billing.view']],
     ['key' => 'consultants', 'label' => 'Consultants', 'path' => '/consultants', 'permissions' => ['consultants.view']],
     ['key' => 'reports', 'label' => 'Reports', 'path' => '/reports', 'permissions' => ['reports.view', 'reports.financial']],
-    ['key' => 'search', 'label' => 'Search', 'path' => '/search', 'permissions' => ['search.view', 'search.quick', 'search.advanced', 'search.history']],
-    ['key' => 'reminders', 'label' => 'Reminders', 'path' => '/reminders', 'permissions' => ['reminders.view', 'reminders.report']],
+    ['key' => 'support', 'label' => 'Support', 'path' => '/client-portal/support', 'permissions' => ['portal.self_access']],
+    ['key' => 'users', 'label' => 'Users', 'path' => '/users', 'permissions' => ['users.manage.portal', 'users.manage.internal']],
+];
+
+$utilityItems = [
+    ['label' => 'Notifications', 'path' => $notificationLink, 'permissions' => []],
+    ['label' => 'Reminders', 'path' => '/reminders', 'permissions' => ['reminders.view', 'reminders.report']],
+    ['label' => 'Profile', 'path' => $profileLink, 'permissions' => []],
 ];
 ?>
 <!DOCTYPE html>
@@ -84,8 +92,8 @@ $navItems = [
             margin: 0 0 18px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 14px 18px 16px;
+            gap: 16px;
+            padding: 18px 22px 18px;
             border-radius: 22px;
             background:
                 linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,252,253,0.94) 100%);
@@ -95,17 +103,15 @@ $navItems = [
         }
 
         .header-top {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: minmax(220px, 280px) minmax(420px, 1fr) minmax(280px, 340px);
             align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
+            gap: 18px;
         }
 
         .app-brand {
             display: grid;
             gap: 4px;
-            flex-wrap: wrap;
         }
 
         .brand-row {
@@ -142,59 +148,53 @@ $navItems = [
         }
 
         .brand-subtitle {
-            font-size: 0.88rem;
+            font-size: 0.82rem;
             color: var(--muted);
             font-weight: 500;
         }
 
-        .welcome-block {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .welcome-text {
+        .header-command {
             display: grid;
-            gap: 2px;
-            text-align: right;
+            gap: 8px;
+            min-width: 0;
         }
 
-        .welcome-label {
-            font-size: 0.7rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 700;
-        }
-
-        .welcome-name {
-            font-size: 0.98rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .logout-form { margin: 0; }
-
-        .header-nav {
+        .command-label-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             flex-wrap: wrap;
-            padding-top: 12px;
+        }
+
+        .command-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-dark);
+            font-weight: 800;
+        }
+
+        .command-helper {
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 14px;
             border-top: 1px solid rgba(20, 113, 135, 0.08);
         }
 
         .menu {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            flex: 1 1 760px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-            scrollbar-width: thin;
+            width: 100%;
         }
 
         .menu a {
@@ -217,13 +217,58 @@ $navItems = [
             transform: translateY(-1px);
         }
 
-        .header-tools {
-            flex: 0 0 340px;
+        .utility-bar {
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 10px;
             flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .utility-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.82);
+            border: 1px solid rgba(20,113,135,0.10);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .utility-link:hover {
+            background: linear-gradient(135deg, rgba(20,153,168,0.12), rgba(239,139,44,0.08));
+            border-color: rgba(20,113,135,0.16);
+        }
+
+        .utility-link--profile {
+            display: grid;
+            gap: 3px;
+            min-width: 132px;
+        }
+
+        .utility-link-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .utility-link-value {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .logout-form { margin: 0; }
+
+        .logout-button {
+            min-height: 44px;
         }
 
         .universal-search {
@@ -233,14 +278,15 @@ $navItems = [
 
         .header-search {
             width: 100%;
-            min-width: 250px;
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 9px 12px;
-            border-radius: 14px;
-            background: rgba(255,255,255,0.88);
-            border: 1px solid rgba(20, 113, 135, 0.12);
+            padding: 14px 16px;
+            min-height: 60px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(20, 113, 135, 0.14);
+            box-shadow: 0 14px 28px rgba(20, 113, 135, 0.10);
         }
 
         .header-search input {
@@ -248,10 +294,34 @@ $navItems = [
             padding: 0;
             background: transparent;
             box-shadow: none;
+            font-size: 1rem;
+            font-weight: 600;
         }
 
         .header-search input:focus {
             box-shadow: none;
+        }
+
+        .header-search:focus-within {
+            border-color: rgba(20, 113, 135, 0.24);
+            box-shadow: 0 18px 34px rgba(20, 113, 135, 0.14);
+        }
+
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-dark);
+            flex: 0 0 auto;
+        }
+
+        .search-prefix {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: 0.02em;
+            flex: 0 0 auto;
         }
 
         .search-shortcut {
@@ -589,13 +659,14 @@ $navItems = [
                 top: 12px;
                 width: 100%;
             }
+            .header-top {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
             .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
             .search-bar { grid-template-columns: 1fr; }
-            .header-tools { width: 100%; justify-content: flex-start; }
-            .header-search { min-width: 0; width: 100%; }
-            .header-nav { flex-direction: column; align-items: stretch; }
-            .welcome-block { width: 100%; justify-content: space-between; }
-            .welcome-text { text-align: left; }
+            .utility-bar { width: 100%; justify-content: flex-start; }
+            .header-search { width: 100%; }
             .search-palette { left: 0; right: 0; }
         }
 
@@ -606,12 +677,20 @@ $navItems = [
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 10px;
-                overflow: visible;
             }
             .menu a {
                 width: 100%;
                 text-align: center;
                 white-space: normal;
+            }
+            .utility-bar {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .utility-link,
+            .logout-button {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -635,14 +714,63 @@ $navItems = [
                         </div>
                         <div class="brand-subtitle">Compliance, billing, workflow, and client operations</div>
                     </div>
-                    <div class="welcome-block">
-                        <div class="welcome-text">
-                            <div class="welcome-label">Welcome</div>
-                            <div class="welcome-name"><?= e($currentUser['full_name'] ?? 'Workspace User') ?></div>
-                        </div>
+                    <div class="header-command">
+                        <?php if ($hasUniversalSearch): ?>
+                            <div class="command-label-row">
+                                <div class="command-label">Go To Work</div>
+                                <div class="command-helper">Search first, then open the right workspace instantly.</div>
+                            </div>
+                            <div class="universal-search" data-universal-search>
+                                <form method="get" action="<?= e(url('/search')) ?>" class="header-search" data-search-form>
+                                    <span class="search-prefix">
+                                        <span class="search-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="11" cy="11" r="7"></circle>
+                                                <path d="M20 20l-3.5-3.5"></path>
+                                            </svg>
+                                        </span>
+                                    </span>
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        value=""
+                                        autocomplete="off"
+                                        placeholder="Search clients, service orders, invoices, PAN, GSTIN, mobile, documents..."
+                                        data-search-input
+                                        data-endpoint="<?= e(url('/search/quick?format=json')) ?>"
+                                    >
+                                    <span class="search-shortcut">Ctrl + K</span>
+                                </form>
+                                <div class="search-palette" data-search-palette></div>
+                            </div>
+                        <?php else: ?>
+                            <div class="command-label-row">
+                                <div class="command-label">Workspace</div>
+                                <div class="command-helper">Navigate your account, services, billing, and support from one place.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="utility-bar">
+                        <?php foreach ($utilityItems as $item): ?>
+                            <?php
+                            $allowed = $item['permissions'] === [] || Auth::canAny(...$item['permissions']);
+                            if (!$allowed) {
+                                continue;
+                            }
+                            $isProfile = $item['label'] === 'Profile';
+                            ?>
+                            <a href="<?= e(url($item['path'])) ?>" class="utility-link<?= $isProfile ? ' utility-link--profile' : '' ?>">
+                                <?php if ($isProfile): ?>
+                                    <span class="utility-link-label">Welcome</span>
+                                    <span class="utility-link-value"><?= e($currentUser['full_name'] ?? 'Workspace User') ?></span>
+                                <?php else: ?>
+                                    <span><?= e($item['label']) ?></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endforeach; ?>
                         <form method="post" action="<?= e(url('/logout')) ?>" class="logout-form">
                             <?= \App\Core\Csrf::inputField() ?>
-                            <button type="submit" class="button button-secondary">Logout</button>
+                            <button type="submit" class="button button-secondary logout-button">Logout</button>
                         </form>
                     </div>
                 </div>
@@ -658,26 +786,6 @@ $navItems = [
                             <a href="<?= e(url($item['path'])) ?>" class="<?= $activeMenu === $item['key'] ? 'active' : '' ?>"><?= e($item['label']) ?></a>
                         <?php endforeach; ?>
                     </nav>
-                    <div class="header-tools">
-                        <?php if (Auth::canAny('search.view', 'search.quick')): ?>
-                            <div class="universal-search" data-universal-search>
-                                <form method="get" action="<?= e(url('/search')) ?>" class="header-search" data-search-form>
-                                    <span style="font-weight:800;color:var(--primary-dark);">Go</span>
-                                    <input
-                                        type="text"
-                                        name="q"
-                                        value=""
-                                        autocomplete="off"
-                                        placeholder="Search clients, service orders, invoices, PAN, GSTIN, mobile, documents..."
-                                        data-search-input
-                                        data-endpoint="<?= e(url('/search/quick?format=json')) ?>"
-                                    >
-                                    <span class="search-shortcut">Ctrl + K</span>
-                                </form>
-                                <div class="search-palette" data-search-palette></div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
                 </div>
             </div>
             <?= $content ?>
