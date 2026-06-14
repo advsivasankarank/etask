@@ -281,6 +281,27 @@ final class ServiceOrderRepository
         ]);
     }
 
+    public function activityTimeline(int $serviceOrderId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT al.id,
+                    al.module_code,
+                    al.action_code,
+                    al.description,
+                    al.created_at,
+                    al.user_id,
+                    u.full_name AS user_name
+             FROM activity_logs al
+             LEFT JOIN users u ON u.id = al.user_id
+             WHERE al.entity_type = 'service_orders'
+               AND al.entity_id = :entity_id
+             ORDER BY al.created_at DESC, al.id DESC"
+        );
+        $statement->execute(['entity_id' => $serviceOrderId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function lockForUpdate(int $serviceOrderId): ?array
     {
         $statement = Database::connection()->prepare(

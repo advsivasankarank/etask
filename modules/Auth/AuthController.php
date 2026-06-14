@@ -176,6 +176,10 @@ final class AuthController
             redirect('/change-password');
         }
 
+        if (Auth::isPortalUser()) {
+            redirect('/client-portal/account');
+        }
+
         redirect('/dashboard');
     }
 
@@ -229,6 +233,11 @@ final class AuthController
             $sessionUser['must_change_password'] = false;
             Auth::login($sessionUser);
             Session::flash('success', 'Password changed successfully.');
+
+            if (Auth::isPortalUser()) {
+                redirect('/client-portal/account');
+            }
+
             redirect('/dashboard');
         } catch (Throwable $throwable) {
             Session::flash('error', $throwable->getMessage());

@@ -82,6 +82,8 @@ $router->post('/clients/update', [ClientController::class, 'update'], ['auth', '
 $router->post('/clients/archive', [ClientController::class, 'archive'], ['auth', 'permission:clients.archive']);
 $router->get('/client-portal/pso', [ClientPortalController::class, 'index'], ['auth']);
 $router->get('/client-portal/account', [ClientPortalController::class, 'account'], ['auth']);
+$router->get('/client-portal/documents', [ClientPortalController::class, 'documents'], ['auth']);
+$router->get('/client-portal/support', [ClientPortalController::class, 'support'], ['auth']);
 $router->get('/client-portal/pso/create', [ClientPortalController::class, 'create'], ['auth', 'permission:portal.pso.create']);
 $router->post('/client-portal/pso', [ClientPortalController::class, 'store'], ['auth', 'permission:portal.pso.create']);
 $router->get('/client-portal/pso/show', [ClientPortalController::class, 'show'], ['auth']);
@@ -108,6 +110,7 @@ $router->get('/service-orders', [ServiceOrderController::class, 'index'], ['auth
 $router->get('/service-orders/create', [ServiceOrderController::class, 'create'], ['auth', 'permission:service_orders.create']);
 $router->post('/service-orders', [ServiceOrderController::class, 'store'], ['auth', 'permission:service_orders.create']);
 $router->get('/service-orders/show', [ServiceOrderController::class, 'show'], ['auth', 'permission:service_orders.view']);
+$router->post('/service-orders/documents', [ServiceOrderController::class, 'uploadDocument'], ['auth', 'permission:service_orders.create,workflow.advance']);
 $router->post('/workflow/advance', [WorkflowController::class, 'advance'], ['auth', 'permission:workflow.advance']);
 $router->post('/workflow/payment', [WorkflowController::class, 'recordPayment'], ['auth', 'permission:workflow.payment.record']);
 $router->post('/workflow/acknowledgement', [WorkflowController::class, 'captureAcknowledgement'], ['auth', 'permission:workflow.acknowledgement.capture']);

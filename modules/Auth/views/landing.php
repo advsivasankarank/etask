@@ -17,7 +17,6 @@
             --line: #E2E8F0;
             --surface: #FFFFFF;
             --surface-soft: #F8FAFC;
-            --surface-accent: #ECFDF5;
             --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.08);
             --radius-xl: 28px;
@@ -27,15 +26,13 @@
         }
 
         * { box-sizing: border-box; }
-
         html { scroll-behavior: smooth; }
 
         body {
             margin: 0;
             font-family: "Inter", sans-serif;
             color: var(--text);
-            background:
-                linear-gradient(180deg, #F8FBFC 0%, #FFFFFF 22%, #FFFFFF 100%);
+            background: linear-gradient(180deg, #F8FBFC 0%, #FFFFFF 22%, #FFFFFF 100%);
         }
 
         a {
@@ -43,9 +40,7 @@
             text-decoration: none;
         }
 
-        .page {
-            min-height: 100vh;
-        }
+        .page { min-height: 100vh; }
 
         .container {
             width: min(var(--container), calc(100vw - 32px));
@@ -86,14 +81,20 @@
             color: var(--primary);
         }
 
+        .brand-mark svg,
+        .card-icon svg,
+        .contact-row svg {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         .brand-mark svg {
             width: 20px;
             height: 20px;
-            fill: none;
-            stroke: currentColor;
             stroke-width: 1.9;
-            stroke-linecap: round;
-            stroke-linejoin: round;
         }
 
         .brand-copy {
@@ -131,9 +132,7 @@
             color: #334155;
         }
 
-        .nav a:hover {
-            color: var(--primary);
-        }
+        .nav a:hover { color: var(--primary); }
 
         .actions {
             display: flex;
@@ -157,9 +156,7 @@
             transition: transform .18s ease, border-color .18s ease, background .18s ease;
         }
 
-        .button:hover {
-            transform: translateY(-1px);
-        }
+        .button:hover { transform: translateY(-1px); }
 
         .button-primary {
             color: #FFFFFF;
@@ -179,10 +176,33 @@
             border-color: #E2E8F0;
         }
 
+        .toast {
+            position: fixed;
+            top: 96px;
+            right: 20px;
+            z-index: 90;
+            min-width: 280px;
+            max-width: min(380px, calc(100vw - 32px));
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #BBF7D0;
+            background: #F0FDF4;
+            color: #166534;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: opacity .24s ease, transform .24s ease;
+        }
+
+        .toast.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .hero {
             padding: 54px 0 34px;
-            background:
-                linear-gradient(180deg, #F8FBFC 0%, #FFFFFF 100%);
+            background: linear-gradient(180deg, #F8FBFC 0%, #FFFFFF 100%);
         }
 
         .hero-grid {
@@ -192,7 +212,8 @@
             align-items: center;
         }
 
-        .eyebrow {
+        .eyebrow,
+        .label {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -207,21 +228,30 @@
             margin-bottom: 18px;
         }
 
+        .label {
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            margin-bottom: 10px;
+        }
+
         .hero h1 {
             margin: 0;
-            font-size: clamp(2.75rem, 5vw, 4.4rem);
-            line-height: 1.02;
+            font-size: clamp(2.75rem, 5vw, 4.1rem);
+            line-height: 1.04;
             letter-spacing: -0.06em;
             max-width: 760px;
         }
 
-        .hero h1 .accent {
-            color: var(--accent);
-        }
+        .hero h1 .accent { color: var(--accent); }
 
         .hero-subtitle {
             margin: 20px 0 0;
-            font-size: clamp(1.12rem, 1.8vw, 1.34rem);
+            font-size: clamp(1.05rem, 1.8vw, 1.25rem);
             line-height: 1.68;
             color: var(--muted);
             max-width: 760px;
@@ -242,10 +272,16 @@
             max-width: 720px;
         }
 
-        .hero-panel {
+        .hero-panel,
+        .workflow-shell,
+        .card {
             border: 1px solid var(--line);
-            border-radius: var(--radius-xl);
             background: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .hero-panel {
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-md);
             overflow: hidden;
         }
@@ -290,48 +326,54 @@
             background: #FFFFFF;
         }
 
-        .metrics-grid {
+        .metrics-grid,
+        .workspace-grid,
+        .stats-shell,
+        .grid-2,
+        .grid-3,
+        .grid-4,
+        .workflow-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 16px;
         }
 
-        .metric-card {
+        .metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .workspace-grid { grid-template-columns: 1fr 1fr; margin-top: 16px; }
+        .stats-shell { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .workflow-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+
+        .metric-card,
+        .workspace-card,
+        .stat-card {
             border: 1px solid var(--line);
             border-radius: var(--radius-md);
             background: var(--surface-soft);
-            padding: 14px;
         }
+
+        .metric-card,
+        .workspace-card { padding: 16px; }
 
         .metric-card strong {
             display: block;
-            font-size: 1.5rem;
-            line-height: 1.1;
+            font-size: 1.04rem;
+            line-height: 1.3;
             margin-bottom: 6px;
         }
 
-        .metric-card span {
+        .metric-card span,
+        .stat-label {
             color: var(--muted);
-            font-size: 0.86rem;
+            font-size: 0.89rem;
+            line-height: 1.65;
         }
 
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 14px;
-        }
-
-        .workspace-card {
-            border: 1px solid var(--line);
-            border-radius: var(--radius-md);
-            background: #FFFFFF;
-            padding: 16px;
-        }
-
-        .workspace-card h3 {
-            margin: 0 0 12px;
-            font-size: 1.02rem;
+        .workspace-card h3,
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 1.04rem;
         }
 
         .list {
@@ -346,7 +388,7 @@
             gap: 12px;
             padding: 12px 14px;
             border-radius: 14px;
-            background: var(--surface-soft);
+            background: #FFFFFF;
             color: #1E293B;
             font-size: 0.92rem;
         }
@@ -354,38 +396,17 @@
         .list-item span {
             color: var(--muted);
             font-weight: 600;
+            text-align: right;
         }
 
         .stats-strip {
-            padding: 18px 0 30px;
-        }
-
-        .stats-shell {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
+            padding: 18px 0 22px;
         }
 
         .stat-card {
             padding: 24px 22px;
             border-radius: var(--radius-lg);
-            border: 1px solid var(--line);
             background: #FFFFFF;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            line-height: 1;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: var(--muted);
-            font-size: 0.92rem;
-            line-height: 1.6;
         }
 
         .section {
@@ -404,39 +425,17 @@
             letter-spacing: -0.05em;
         }
 
-        .section-head p {
+        .section-head p,
+        .card p {
             margin: 14px 0 0;
-            font-size: 1rem;
-            line-height: 1.8;
+            font-size: 0.98rem;
+            line-height: 1.75;
             color: var(--muted);
         }
-
-        .label {
-            margin-bottom: 10px;
-            color: var(--accent);
-            font-size: 0.8rem;
-            font-weight: 800;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-        }
-
-        .grid-3,
-        .grid-4,
-        .grid-2 {
-            display: grid;
-            gap: 18px;
-        }
-
-        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
         .card {
             padding: 24px;
             border-radius: var(--radius-lg);
-            border: 1px solid var(--line);
-            background: #FFFFFF;
-            box-shadow: var(--shadow-sm);
         }
 
         .card-icon {
@@ -454,39 +453,11 @@
         .card-icon svg {
             width: 22px;
             height: 22px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 1.8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            font-size: 1.1rem;
-            line-height: 1.35;
-        }
-
-        .card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.95rem;
-            line-height: 1.75;
         }
 
         .workflow-shell {
-            border: 1px solid var(--line);
             border-radius: var(--radius-xl);
-            background: #FFFFFF;
-            box-shadow: var(--shadow-sm);
             padding: 24px;
-        }
-
-        .workflow-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 14px;
-            align-items: stretch;
         }
 
         .workflow-step {
@@ -511,16 +482,17 @@
         .workflow-step strong {
             display: block;
             margin-bottom: 8px;
-            font-size: 0.98rem;
+            font-size: 0.96rem;
         }
 
         .workflow-step span {
             color: var(--muted);
-            font-size: 0.88rem;
-            line-height: 1.65;
+            font-size: 0.86rem;
+            line-height: 1.6;
         }
 
-        .usecase-card {
+        .usecase-card,
+        .contact-card {
             display: grid;
             gap: 14px;
         }
@@ -568,7 +540,7 @@
         }
 
         .cta-primary .label {
-            color: rgba(255,255,255,0.72);
+            color: rgba(255, 255, 255, 0.72);
         }
 
         .cta-primary h2 {
@@ -580,7 +552,7 @@
 
         .cta-primary p {
             margin: 14px 0 0;
-            color: rgba(255,255,255,0.82);
+            color: rgba(255, 255, 255, 0.82);
             line-height: 1.8;
         }
 
@@ -596,12 +568,6 @@
             color: var(--primary-dark);
         }
 
-        .contact-card {
-            display: grid;
-            gap: 16px;
-            align-content: start;
-        }
-
         .contact-row {
             display: flex;
             gap: 12px;
@@ -614,11 +580,7 @@
         .contact-row svg {
             width: 20px;
             height: 20px;
-            fill: none;
-            stroke: var(--primary);
-            stroke-width: 1.8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            color: var(--primary);
             flex: 0 0 auto;
             margin-top: 2px;
         }
@@ -627,15 +589,6 @@
             display: block;
             color: var(--text);
             margin-bottom: 2px;
-        }
-
-        .flash {
-            margin: 0 0 24px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1px solid #BBF7D0;
-            background: #F0FDF4;
-            color: #166534;
         }
 
         .footer {
@@ -653,6 +606,13 @@
             font-size: 0.92rem;
         }
 
+        .footer-nav {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-weight: 600;
+        }
+
         @media (max-width: 1120px) {
             .hero-grid,
             .cta-shell {
@@ -664,6 +624,7 @@
             }
 
             .grid-3,
+            .stats-shell,
             .workflow-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -727,6 +688,10 @@
 </head>
 <body>
 <div class="page">
+    <?php if (!empty($success)): ?>
+        <div class="toast" id="logout-toast" role="status" aria-live="polite"><?= e($success) ?></div>
+    <?php endif; ?>
+
     <header class="topbar">
         <div class="container topbar-shell">
             <div class="brand">
@@ -741,13 +706,13 @@
             <nav class="nav">
                 <a href="#why-epani">Why e-Pani</a>
                 <a href="#features">Features</a>
-                <a href="#workflow">Workflow</a>
+                <a href="#workflow">How It Works</a>
                 <a href="#use-cases">Use Cases</a>
                 <a href="#security">Security</a>
                 <a href="#contact">Contact</a>
             </nav>
             <div class="actions">
-                <a class="button button-primary" href="#contact">Request a Demo</a>
+                <a class="button button-primary" href="#contact">Book a Live Demo</a>
                 <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
                 <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
             </div>
@@ -757,20 +722,16 @@
     <main>
         <section class="hero">
             <div class="container">
-                <?php if (!empty($success)): ?>
-                    <div class="flash"><?= e($success) ?></div>
-                <?php endif; ?>
                 <div class="hero-grid">
                     <div>
-                        <div class="eyebrow">All-in-one practice management</div>
-                        <h1>Run your compliance practice <span class="accent">with clarity, control, and trust.</span></h1>
-                        <p class="hero-subtitle">e-Pani is a professional SaaS platform for Tax Practitioners, Chartered Accountants, GST Consultants, Advocates, and Compliance Teams managing client work, assignments, billing, records, and follow-up.</p>
+                        <div class="eyebrow">Purpose-built for professional practice teams</div>
+                        <h1>The Practice Management Platform for <span class="accent">Tax, Legal &amp; Compliance Professionals</span></h1>
+                        <p class="hero-subtitle">Manage clients, assignments, documents, compliance deadlines, invoicing and team workflows from a single secure workspace.</p>
                         <div class="hero-actions">
-                            <a class="button button-primary" href="#features">Explore Features</a>
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
-                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
+                            <a class="button button-primary" href="#contact">Book a Live Demo</a>
+                            <a class="button button-secondary" href="#features">Explore Features</a>
                         </div>
-                        <p class="hero-note">Derived from the Tamil word “பணி” (Pani), meaning work, duty, assignment, or task, e-Pani gives professional work a disciplined digital operating model.</p>
+                        <p class="hero-note">e-Pani comes from the Tamil word “பணி” (Pani), meaning work, duty, assignment, or task. It is designed for Tax Practitioners, Advocates, Chartered Accountants, Company Secretaries, and Compliance Professionals who need disciplined execution with visibility and control.</p>
                     </div>
                     <div class="hero-panel">
                         <div class="hero-panel-head">
@@ -779,62 +740,74 @@
                                 <div class="panel-dot"></div>
                                 <div class="panel-dot"></div>
                                 <div class="panel-dot"></div>
-                                <span>Live workspace</span>
+                                <span>Practice workspace</span>
                             </div>
                         </div>
                         <div class="hero-panel-body">
                             <div class="metrics-grid">
-                                <div class="metric-card"><strong>1,248</strong><span>Managed clients</span></div>
-                                <div class="metric-card"><strong>856</strong><span>Service orders</span></div>
-                                <div class="metric-card"><strong>27</strong><span>Critical reminders</span></div>
+                                <div class="metric-card"><strong>Client Management</strong><span>Master records, identifiers, ownership, and history</span></div>
+                                <div class="metric-card"><strong>Workflow Tracking</strong><span>Assignments, milestones, review, and closure</span></div>
+                                <div class="metric-card"><strong>Document Repository</strong><span>Secure files, proofs, and controlled access</span></div>
                             </div>
                             <div class="workspace-grid">
                                 <div class="workspace-card">
-                                    <h3>Assignment control</h3>
+                                    <h3>Operational capabilities</h3>
                                     <div class="list">
-                                        <div class="list-item">ITR e-Verification<span>Due today</span></div>
-                                        <div class="list-item">GST filing review<span>12 pending</span></div>
-                                        <div class="list-item">Consultant settlement<span>Accounts action</span></div>
+                                        <div class="list-item">Compliance Monitoring<span>Due dates and escalations</span></div>
+                                        <div class="list-item">Billing &amp; Collections<span>Invoices, receipts, and dues</span></div>
+                                        <div class="list-item">Team Productivity<span>Assignment visibility and ownership</span></div>
                                     </div>
                                 </div>
-                            <div class="workspace-card">
-                                <h3>Operational visibility</h3>
-                                <div class="list">
-                                    <div class="list-item">Invoices raised<span>321</span></div>
-                                    <div class="list-item">Receipts posted<span>210</span></div>
-                                    <div class="list-item">Client queries<span>18 open</span></div>
+                                <div class="workspace-card">
+                                    <h3>Access points</h3>
+                                    <div class="list">
+                                        <div class="list-item">Internal Users<span>Operations, review, and billing</span></div>
+                                        <div class="list-item">Client Portal<span>Requests, status, and documents</span></div>
+                                        <div class="list-item">Controlled Records<span>Audit-ready and permission based</span></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
-                            <a class="button button-primary" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
-                            <a class="button button-ghost" href="<?= e(url('/register-client')) ?>">Register as Client</a>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                                <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
+                                <a class="button button-primary" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
+                                <a class="button button-ghost" href="<?= e(url('/register-client')) ?>">Register as Client</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
         </section>
 
         <section class="stats-strip">
             <div class="container">
+                <div class="section-head" style="margin-bottom:18px;">
+                    <div class="label">Core Capabilities</div>
+                    <h2>A single platform for running professional work with structure, visibility, and accountability.</h2>
+                </div>
                 <div class="stats-shell">
                     <div class="stat-card">
-                        <div class="stat-value">360°</div>
-                        <div class="stat-label">Coverage across client master, assignment workflow, billing, reminders, and document control.</div>
+                        <h3>Client Management</h3>
+                        <div class="stat-label">Maintain client masters, contact points, tax identifiers, portal credentials, and linked assignment history.</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">Role-Based</div>
-                        <div class="stat-label">Structured permissions for internal teams, consultants, accounts, and portal users.</div>
+                        <h3>Workflow Tracking</h3>
+                        <div class="stat-label">Move each assignment through service orders, milestone stages, review checkpoints, and closure states.</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">Audit-Ready</div>
-                        <div class="stat-label">Traceable actions for downloads, workflow movement, reminders, and billing events.</div>
+                        <h3>Document Repository</h3>
+                        <div class="stat-label">Keep operational and client documents organized with controlled access and secure storage patterns.</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">Multi-Entity</div>
-                        <div class="stat-label">Built to support multi-company operations with controlled numbering and assignment flow.</div>
+                        <h3>Compliance Monitoring</h3>
+                        <div class="stat-label">Track due dates, follow-up, filing stages, e-verification, and office-level pending actions.</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Billing &amp; Collections</h3>
+                        <div class="stat-label">Connect execution with invoices, receipts, advances, disbursements, and collection follow-up.</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Team Productivity</h3>
+                        <div class="stat-label">Improve assignment ownership, consultant coordination, and execution visibility across teams.</div>
                     </div>
                 </div>
             </div>
@@ -844,24 +817,24 @@
             <div class="container">
                 <div class="section-head">
                     <div class="label">Why e-Pani</div>
-                    <h2>Professional work deserves a platform that treats every assignment as accountable, billable, and reviewable.</h2>
-                    <p>e-Pani is designed to replace scattered operational habits with a structured practice-management model that supports service execution, client visibility, billing discipline, and long-term trust.</p>
+                    <h2>Designed for firms that need clear execution, trusted records, and stronger control over client work.</h2>
+                    <p>e-Pani brings together client management, assignment handling, document control, billing discipline, and review visibility in a format suitable for commercial deployment.</p>
                 </div>
                 <div class="grid-3">
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
-                        <h3>From assignment to closure</h3>
-                        <p>Every client matter moves through a defined operational path instead of depending on memory, verbal updates, or fragmented notes.</p>
+                        <h3>Explainable workflow</h3>
+                        <p>Every assignment follows a clear path from request to closure, reducing dependency on memory, calls, and scattered follow-up.</p>
                     </div>
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5.3 3.4 10 8 11 4.6-1 8-5.7 8-11V6l-8-4Z"/><path d="M9 12.5 11 14.5l4-4"/></svg></div>
-                        <h3>Built for trust and control</h3>
-                        <p>Client records, document access, follow-ups, workflow changes, and billing movement stay permissioned and traceable.</p>
+                        <h3>Professional trust</h3>
+                        <p>Role-based access, secure document handling, and audit trails strengthen internal governance and client confidence.</p>
                     </div>
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
-                        <h3>Operational clarity for leadership</h3>
-                        <p>Partners and managers get a clean view of execution, risk, collections, consultant exposure, and pending actions across the office.</p>
+                        <h3>Management visibility</h3>
+                        <p>Partners and managers get a practical view of pending work, collections, review bottlenecks, and compliance exposure.</p>
                     </div>
                 </div>
             </div>
@@ -870,40 +843,50 @@
         <section class="section" id="features">
             <div class="container">
                 <div class="section-head">
-                    <div class="label">Platform Features</div>
-                    <h2>One platform for client intake, assignment execution, billing discipline, and practice control.</h2>
-                    <p>e-Pani brings together the operational, commercial, and governance layers of a modern compliance practice in one enterprise-style environment.</p>
+                    <div class="label">Features</div>
+                    <h2>Compact, high-value modules built for professional service operations.</h2>
+                    <p>Reuse one structured workspace for client intake, service execution, reminders, billing, and controlled records.</p>
                 </div>
-                <div class="grid-3">
+                <div class="grid-4">
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z"/><path d="M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg></div>
-                        <h3>Client master with practice intelligence</h3>
-                        <p>Maintain PAN-led client records with GST, TAN, Aadhaar, CRM ownership, portal credentials, and linked assignment history.</p>
+                        <h3>Client Management</h3>
+                        <p>Maintain client records, ownership, identifiers, and service history in one place.</p>
                     </div>
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/></svg></div>
-                        <h3>Service order and milestone governance</h3>
-                        <p>Create structured service orders with workflow stages for documents, preparation, review, filing, acknowledgement, e-verification, and closure.</p>
+                        <h3>Service Orders</h3>
+                        <p>Create governed assignments with period, company, service type, and numbering control.</p>
                     </div>
                     <div class="card">
-                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M3 7h18"/><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/></svg></div>
-                        <h3>Billing and collection control</h3>
-                        <p>Handle invoices, advances, receipts, disbursements, and outstanding follow-up within the same assignment context.</p>
+                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+                        <h3>Workflow Engine</h3>
+                        <p>Move work through milestones, review stages, pending statuses, and closure controls.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg></div>
+                        <h3>Document Vault</h3>
+                        <p>Securely organize proofs, acknowledgements, uploads, and version-aware records.</p>
                     </div>
                     <div class="card">
                         <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"/><path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z"/></svg></div>
-                        <h3>Reminder-led execution</h3>
-                        <p>Drive action through dashboard and email reminders for pending documents, invoices, consultant deliverables, clarifications, and due dates.</p>
+                        <h3>Reminder Engine</h3>
+                        <p>Run reminder schedules, escalations, and dashboard follow-up for due work.</p>
                     </div>
                     <div class="card">
-                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5.3 3.4 10 8 11 4.6-1 8-5.7 8-11V6l-8-4Z"/><path d="M9 12.5 11 14.5l4-4"/></svg></div>
-                        <h3>Secure records and document controls</h3>
-                        <p>Protect client records with controlled downloads, document versioning, access logging, and non-public storage architecture.</p>
+                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M3 7h18"/><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/></svg></div>
+                        <h3>Invoice Management</h3>
+                        <p>Handle invoices, receipts, advances, disbursements, and collection visibility.</p>
                     </div>
                     <div class="card">
-                        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.35-4.35"/></svg></div>
-                        <h3>Search and management reporting</h3>
-                        <p>Search by PAN, TAN, client, service order, invoice, consultant, or document and convert activity into meaningful operational reports.</p>
+                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 3"/><circle cx="12" cy="12" r="9"/></svg></div>
+                        <h3>Audit Trail</h3>
+                        <p>Preserve traceable logs for workflow, billing, document access, and user actions.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div>
+                        <h3>Client Portal</h3>
+                        <p>Allow client requests, document submission, query response, payments, and status view.</p>
                     </div>
                 </div>
             </div>
@@ -912,31 +895,39 @@
         <section class="section" id="workflow">
             <div class="container">
                 <div class="section-head">
-                    <div class="label">Workflow Model</div>
-                    <h2>A clear operating path from client request to governed completion.</h2>
-                    <p>e-Pani gives every office a repeatable process framework that reduces ambiguity, improves ownership, and supports review at every stage.</p>
+                    <div class="label">How e-Pani Works</div>
+                    <h2>A practical flow for handling client work from request to closure.</h2>
+                    <p>Keep each engagement visible, reviewable, billable, and accountable through a single operating model.</p>
                 </div>
                 <div class="workflow-shell">
                     <div class="workflow-grid">
                         <div class="workflow-step">
-                            <strong>1. Client Intake</strong>
-                            <span>Capture client master, compliance profile, portal credentials, and request details.</span>
+                            <strong>Client Request</strong>
+                            <span>Capture the engagement need, initial documents, and client context.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>2. Assignment Creation</strong>
-                            <span>Create PSO or service order with service type, entity, period, and responsible users.</span>
+                            <strong>Service Order</strong>
+                            <span>Create the formal assignment with structured numbering and period details.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>3. Execution Tracking</strong>
-                            <span>Move through document collection, preparation, review, filing, acknowledgement, and follow-up stages.</span>
+                            <strong>Assignment</strong>
+                            <span>Allocate work to the appropriate internal or consultant resource.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>4. Billing & Controls</strong>
-                            <span>Issue invoices, post receipts, capture disbursements, and manage consultant actions where applicable.</span>
+                            <strong>Execution</strong>
+                            <span>Track preparation, filing, client dependency, and operational progress.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>5. Closure & Audit</strong>
-                            <span>Lock closure states, retain evidence, and preserve an auditable trail of service and commercial events.</span>
+                            <strong>Review</strong>
+                            <span>Control checks, approvals, and query handling before completion.</span>
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Invoice</strong>
+                            <span>Raise invoices and connect collections to the completed assignment.</span>
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Closure</strong>
+                            <span>Complete procedural and financial closure with traceable records.</span>
                         </div>
                     </div>
                 </div>
@@ -946,41 +937,49 @@
         <section class="section" id="use-cases">
             <div class="container">
                 <div class="section-head">
-                    <div class="label">Industry Use Cases</div>
-                    <h2>Purpose-built for the professionals who manage recurring compliance, client coordination, and controlled execution.</h2>
-                    <p>Each use case benefits from the same platform discipline, while retaining the flexibility to support different service models and office structures.</p>
+                    <div class="label">Use Cases</div>
+                    <h2>Relevant for firms managing recurring compliance, governed assignments, and client-facing delivery.</h2>
+                    <p>e-Pani adapts to different professional service models while maintaining a common operational discipline.</p>
                 </div>
-                <div class="grid-4">
+                <div class="grid-3">
                     <div class="card usecase-card">
-                        <h3>Chartered Accountants</h3>
+                        <h3>Tax Practice</h3>
                         <div class="usecase-list">
-                            <div class="usecase-point">Client master and annual compliance tracking</div>
-                            <div class="usecase-point">Service-order driven filing and review control</div>
-                            <div class="usecase-point">Billing, receipts, and outstanding visibility</div>
+                            <div class="usecase-point">ITR, TDS, GST, and response workflows</div>
+                            <div class="usecase-point">Filing and e-verification visibility</div>
+                            <div class="usecase-point">Client and collection continuity</div>
                         </div>
                     </div>
                     <div class="card usecase-card">
-                        <h3>Tax Practitioners</h3>
+                        <h3>Legal Practice</h3>
                         <div class="usecase-list">
-                            <div class="usecase-point">ITR, TDS, and response management in one workflow</div>
-                            <div class="usecase-point">Reminder-led follow-up and e-verification visibility</div>
-                            <div class="usecase-point">Secure document and acknowledgement handling</div>
+                            <div class="usecase-point">Matter-level assignment and review tracking</div>
+                            <div class="usecase-point">Controlled document records and remarks</div>
+                            <div class="usecase-point">Evidence-led operational discipline</div>
                         </div>
                     </div>
                     <div class="card usecase-card">
-                        <h3>GST Consultants</h3>
+                        <h3>Accounting Firms</h3>
                         <div class="usecase-list">
-                            <div class="usecase-point">Monthly, quarterly, and annual compliance cycles</div>
-                            <div class="usecase-point">Document pending, filing pending, and ARN capture stages</div>
-                            <div class="usecase-point">Client coordination and billing continuity</div>
+                            <div class="usecase-point">Client records, recurring assignments, and billing flow</div>
+                            <div class="usecase-point">Execution visibility across multiple staff roles</div>
+                            <div class="usecase-point">Collections and reporting oversight</div>
                         </div>
                     </div>
                     <div class="card usecase-card">
-                        <h3>Advocates & Compliance Teams</h3>
+                        <h3>Corporate Compliance</h3>
                         <div class="usecase-list">
-                            <div class="usecase-point">Assignment ownership with role-based review</div>
-                            <div class="usecase-point">Consultant and internal team coordination</div>
-                            <div class="usecase-point">Traceable records for evidence-led practice work</div>
+                            <div class="usecase-point">Internal ownership for periodic compliance tasks</div>
+                            <div class="usecase-point">Deadline tracking, review notes, and closure history</div>
+                            <div class="usecase-point">Traceable office records for governance</div>
+                        </div>
+                    </div>
+                    <div class="card usecase-card">
+                        <h3>Professional Service Firms</h3>
+                        <div class="usecase-list">
+                            <div class="usecase-point">Client-centric work management in one controlled workspace</div>
+                            <div class="usecase-point">Secure documents, reminders, and billing continuity</div>
+                            <div class="usecase-point">Operational clarity without fragmented tools</div>
                         </div>
                     </div>
                 </div>
@@ -990,26 +989,34 @@
         <section class="section" id="security">
             <div class="container">
                 <div class="section-head">
-                    <div class="label">Security & Governance</div>
-                    <h2>Professional credibility is strengthened by secure access, traceable records, and controlled data exposure.</h2>
-                    <p>For client-facing firms, trust depends not only on execution quality but also on how securely and transparently work is handled.</p>
+                    <div class="label">Security &amp; Control</div>
+                    <h2>Designed to protect records, limit access appropriately, and preserve accountability.</h2>
+                    <p>e-Pani helps firms operate with confidence by strengthening both data protection and operational traceability.</p>
                 </div>
-                <div class="grid-2">
+                <div class="grid-3">
                     <div class="card">
-                        <h3>Role-based responsibility separation</h3>
-                        <p>Internal teams, CRM, accounts, consultants, and portal users operate through controlled permissions aligned with real office responsibilities.</p>
+                        <h3>Role Based Access</h3>
+                        <p>Control what internal users, consultants, accounts teams, and clients can view or act on.</p>
                     </div>
                     <div class="card">
-                        <h3>Protected client document access</h3>
-                        <p>Documents are stored outside the public web root and delivered only through authenticated, logged, permission-aware endpoints.</p>
+                        <h3>Document Security</h3>
+                        <p>Serve documents through authenticated endpoints instead of exposing file paths publicly.</p>
                     </div>
                     <div class="card">
-                        <h3>Traceable office actions</h3>
-                        <p>Workflow movement, follow-up logs, billing events, and downloads can be reviewed whenever proof or internal clarity is required.</p>
+                        <h3>Audit Logs</h3>
+                        <p>Preserve traceable records for workflow actions, downloads, billing, and reminders.</p>
                     </div>
                     <div class="card">
-                        <h3>Commercial deployment readiness</h3>
-                        <p>Secure uploads, centralized error handling, locked closures, and retention-aware architecture support dependable long-term deployment.</p>
+                        <h3>Activity Tracking</h3>
+                        <p>Track operational activity by user, assignment, module, and milestone for better oversight.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Permission Controls</h3>
+                        <p>Support structured access decisions for modules, actions, reports, and workflow movement.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Secure Cloud Storage</h3>
+                        <p>Use storage patterns suited for safer deployment, retention, and protected document handling.</p>
                     </div>
                 </div>
             </div>
@@ -1019,19 +1026,19 @@
             <div class="container">
                 <div class="cta-shell">
                     <div class="cta-primary">
-                        <div class="label">Request a Demo</div>
+                        <div class="label">Book a Live Demo</div>
                         <h2>See how e-Pani can organize your practice operations end to end.</h2>
-                        <p>Request a guided walkthrough to understand how e-Pani can support client onboarding, assignment execution, billing control, reminders, consultant coordination, and reporting in your firm.</p>
+                        <p>Book a guided walkthrough to understand how e-Pani can support client management, workflow execution, secure records, compliance monitoring, and billing control in your firm.</p>
                         <div class="cta-actions">
-                            <a class="button button-light" href="mailto:hello@etaxadv.com?subject=e-Pani%20Demo%20Request">Request Demo</a>
-                            <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
-                            <a class="button button-ghost" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
+                            <a class="button button-light" href="mailto:hello@etaxadv.com?subject=e-Pani%20Live%20Demo%20Request">Book a Live Demo</a>
+                            <a class="button button-secondary" href="#features">Explore Features</a>
+                            <a class="button button-ghost" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
                         </div>
                     </div>
                     <div class="card contact-card">
                         <div class="label">Contact</div>
                         <h3 style="margin:0;font-size:1.5rem;line-height:1.25;">Talk to E Tax Advisors Private Limited</h3>
-                        <p style="margin:0;color:var(--muted);line-height:1.8;">Get in touch for a guided demo, implementation discussion, or production deployment support.</p>
+                        <p style="margin:0;color:var(--muted);line-height:1.8;">Get in touch for a guided demo, implementation discussion, or deployment support.</p>
                         <div class="contact-row">
                             <svg viewBox="0 0 24 24"><path d="M22 16.92V19a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 3.18 2 2 0 0 1 4.11 1h2.09a2 2 0 0 1 2 1.72l.36 2.71a2 2 0 0 1-.57 1.72l-1.52 1.52a16 16 0 0 0 6 6l1.52-1.52a2 2 0 0 1 1.72-.57l2.71.36A2 2 0 0 1 22 16.92Z"/></svg>
                             <div><strong>Call</strong>+91 99446 26300</div>
@@ -1052,10 +1059,33 @@
 
     <footer class="footer">
         <div class="container footer-shell">
-            <div>e-pani : Office Management Suite from E Tax Advisors Private Limited</div>
-            <div>Practice management for tax, compliance, advisory, billing, follow-up, and controlled client operations.</div>
+            <div class="footer-nav">
+                <a href="#features">Features</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#use-cases">Use Cases</a>
+                <a href="#security">Security</a>
+                <a href="#contact">Contact</a>
+                <a href="#contact">Privacy Policy</a>
+                <a href="#contact">Terms of Use</a>
+            </div>
+            <div>© E Tax Advisors Private Limited</div>
         </div>
     </footer>
 </div>
+<?php if (!empty($success)): ?>
+<script>
+    (function () {
+        const toast = document.getElementById('logout-toast');
+        if (!toast) {
+            return;
+        }
+
+        requestAnimationFrame(() => toast.classList.add('is-visible'));
+        window.setTimeout(() => {
+            toast.classList.remove('is-visible');
+        }, 3200);
+    }());
+</script>
+<?php endif; ?>
 </body>
 </html>
