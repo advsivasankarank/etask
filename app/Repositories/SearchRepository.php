@@ -402,7 +402,13 @@ final class SearchRepository
         $baseSql = "FROM users u
             INNER JOIN client_contacts cc ON cc.id = u.client_contact_id
             INNER JOIN clients c ON c.id = cc.client_id
-            WHERE UPPER(COALESCE(u.actor_type, '')) = 'PORTAL'";
+            WHERE EXISTS (
+                SELECT 1
+                FROM user_role_map urm
+                INNER JOIN roles r ON r.id = urm.role_id
+                WHERE urm.user_id = u.id
+                  AND r.code = 'CLIENT'
+            )";
         $where = '';
         $params = [];
 
@@ -418,6 +424,7 @@ final class SearchRepository
                 OR c.trade_name LIKE :search_trade_name
                 OR c.pan LIKE :search_pan
                 OR c.tan LIKE :search_tan
+                OR c.gstin LIKE :search_gstin
             )";
             $params['search_username'] = $term;
             $params['search_full_name'] = $term;
@@ -427,6 +434,7 @@ final class SearchRepository
             $params['search_trade_name'] = $term;
             $params['search_pan'] = $term;
             $params['search_tan'] = $term;
+            $params['search_gstin'] = $term;
         }
 
         return $this->paginate(
@@ -440,7 +448,8 @@ final class SearchRepository
                     c.id AS client_id,
                     c.legal_name AS client_name,
                     c.pan,
-                    c.tan
+                    c.tan,
+                    c.gstin
              {$baseSql}{$where}",
             $params,
             $page,
