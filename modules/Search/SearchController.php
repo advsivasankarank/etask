@@ -19,11 +19,17 @@ final class SearchController
     public function index(Request $request): void
     {
         $query = trim((string) $request->input('q', ''));
-        $results = ['sources' => [], 'total' => 0];
+        $results = ['items' => [], 'groups' => [], 'total' => 0];
+        $recentSearches = [];
+        $recentRecords = [];
+        $quickAccess = $this->search->quickAccess();
 
         if ($query !== '') {
-            $results = $this->search->globalSearch($query, 8);
+            $results = $this->search->universalResults($query, 8);
             $this->search->logSearch($request, 'GLOBAL', $query, 'all', ['q' => $query], (int) ($results['total'] ?? 0));
+        } else {
+            $recentSearches = $this->search->recentSearches(6);
+            $recentRecords = $this->search->recentRecords(6);
         }
 
         Response::html(View::render(base_path('modules/Search/views/index.php'), [
@@ -31,6 +37,9 @@ final class SearchController
             'activeMenu' => 'search',
             'query' => $query,
             'results' => $results,
+            'recentSearches' => $recentSearches,
+            'recentRecords' => $recentRecords,
+            'quickAccess' => $quickAccess,
             'options' => $this->search->options(),
         ]));
     }
@@ -38,11 +47,24 @@ final class SearchController
     public function quick(Request $request): void
     {
         $query = trim((string) $request->input('q', ''));
-        $results = ['sources' => [], 'total' => 0];
+        $format = strtolower(trim((string) $request->input('format', 'html')));
+
+        if ($format === 'json') {
+            $this->respondJson($this->search->commandPaletteData($query));
+            return;
+        }
+
+        $results = ['items' => [], 'groups' => [], 'total' => 0];
+        $recentSearches = [];
+        $recentRecords = [];
+        $quickAccess = $this->search->quickAccess();
 
         if ($query !== '') {
-            $results = $this->search->quickSearch($query, 4);
+            $results = $this->search->universalResults($query, 6);
             $this->search->logSearch($request, 'QUICK', $query, 'all', ['q' => $query], (int) ($results['total'] ?? 0));
+        } else {
+            $recentSearches = $this->search->recentSearches(6);
+            $recentRecords = $this->search->recentRecords(6);
         }
 
         Response::html(View::render(base_path('modules/Search/views/quick.php'), [
@@ -50,6 +72,9 @@ final class SearchController
             'activeMenu' => 'search',
             'query' => $query,
             'results' => $results,
+            'recentSearches' => $recentSearches,
+            'recentRecords' => $recentRecords,
+            'quickAccess' => $quickAccess,
             'options' => $this->search->options(),
         ]));
     }
@@ -115,6 +140,7 @@ final class SearchController
             'filters' => $filters,
             'options' => $options,
             'report' => $report,
+            'cards' => $this->search->cardsForSource($filters['source'], $report['items'] ?? [], (string) ($filters['q'] ?? '')),
             'hasCriteria' => $hasCriteria,
         ]));
     }
@@ -139,5 +165,11 @@ final class SearchController
             'report' => $this->search->history($filters, $page, 20),
             'canAudit' => $this->search->canAuditHistory(),
         ]));
+    }
+
+    private function respondJson(array $payload): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }

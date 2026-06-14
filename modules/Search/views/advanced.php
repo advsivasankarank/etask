@@ -62,13 +62,11 @@
         <?= \App\Core\View::render(
             base_path('modules/Search/views/partials/results.php'),
             [
-                'sourceKey' => $source,
-                'sourceLabel' => ($options['sources'][$source] ?? ucfirst(str_replace('_', ' ', $source))),
-                'sourceResults' => [
-                    'items' => $report['items'],
-                    'total' => $report['total'],
-                ],
-                'query' => (string) ($filters['q'] ?? ''),
+                'heading' => ($options['sources'][$source] ?? ucfirst(str_replace('_', ' ', $source))),
+                'description' => 'Filtered search results for the selected module.',
+                'items' => $cards ?? [],
+                'emptyMessage' => 'No matching records were found for this source.',
+                'showSource' => false,
             ],
             null
         ) ?>

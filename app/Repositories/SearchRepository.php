@@ -125,6 +125,28 @@ final class SearchRepository
         ];
     }
 
+    public function recentSearches(array $context, int $limit = 6): array
+    {
+        $limit = max(1, min(20, $limit));
+        $statement = Database::connection()->prepare(
+            "SELECT sh.query_text,
+                    sh.search_mode,
+                    sh.source_scope,
+                    sh.result_count,
+                    sh.created_at
+             FROM search_history sh
+             WHERE sh.user_id = :user_id
+               AND sh.query_text <> ''
+             ORDER BY sh.id DESC
+             LIMIT :limit"
+        );
+        $statement->bindValue(':user_id', (int) ($context['user_id'] ?? 0), PDO::PARAM_INT);
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function logSearch(
         int $userId,
         string $mode,
@@ -207,6 +229,7 @@ final class SearchRepository
         return match ($source) {
             'clients' => $this->searchClients($context, $filters, $page, $perPage),
             'service_orders' => $this->searchServiceOrders($context, $filters, $page, $perPage),
+            'portal_users' => $this->searchPortalUsers($context, $filters, $page, $perPage),
             'portal_credentials' => $this->searchPortalCredentials($context, $filters, $page, $perPage),
             'invoices' => $this->searchInvoices($context, $filters, $page, $perPage),
             'receipts' => $this->searchReceipts($context, $filters, $page, $perPage),
@@ -254,6 +277,7 @@ final class SearchRepository
                     c.pan,
                     c.tan,
                     c.gstin,
+                    c.email,
                     c.mobile,
                     c.is_active,
                     crm.full_name AS assigned_crm_name
@@ -292,6 +316,11 @@ final class SearchRepository
                     so.assessment_year,
                     so.period_label,
                     so.created_at,
+                    c.client_code,
+                    c.trade_name,
+                    c.gstin,
+                    c.mobile,
+                    c.email,
                     c.legal_name AS client_name,
                     c.pan,
                     c.tan,
@@ -361,6 +390,62 @@ final class SearchRepository
             $page,
             $perPage,
             ' ORDER BY c.legal_name ASC, cpc.portal_label ASC'
+        );
+    }
+
+    private function searchPortalUsers(array $context, array $filters, int $page, int $perPage): array
+    {
+        if (!$this->canAccessSource($context, 'portal_users')) {
+            return $this->emptyPage($perPage);
+        }
+
+        $baseSql = "FROM users u
+            INNER JOIN client_contacts cc ON cc.id = u.client_contact_id
+            INNER JOIN clients c ON c.id = cc.client_id
+            WHERE UPPER(COALESCE(u.actor_type, '')) = 'PORTAL'";
+        $where = '';
+        $params = [];
+
+        $keyword = trim((string) ($filters['q'] ?? ''));
+        if ($keyword !== '') {
+            $term = '%' . $keyword . '%';
+            $where .= " AND (
+                u.username LIKE :search_username
+                OR u.full_name LIKE :search_full_name
+                OR u.email LIKE :search_email
+                OR u.mobile LIKE :search_mobile
+                OR c.legal_name LIKE :search_client_name
+                OR c.trade_name LIKE :search_trade_name
+                OR c.pan LIKE :search_pan
+                OR c.tan LIKE :search_tan
+            )";
+            $params['search_username'] = $term;
+            $params['search_full_name'] = $term;
+            $params['search_email'] = $term;
+            $params['search_mobile'] = $term;
+            $params['search_client_name'] = $term;
+            $params['search_trade_name'] = $term;
+            $params['search_pan'] = $term;
+            $params['search_tan'] = $term;
+        }
+
+        return $this->paginate(
+            "SELECT COUNT(*) {$baseSql}{$where}",
+            "SELECT u.id,
+                    u.username,
+                    u.full_name,
+                    u.email,
+                    u.mobile,
+                    u.is_active,
+                    c.id AS client_id,
+                    c.legal_name AS client_name,
+                    c.pan,
+                    c.tan
+             {$baseSql}{$where}",
+            $params,
+            $page,
+            $perPage,
+            ' ORDER BY u.full_name ASC, u.id DESC'
         );
     }
 
@@ -639,6 +724,7 @@ final class SearchRepository
                 OR {$alias}.tan LIKE :search_tan
                 OR {$alias}.gstin LIKE :search_gstin
                 OR {$alias}.mobile LIKE :search_mobile
+                OR {$alias}.email LIKE :search_email
             )";
             $params['search_legal_name'] = $term;
             $params['search_trade_name'] = $term;
@@ -647,6 +733,7 @@ final class SearchRepository
             $params['search_tan'] = $term;
             $params['search_gstin'] = $term;
             $params['search_mobile'] = $term;
+            $params['search_email'] = $term;
         }
 
         foreach (['pan', 'tan', 'gstin', 'mobile'] as $field) {
@@ -684,15 +771,27 @@ final class SearchRepository
             $where .= " AND (
                 so.so_no LIKE :search_so_no
                 OR so.title LIKE :search_title
+                OR st.name LIKE :search_service_type_name
                 OR c.legal_name LIKE :search_client_name
+                OR c.trade_name LIKE :search_trade_name
+                OR c.client_code LIKE :search_client_code
                 OR c.pan LIKE :search_pan
                 OR c.tan LIKE :search_tan
+                OR c.gstin LIKE :search_gstin
+                OR c.mobile LIKE :search_mobile
+                OR c.email LIKE :search_email
             )";
             $params['search_so_no'] = $term;
             $params['search_title'] = $term;
+            $params['search_service_type_name'] = $term;
             $params['search_client_name'] = $term;
+            $params['search_trade_name'] = $term;
+            $params['search_client_code'] = $term;
             $params['search_pan'] = $term;
             $params['search_tan'] = $term;
+            $params['search_gstin'] = $term;
+            $params['search_mobile'] = $term;
+            $params['search_email'] = $term;
         }
 
         if ((int) ($filters['company_id'] ?? 0) > 0) {
@@ -796,6 +895,7 @@ final class SearchRepository
         return match ($source) {
             'clients' => $this->hasPermission($context, 'clients.view') || $this->hasPermission($context, 'portal.self_access'),
             'service_orders' => $this->hasPermission($context, 'service_orders.view') || $this->isClientUser($context) || $this->isConsultantUser($context),
+            'portal_users' => $this->hasPermissionAny($context, ['users.manage.portal', 'users.manage.internal', 'clients.view']),
             'portal_credentials' => $this->hasPermissionAny($context, ['clients.view', 'clients.credentials.manage']),
             'invoices', 'receipts' => $this->hasPermissionAny($context, ['billing.view', 'reports.financial']) || $this->isClientUser($context),
             'consultants' => $this->hasPermission($context, 'consultants.view') || $this->isConsultantUser($context),
@@ -809,6 +909,7 @@ final class SearchRepository
         return [
             'clients' => 'Clients',
             'service_orders' => 'Service Orders',
+            'portal_users' => 'Portal Users',
             'portal_credentials' => 'Portal Credentials',
             'invoices' => 'Invoices',
             'receipts' => 'Receipts',
