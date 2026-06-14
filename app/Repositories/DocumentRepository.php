@@ -9,6 +9,76 @@ use PDO;
 
 final class DocumentRepository
 {
+    public function portalCenterDocuments(int $clientId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT d.id,
+                    d.client_id,
+                    d.linked_module,
+                    d.linked_id,
+                    d.document_category,
+                    d.document_name,
+                    d.current_version_no,
+                    d.latest_file_name,
+                    d.mime_type,
+                    d.file_size,
+                    d.uploaded_at,
+                    d.uploaded_by,
+                    u.full_name AS uploaded_by_name,
+                    so.so_no,
+                    so.title AS service_order_title,
+                    st.name AS service_type_name,
+                    pso.pso_no,
+                    pso.title AS pso_title
+             FROM documents d
+             LEFT JOIN users u ON u.id = d.uploaded_by
+             LEFT JOIN service_orders so
+                ON d.linked_module = 'SO'
+               AND so.id = d.linked_id
+             LEFT JOIN service_types st ON st.id = so.service_type_id
+             LEFT JOIN pre_service_orders pso
+                ON d.linked_module = 'PSO'
+               AND pso.id = d.linked_id
+             WHERE d.client_id = :client_id
+               AND d.is_active = 1
+             ORDER BY d.uploaded_at DESC, d.id DESC"
+        );
+        $statement->execute(['client_id' => $clientId]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function forLinkedRecord(string $linkedModule, int $linkedId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT d.id,
+                    d.client_id,
+                    d.linked_module,
+                    d.linked_id,
+                    d.document_category,
+                    d.document_name,
+                    d.current_version_no,
+                    d.latest_file_name,
+                    d.mime_type,
+                    d.file_size,
+                    d.uploaded_at,
+                    d.uploaded_by,
+                    u.full_name AS uploaded_by_name
+             FROM documents d
+             LEFT JOIN users u ON u.id = d.uploaded_by
+             WHERE d.linked_module = :linked_module
+               AND d.linked_id = :linked_id
+               AND d.is_active = 1
+             ORDER BY d.uploaded_at DESC, d.id DESC"
+        );
+        $statement->execute([
+            'linked_module' => strtoupper(trim($linkedModule)),
+            'linked_id' => $linkedId,
+        ]);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function findById(int $documentId): ?array
     {
         $statement = Database::connection()->prepare(

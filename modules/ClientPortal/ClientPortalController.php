@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Modules\ClientPortal;
 
 use App\Core\Auth;
+use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\BillingRepository;
 use App\Repositories\ClientRepository;
+use App\Repositories\DocumentRepository;
 use App\Repositories\PsoRepository;
 use App\Repositories\ServiceTypeRepository;
 use App\Services\BillingService;
@@ -24,6 +26,7 @@ final class ClientPortalController
         private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
         private readonly PsoService $psoService = new PsoService(),
         private readonly ClientRepository $clients = new ClientRepository(),
+        private readonly DocumentRepository $documents = new DocumentRepository(),
         private readonly BillingRepository $billing = new BillingRepository(),
         private readonly BillingService $billingService = new BillingService()
     ) {
@@ -180,6 +183,102 @@ final class ClientPortalController
         Response::html($content);
     }
 
+    public function documents(): void
+    {
+        if (!Auth::isPortalUser()) {
+            Response::abort(403, 'Portal access is required.');
+        }
+
+        $clientId = (int) (Auth::clientId() ?? 0);
+        $client = $this->clients->findById($clientId);
+        if ($client === null) {
+            Response::abort(404, 'Client profile not found.');
+        }
+
+        $currentUserId = (int) (Auth::id() ?? 0);
+        $allDocuments = $this->documents->portalCenterDocuments($clientId);
+        $requestedFromYou = $this->portalPendingDocumentRequests($clientId);
+
+        $uploadedByYou = [];
+        $generatedForYou = [];
+        $identityDocuments = [];
+
+        foreach ($allDocuments as $document) {
+            $linkedModule = strtoupper((string) ($document['linked_module'] ?? ''));
+            $documentCategory = strtoupper((string) ($document['document_category'] ?? ''));
+            $uploadedByCurrentUser = (int) ($document['uploaded_by'] ?? 0) === $currentUserId;
+
+            if ($linkedModule === 'CLIENT' || in_array($documentCategory, ['CLIENT_PAN_CARD_IMAGE', 'CLIENT_AADHAAR_CARD_IMAGE'], true)) {
+                $identityDocuments[] = $document;
+                continue;
+            }
+
+            if ($uploadedByCurrentUser) {
+                $uploadedByYou[] = $document;
+                continue;
+            }
+
+            $generatedForYou[] = $document;
+        }
+
+        $recentNotifications = array_filter(
+            $this->portalNotifications((int) (Auth::user()['client_contact_id'] ?? 0)),
+            static function (array $notification): bool {
+                $message = strtolower((string) ($notification['message'] ?? ''));
+                $subject = strtolower((string) ($notification['subject'] ?? ''));
+
+                return str_contains($message, 'document')
+                    || str_contains($message, 'upload')
+                    || str_contains($message, 'clarification')
+                    || str_contains($subject, 'document');
+            }
+        );
+
+        $content = View::render(base_path('modules/ClientPortal/views/documents.php'), [
+            'title' => 'Document Centre',
+            'activeMenu' => 'client_portal',
+            'client' => $client,
+            'uploadedByYou' => $uploadedByYou,
+            'generatedForYou' => $generatedForYou,
+            'identityDocuments' => $identityDocuments,
+            'requestedFromYou' => $requestedFromYou,
+            'recentNotifications' => array_slice(array_values($recentNotifications), 0, 6),
+            'documentCount' => count($allDocuments),
+            'success' => Session::pullFlash('success'),
+            'error' => Session::pullFlash('error'),
+        ]);
+
+        Response::html($content);
+    }
+
+    public function support(): void
+    {
+        if (!Auth::isPortalUser()) {
+            Response::abort(403, 'Portal access is required.');
+        }
+
+        $clientId = (int) (Auth::clientId() ?? 0);
+        $client = $this->clients->findById($clientId);
+        if ($client === null) {
+            Response::abort(404, 'Client profile not found.');
+        }
+
+        $contact = $this->clients->primaryContact($clientId);
+        $content = View::render(base_path('modules/ClientPortal/views/support.php'), [
+            'title' => 'Support',
+            'activeMenu' => 'support',
+            'client' => $client,
+            'contact' => $contact,
+            'supportActions' => $this->supportActions(),
+            'faqCategories' => $this->supportFaqCategories(),
+            'supportContact' => $this->supportContactDetails(),
+            'success' => Session::pullFlash('success'),
+            'error' => Session::pullFlash('error'),
+        ]);
+
+        Response::html($content);
+    }
+
     public function payInvoice(Request $request): void
     {
         if (!Auth::isPortalUser()) {
@@ -230,5 +329,86 @@ final class ClientPortalController
         $statement->execute(['client_contact_id' => $clientContactId]);
 
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    private function portalPendingDocumentRequests(int $clientId): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT so.id,
+                    so.so_no,
+                    so.title,
+                    so.current_stage_code,
+                    so.sla_due_at,
+                    so.period_label,
+                    st.name AS service_type_name
+             FROM service_orders so
+             INNER JOIN service_types st ON st.id = so.service_type_id
+             LEFT JOIN service_order_status_flags ssf ON ssf.service_order_id = so.id
+             WHERE so.client_id = :client_id
+               AND (
+                    so.current_stage_code = 'DOCUMENT_PENDING'
+                    OR COALESCE(ssf.is_document_pending, 0) = 1
+               )
+             ORDER BY so.sla_due_at IS NULL, so.sla_due_at ASC, so.id DESC"
+        );
+        $statement->execute(['client_id' => $clientId]);
+
+        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    private function supportActions(): array
+    {
+        return [
+            [
+                'title' => 'Raise Query',
+                'description' => 'Open your request workspace to share additional details or submit a fresh service request.',
+                'path' => url('/client-portal/pso'),
+                'label' => 'Open Requests',
+            ],
+            [
+                'title' => 'Request Callback',
+                'description' => 'Use the office contact details below to request a callback during business hours.',
+                'path' => 'tel:+919944626300',
+                'label' => 'Call Support',
+            ],
+            [
+                'title' => 'Contact Relationship Manager',
+                'description' => 'Reach out for document guidance, service updates, or billing clarification from your relationship team.',
+                'path' => 'mailto:hello@etaxadv.com?subject=' . rawurlencode('e-Pani Client Support Request'),
+                'label' => 'Email Support',
+            ],
+        ];
+    }
+
+    private function supportFaqCategories(): array
+    {
+        return [
+            [
+                'title' => 'Service Requests',
+                'description' => 'Create a new request, review submitted details, and monitor current service progress from the portal.',
+            ],
+            [
+                'title' => 'Documents',
+                'description' => 'Check requested files, review shared documents, and download records securely through the Document Centre.',
+            ],
+            [
+                'title' => 'Billing & Payments',
+                'description' => 'Open invoices, review outstanding amounts, submit payment details, and access receipts from your dashboard.',
+            ],
+            [
+                'title' => 'Portal Access',
+                'description' => 'Use your registered portal login, reset your password when needed, and keep profile contact details current with our team.',
+            ],
+        ];
+    }
+
+    private function supportContactDetails(): array
+    {
+        return [
+            'phone' => '+91 99446 26300',
+            'email' => 'hello@etaxadv.com',
+            'office_hours' => 'Monday to Saturday | Business hours',
+            'office_name' => 'E Tax Advisors Private Limited',
+        ];
     }
 }

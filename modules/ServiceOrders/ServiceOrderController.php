@@ -11,9 +11,12 @@ use App\Core\Session;
 use App\Core\View;
 use App\Repositories\ClientRepository;
 use App\Repositories\CompanyRepository;
+use App\Repositories\ConsultantRepository;
+use App\Repositories\DocumentRepository;
 use App\Repositories\ServiceOrderRepository;
 use App\Repositories\ServiceTypeRepository;
 use App\Services\BillingService;
+use App\Services\DocumentUploadService;
 use App\Services\ServiceOrderService;
 use App\Services\WorkflowService;
 use Throwable;
@@ -25,9 +28,12 @@ final class ServiceOrderController
         private readonly ClientRepository $clients = new ClientRepository(),
         private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
         private readonly CompanyRepository $companies = new CompanyRepository(),
+        private readonly DocumentRepository $documents = new DocumentRepository(),
+        private readonly ConsultantRepository $consultants = new ConsultantRepository(),
         private readonly ServiceOrderService $serviceOrderService = new ServiceOrderService(),
         private readonly WorkflowService $workflows = new WorkflowService(),
-        private readonly BillingService $billingService = new BillingService()
+        private readonly BillingService $billingService = new BillingService(),
+        private readonly DocumentUploadService $documentUploads = new DocumentUploadService()
     ) {
     }
 
@@ -37,6 +43,21 @@ final class ServiceOrderController
         $clientId = Auth::isPortalUser() ? Auth::clientId() : null;
         $page = max(1, (int) $request->input('page', 1));
         $pagination = $this->serviceOrders->paginateForIndex($search, $clientId, $page, 12);
+
+        if (Auth::isPortalUser()) {
+            $content = View::render(base_path('modules/ServiceOrders/views/portal_index.php'), [
+                'title' => 'My Services',
+                'activeMenu' => 'service_orders',
+                'orders' => $pagination['items'],
+                'pagination' => $pagination,
+                'search' => $search,
+                'success' => Session::pullFlash('success'),
+                'error' => Session::pullFlash('error'),
+            ]);
+
+            Response::html($content);
+            return;
+        }
 
         $content = View::render(base_path('modules/ServiceOrders/views/index.php'), [
             'title' => 'Service Orders',
@@ -133,11 +154,38 @@ final class ServiceOrderController
             Response::abort(403, 'You are not allowed to view this service order.');
         }
 
+        if (Auth::isPortalUser()) {
+            $content = View::render(base_path('modules/ServiceOrders/views/portal_show.php'), [
+                'title' => 'Service Tracking',
+                'activeMenu' => 'service_orders',
+                'order' => $order,
+                'billing' => $this->billingService->billingDashboard($id),
+                'linkedDocuments' => $this->documents->forLinkedRecord('SO', $id),
+                'activityTimeline' => $this->serviceOrders->activityTimeline($id),
+                'workflowStages' => $context['stages'],
+                'workflowHistory' => $context['history'],
+                'workflowMilestones' => $context['milestones'],
+                'workflowReminders' => $context['reminders'],
+                'workflowClosures' => $context['closures'],
+                'workflowRules' => $context['rules'],
+                'success' => Session::pullFlash('success'),
+                'error' => Session::pullFlash('error'),
+            ]);
+
+            Response::html($content);
+            return;
+        }
+
         $content = View::render(base_path('modules/ServiceOrders/views/show.php'), [
             'title' => 'Service Order Details',
             'activeMenu' => 'service_orders',
             'order' => $order,
             'billing' => $this->billingService->billingDashboard($id),
+            'linkedDocuments' => $this->documents->forLinkedRecord('SO', $id),
+            'consultantAssignments' => $this->consultants->assignments($id),
+            'consultants' => $this->consultants->consultants(),
+            'reviewers' => $this->consultants->internalReviewers(),
+            'activityTimeline' => $this->serviceOrders->activityTimeline($id),
             'workflowStages' => $context['stages'],
             'workflowHistory' => $context['history'],
             'workflowMilestones' => $context['milestones'],
@@ -149,5 +197,50 @@ final class ServiceOrderController
         ]);
 
         Response::html($content);
+    }
+
+    public function uploadDocument(Request $request): void
+    {
+        $serviceOrderId = (int) $request->input('service_order_id', 0);
+
+        if ($serviceOrderId <= 0) {
+            Session::flash('error', 'A valid service order is required for document upload.');
+            redirect('/service-orders');
+        }
+
+        $order = $this->serviceOrders->findDetailedById($serviceOrderId);
+        if ($order === null) {
+            Session::flash('error', 'Service order not found.');
+            redirect('/service-orders');
+        }
+
+        try {
+            $documentCategory = trim((string) $request->input('document_category', 'SERVICE_ORDER_DOC')) ?: 'SERVICE_ORDER_DOC';
+            $files = $request->files()['documents'] ?? null;
+
+            if ($files === null || !isset($files['name'])) {
+                throw new \RuntimeException('Please choose at least one file to upload.');
+            }
+
+            $documentIds = $this->documentUploads->uploadLinkedDocuments(
+                clientId: (int) $order['client_id'],
+                linkedModule: 'SO',
+                linkedId: $serviceOrderId,
+                documentCategory: $documentCategory,
+                files: $files,
+                uploadedBy: (int) Auth::id(),
+                directoryKey: 'service_orders'
+            );
+
+            if ($documentIds === []) {
+                throw new \RuntimeException('No valid documents were uploaded.');
+            }
+
+            Session::flash('success', 'Service order document uploaded successfully.');
+        } catch (Throwable $throwable) {
+            Session::flash('error', $throwable->getMessage());
+        }
+
+        redirect('/service-orders/show?id=' . $serviceOrderId . '#documents');
     }
 }

@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Core\Logger;
 use PDO;
+use PDOException;
 
 final class WorkflowRepository
 {
+    private static ?bool $milestoneTableAvailable = null;
+
     public function activeByServiceType(int $serviceTypeId): ?array
     {
         $statement = Database::connection()->prepare(
@@ -93,26 +97,44 @@ final class WorkflowRepository
 
     public function milestoneTrackers(int $serviceOrderId): array
     {
-        $statement = Database::connection()->prepare(
-            "SELECT som.stage_code,
-                    som.stage_name,
-                    som.tracking_status,
-                    som.remarks,
-                    som.completed_at,
-                    som.completed_by,
-                    som.updated_at,
-                    som.updated_by,
-                    cu.full_name AS completed_by_name,
-                    uu.full_name AS updated_by_name
-             FROM service_order_milestones som
-             LEFT JOIN users cu ON cu.id = som.completed_by
-             LEFT JOIN users uu ON uu.id = som.updated_by
-             WHERE som.service_order_id = :service_order_id
-             ORDER BY som.id ASC"
-        );
-        $statement->execute(['service_order_id' => $serviceOrderId]);
+        if (!$this->milestoneTableExists()) {
+            return [];
+        }
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $statement = Database::connection()->prepare(
+                "SELECT som.stage_code,
+                        som.stage_name,
+                        som.tracking_status,
+                        som.remarks,
+                        som.completed_at,
+                        som.completed_by,
+                        som.updated_at,
+                        som.updated_by,
+                        cu.full_name AS completed_by_name,
+                        uu.full_name AS updated_by_name
+                 FROM service_order_milestones som
+                 LEFT JOIN users cu ON cu.id = som.completed_by
+                 LEFT JOIN users uu ON uu.id = som.updated_by
+                 WHERE som.service_order_id = :service_order_id
+                 ORDER BY som.id ASC"
+            );
+            $statement->execute(['service_order_id' => $serviceOrderId]);
+
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $exception) {
+            if ($this->isMissingMilestoneTableException($exception)) {
+                self::$milestoneTableAvailable = false;
+                Logger::warning('workflow.milestone_table_missing_runtime', [
+                    'service_order_id' => $serviceOrderId,
+                    'sql_state' => $exception->getCode(),
+                    'message' => $exception->getMessage(),
+                ]);
+                return [];
+            }
+
+            throw $exception;
+        }
     }
 
     public function consultantOutstandingAmount(int $serviceOrderId): float
@@ -127,5 +149,48 @@ final class WorkflowRepository
         $statement->execute(['service_order_id' => $serviceOrderId]);
 
         return (float) ($statement->fetchColumn() ?: 0.0);
+    }
+
+    private function milestoneTableExists(): bool
+    {
+        if (self::$milestoneTableAvailable !== null) {
+            return self::$milestoneTableAvailable;
+        }
+
+        try {
+            $statement = Database::connection()->query(
+                "SELECT COUNT(*)
+                 FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'service_order_milestones'"
+            );
+
+            self::$milestoneTableAvailable = (int) $statement->fetchColumn() === 1;
+        } catch (PDOException $exception) {
+            if ($this->isMissingMilestoneTableException($exception)) {
+                self::$milestoneTableAvailable = false;
+            } else {
+                throw $exception;
+            }
+        }
+
+        if (self::$milestoneTableAvailable === false) {
+            Logger::warning('workflow.milestone_table_missing', [
+                'table' => 'service_order_milestones',
+            ]);
+        }
+
+        return self::$milestoneTableAvailable;
+    }
+
+    private function isMissingMilestoneTableException(PDOException $exception): bool
+    {
+        $message = strtoupper($exception->getMessage());
+        $code = strtoupper((string) $exception->getCode());
+
+        return $code === '42S02'
+            || str_contains($message, '1146')
+            || str_contains($message, 'SERVICE_ORDER_MILESTONES')
+            || str_contains($message, 'BASE TABLE OR VIEW NOT FOUND');
     }
 }
