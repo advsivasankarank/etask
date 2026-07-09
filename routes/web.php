@@ -18,6 +18,7 @@ use Modules\Workflow\WorkflowController;
 use Modules\Attendance\AttendanceController;
 use Modules\DSC\DSCController;
 use Modules\Workforce\WorkforceController;
+use Modules\Accounts\AccountsController;
 
 $router->get('/', [AuthController::class, 'showLanding'], ['guest']);
 $router->get('/login', [AuthController::class, 'showLogin'], ['guest']);
@@ -187,3 +188,14 @@ $router->get('/workforce/consultant-bills', [WorkforceController::class, 'consul
 $router->post('/workforce/consultant-bills/status', [WorkforceController::class, 'updateBillStatus'], ['auth', 'permission:workforce.consultants.manage']);
 $router->get('/workforce/consultant-payments', [WorkforceController::class, 'consultantPayments'], ['auth', 'permission:workforce.consultants.view']);
 $router->post('/workforce/consultant-payments', [WorkforceController::class, 'createPayment'], ['auth', 'permission:workforce.consultants.manage']);
+$router->get('/accounts', [AccountsController::class, 'index'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/invoices', [AccountsController::class, 'invoices'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/receipts', [AccountsController::class, 'receipts'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/payments', [AccountsController::class, 'payments'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/outstanding', [AccountsController::class, 'outstanding'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/ageing', [AccountsController::class, 'ageing'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/followups', [AccountsController::class, 'followups'], ['auth', 'permission:accounts.view,billing.view']);
+$router->post('/accounts/followups', [AccountsController::class, 'createFollowup'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/consultant-payables', [AccountsController::class, 'consultantPayables'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/unbilled-work', [AccountsController::class, 'unbilledWork'], ['auth', 'permission:accounts.view,billing.view']);
+$router->get('/accounts/reports', [AccountsController::class, 'reports'], ['auth', 'permission:accounts.view,billing.view']);

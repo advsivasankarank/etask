@@ -967,40 +967,52 @@ if ($isPortalUser):
                 </div>
                 <?php endif; ?>
 
-                <?php if (Auth::canAny('billing.view', 'accounts.view', 'accounts.collections.view', 'accounts.outstanding.view', 'accounts.ageing.view', 'accounts.unbilled.view')): ?>
+                <?php if (Auth::canAny('billing.view', 'accounts.view')): ?>
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-module">
                     <div class="sidebar-module-header">Accounts Module</div>
-                    <?php if (Auth::can('billing.view')): ?>
-                    <a href="<?= e(url('/billing')) ?>" class="sidebar-link <?= $activeModule === 'accounts' ? 'active' : '' ?>">
+                    <?php if (Auth::canAny('accounts.view', 'billing.view')): ?>
+                    <a href="<?= e(url('/accounts')) ?>" class="sidebar-link <?= $activeModule === 'accounts' && $requestUri === '/accounts' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        <span class="sidebar-link-label">Billing Dashboard</span>
+                        <span class="sidebar-link-label">Accounts Dashboard</span>
                     </a>
-                    <?php endif; ?>
-                    <?php if (Auth::can('reports.financial')): ?>
-                    <a href="<?= e(url('/reports/invoices')) ?>" class="sidebar-link <?= $requestUri === '/reports/invoices' ? 'active' : '' ?>">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <a href="<?= e(url('/accounts/invoices')) ?>" class="sidebar-link <?= $requestUri === '/accounts/invoices' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
                         <span class="sidebar-link-label">Invoices</span>
                     </a>
-                    <a href="<?= e(url('/reports/receipts')) ?>" class="sidebar-link <?= $requestUri === '/reports/receipts' ? 'active' : '' ?>">
+                    <a href="<?= e(url('/accounts/receipts')) ?>" class="sidebar-link <?= $requestUri === '/accounts/receipts' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
                         <span class="sidebar-link-label">Receipts</span>
                     </a>
-                    <a href="<?= e(url('/reports/outstanding')) ?>" class="sidebar-link <?= $requestUri === '/reports/outstanding' ? 'active' : '' ?>">
+                    <a href="<?= e(url('/accounts/payments')) ?>" class="sidebar-link <?= $requestUri === '/accounts/payments' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span class="sidebar-link-label">Payments</span>
+                    </a>
+                    <a href="<?= e(url('/accounts/outstanding')) ?>" class="sidebar-link <?= $requestUri === '/accounts/outstanding' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                         <span class="sidebar-link-label">Outstanding</span>
                     </a>
-                    <?php endif; ?>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-                        <span class="sidebar-link-label">Collections</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    <a href="<?= e(url('/accounts/ageing')) ?>" class="sidebar-link <?= $requestUri === '/accounts/ageing' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                         <span class="sidebar-link-label">Collection Ageing</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
+                    </a>
+                    <a href="<?= e(url('/accounts/followups')) ?>" class="sidebar-link <?= $requestUri === '/accounts/followups' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <span class="sidebar-link-label">Follow-ups</span>
+                    </a>
+                    <a href="<?= e(url('/accounts/consultant-payables')) ?>" class="sidebar-link <?= $requestUri === '/accounts/consultant-payables' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        <span class="sidebar-link-label">Consultant Payables</span>
+                    </a>
+                    <a href="<?= e(url('/accounts/unbilled-work')) ?>" class="sidebar-link <?= $requestUri === '/accounts/unbilled-work' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+                        <span class="sidebar-link-label">Unbilled Work</span>
+                    </a>
+                    <a href="<?= e(url('/accounts/reports')) ?>" class="sidebar-link <?= $requestUri === '/accounts/reports' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <span class="sidebar-link-label">Reports</span>
+                    </a>
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 
