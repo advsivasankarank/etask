@@ -291,7 +291,7 @@ final class AccountsRepository
     public function consultantPayables(): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT cb.*, con.name AS consultant_name, ca.assignment_title,
+            "SELECT cb.*, con.name AS consultant_name,
                     cb.total_amount - COALESCE((SELECT SUM(cp.amount) FROM consultant_payments cp WHERE cp.consultant_bill_id = cb.id), 0) AS balance_payable
              FROM consultant_bills cb
              LEFT JOIN consultant_assignments ca ON ca.id = cb.consultant_assignment_id
