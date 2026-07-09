@@ -8,7 +8,7 @@ foreach ($serviceTypes as $serviceType) {
 <section class="panel">
     <div class="toolbar">
         <div>
-            <div class="eyebrow">Workflow Intake</div>
+            <div class="eyebrow">Service Order Module</div>
             <h3 style="margin:0 0 6px;">Create Service Order</h3>
             <div class="subtle">SO number will be auto-generated and immutable in the format `SO/&lt;Company&gt;/&lt;FY&gt;/&lt;Running No&gt;`.</div>
         </div>
@@ -23,11 +23,11 @@ foreach ($serviceTypes as $serviceType) {
         <?= \App\Core\Csrf::inputField() ?>
 
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
-            <div class="eyebrow">Order Setup</div>
+            <div class="eyebrow">Client Selection</div>
             <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
             <label style="display:grid;gap:8px;">
-                <span>Client</span>
-                <select name="client_id" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                <span>Client *</span>
+                <select name="client_id" required>
                     <option value="">Select client</option>
                     <?php foreach ($clients as $client): ?>
                         <option value="<?= e($client['id']) ?>" <?= (string) ($old['client_id'] ?? '') === (string) $client['id'] ? 'selected' : '' ?>>
@@ -36,10 +36,15 @@ foreach ($serviceTypes as $serviceType) {
                     <?php endforeach; ?>
                 </select>
             </label>
+            </div>
+        </div>
 
+        <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
+            <div class="eyebrow">Service Details</div>
+            <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
             <label style="display:grid;gap:8px;">
-                <span>Service Type</span>
-                <select name="service_type_id" id="service_type_id" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                <span>Service Type *</span>
+                <select name="service_type_id" id="service_type_id" required>
                     <option value="">Select service</option>
                     <?php foreach ($serviceTypes as $serviceType): ?>
                         <option value="<?= e($serviceType['id']) ?>" <?= (string) ($old['service_type_id'] ?? '') === (string) $serviceType['id'] ? 'selected' : '' ?>>
@@ -50,8 +55,8 @@ foreach ($serviceTypes as $serviceType) {
             </label>
 
             <label style="display:grid;gap:8px;">
-                <span>Mapped Company</span>
-                <select name="company_id" id="company_id" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" required>
+                <span>Mapped Company *</span>
+                <select name="company_id" id="company_id" required>
                     <option value="">Select company</option>
                     <?php foreach ($companies as $company): ?>
                         <option value="<?= e($company['id']) ?>" <?= (string) ($old['company_id'] ?? '') === (string) $company['id'] ? 'selected' : '' ?>>
@@ -75,11 +80,11 @@ foreach ($serviceTypes as $serviceType) {
         </div>
 
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
-            <h4 style="margin-top:0;">Work Period</h4>
+            <div class="eyebrow">Work Period</div>
             <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
                 <label id="work-basis-wrap" style="display:grid;gap:8px;">
                     <span>Work Basis</span>
-                    <select name="work_basis" id="work_basis" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="work_basis" id="work_basis">
                         <option value="">Select basis</option>
                         <?php foreach ($workBasisOptions as $basis): ?>
                             <option value="<?= e($basis) ?>" <?= (string) ($old['work_basis'] ?? '') === $basis ? 'selected' : '' ?>><?= e($basis) ?></option>
@@ -89,7 +94,7 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="gst-subtype-wrap" style="display:grid;gap:8px;">
                     <span>GST Return Type</span>
-                    <select name="compliance_subtype" id="compliance_subtype" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="compliance_subtype" id="compliance_subtype">
                         <option value="">Select GST return type</option>
                         <?php foreach ($gstSubtypeOptions as $subtype): ?>
                             <option value="<?= e($subtype) ?>" <?= (string) ($old['compliance_subtype'] ?? '') === $subtype ? 'selected' : '' ?>><?= e($subtype) ?></option>
@@ -99,12 +104,12 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="assessment-year-wrap" style="display:grid;gap:8px;">
                     <span>Assessment Year</span>
-                    <input type="text" name="assessment_year" id="assessment_year" value="<?= e($old['assessment_year'] ?? '') ?>" placeholder="Example: 2026-27" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <input type="text" name="assessment_year" id="assessment_year" value="<?= e($old['assessment_year'] ?? '') ?>" placeholder="Example: 2026-27">
                 </label>
 
                 <label id="itr-case-wrap" style="display:grid;gap:8px;">
                     <span>ITR Case Type</span>
-                    <select name="itr_case_nature" id="itr_case_nature" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="itr_case_nature" id="itr_case_nature">
                         <option value="">Select case type</option>
                         <?php foreach ($itrCaseOptions as $value => $label): ?>
                             <option value="<?= e($value) ?>" <?= (string) ($old['itr_case_nature'] ?? '') === (string) $value ? 'selected' : '' ?>><?= e($label) ?></option>
@@ -114,7 +119,7 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="itr-tax-audit-wrap" style="display:grid;gap:8px;">
                     <span>Tax Audit Applicable</span>
-                    <select name="itr_tax_audit_applicable" id="itr_tax_audit_applicable" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="itr_tax_audit_applicable" id="itr_tax_audit_applicable">
                         <option value="">Select option</option>
                         <?php foreach ($yesNoOptions as $value => $label): ?>
                             <option value="<?= e($value) ?>" <?= (string) ($old['itr_tax_audit_applicable'] ?? '') === (string) $value ? 'selected' : '' ?>><?= e($label) ?></option>
@@ -124,7 +129,7 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="period-month-wrap" style="display:grid;gap:8px;">
                     <span>Month</span>
-                    <select name="period_month" id="period_month" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="period_month" id="period_month">
                         <option value="">Select month</option>
                         <?php foreach ($monthOptions as $monthValue => $monthLabel): ?>
                             <option value="<?= e((string) $monthValue) ?>" <?= (string) ($old['period_month'] ?? '') === (string) $monthValue ? 'selected' : '' ?>><?= e($monthLabel) ?></option>
@@ -134,7 +139,7 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="period-quarter-wrap" style="display:grid;gap:8px;">
                     <span>Quarter</span>
-                    <select name="period_quarter" id="period_quarter" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <select name="period_quarter" id="period_quarter">
                         <option value="">Select quarter</option>
                         <?php foreach ($quarterOptions as $quarter): ?>
                             <option value="<?= e($quarter) ?>" <?= (string) ($old['period_quarter'] ?? '') === $quarter ? 'selected' : '' ?>><?= e($quarter) ?></option>
@@ -144,24 +149,27 @@ foreach ($serviceTypes as $serviceType) {
 
                 <label id="period-year-wrap" style="display:grid;gap:8px;">
                     <span>Year</span>
-                    <input type="number" name="period_year" id="period_year" value="<?= e((string) ($old['period_year'] ?? '')) ?>" min="2000" max="2100" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                    <input type="number" name="period_year" id="period_year" value="<?= e((string) ($old['period_year'] ?? '')) ?>" min="2000" max="2100">
                 </label>
             </div>
         </div>
 
-        <label style="display:grid;gap:8px;">
-            <span>Title</span>
-            <input type="text" name="title" value="<?= e($old['title'] ?? '') ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;" placeholder="Example: FY 2025-26 ITR Filing" required>
-        </label>
+        <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
+            <div class="eyebrow">Description</div>
+            <label style="display:grid;gap:8px;">
+                <span>Title *</span>
+                <input type="text" name="title" value="<?= e($old['title'] ?? '') ?>" placeholder="Example: FY 2025-26 ITR Filing" required>
+            </label>
 
-        <label style="display:grid;gap:8px;">
-            <span>Description</span>
-            <textarea name="description" rows="5" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Operational notes, scope, or special instructions"><?= e($old['description'] ?? '') ?></textarea>
-        </label>
+            <label style="display:grid;gap:8px;margin-top:12px;">
+                <span>Description</span>
+                <textarea name="description" rows="4" placeholder="Operational notes, scope, or special instructions"><?= e($old['description'] ?? '') ?></textarea>
+            </label>
+        </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <button type="submit" class="button">Create Immutable SO</button>
-            <a href="<?= e(url('/service-orders')) ?>" class="button button-secondary">Back to Register</a>
+            <button type="submit" class="button">Create Service Order</button>
+            <a href="<?= e(url('/service-orders')) ?>" class="button button-secondary">Cancel</a>
         </div>
     </form>
 </section>

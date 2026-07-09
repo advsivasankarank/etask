@@ -93,6 +93,17 @@ final class ServiceOrderRepository
         ];
     }
 
+    public function summaryCounts(): array
+    {
+        return [
+            'total' => $this->scalar("SELECT COUNT(*) FROM service_orders"),
+            'active' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL"),
+            'due_today' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL AND DATE(sla_due_at) = CURDATE()"),
+            'overdue' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL AND sla_due_at IS NOT NULL AND sla_due_at < NOW()"),
+            'closed' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NOT NULL"),
+        ];
+    }
+
     public function findDetailedById(int $id): ?array
     {
         $statement = Database::connection()->prepare(
@@ -657,5 +668,12 @@ final class ServiceOrderRepository
             'action_by' => $userId,
             'action_note' => $note,
         ]);
+    }
+
+    private function scalar(string $sql, array $params = []): int
+    {
+        $statement = Database::connection()->prepare($sql);
+        $statement->execute($params);
+        return (int) $statement->fetchColumn();
     }
 }

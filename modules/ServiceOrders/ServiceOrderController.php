@@ -76,6 +76,7 @@ final class ServiceOrderController
             'orders' => $pagination['items'],
             'pagination' => $pagination,
             'search' => $search,
+            'summary' => $this->serviceOrders->summaryCounts(),
             'success' => Session::pullFlash('success'),
             'error' => Session::pullFlash('error'),
         ]);

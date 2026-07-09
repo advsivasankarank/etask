@@ -10,20 +10,51 @@
 
     <div class="toolbar">
         <div>
-            <div class="eyebrow">Workflow Register</div>
-            <h3 style="margin:0 0 6px;">SO Register</h3>
-            <div class="subtle">Search by PAN, TAN, client name, mobile number, or SO number.</div>
+            <div class="eyebrow">Service Order Module</div>
+            <h3 style="margin:0 0 6px;">Service Order Register</h3>
+            <div class="subtle">Search by SO number, client name, PAN, TAN, GSTIN, or mobile.</div>
         </div>
-        <a href="<?= e(url('/service-orders/create')) ?>" class="button">Create SO</a>
+        <?php if (\App\Core\Auth::can('service_orders.create')): ?>
+            <a href="<?= e(url('/service-orders/create')) ?>" class="button">+ Create Service Order</a>
+        <?php endif; ?>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));margin-bottom:20px;">
+        <div class="metric" style="min-height:80px;">
+            <div class="eyebrow">Total</div>
+            <div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['total'] ?? 0)) ?></div>
+        </div>
+        <div class="metric" style="min-height:80px;">
+            <div class="eyebrow">Active</div>
+            <div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['active'] ?? 0)) ?></div>
+        </div>
+        <div class="metric" style="min-height:80px;">
+            <div class="eyebrow">Due Today</div>
+            <div style="font-size:1.6rem;font-weight:800;color:#ea580c;"><?= e((string) ($summary['due_today'] ?? 0)) ?></div>
+        </div>
+        <div class="metric" style="min-height:80px;">
+            <div class="eyebrow">Overdue</div>
+            <div style="font-size:1.6rem;font-weight:800;color:#b42318;"><?= e((string) ($summary['overdue'] ?? 0)) ?></div>
+        </div>
+        <div class="metric" style="min-height:80px;">
+            <div class="eyebrow">Closed</div>
+            <div style="font-size:1.6rem;font-weight:800;color:#047857;"><?= e((string) ($summary['closed'] ?? 0)) ?></div>
+        </div>
     </div>
 
     <form method="get" action="<?= e(url('/service-orders')) ?>" class="search-bar">
-        <input type="text" name="search" value="<?= e($searchValue) ?>" placeholder="PAN / TAN / client / mobile / SO no" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+        <input type="text" name="search" value="<?= e($searchValue) ?>" placeholder="Search by SO No, Client Name, PAN, TAN, GSTIN, or Mobile...">
         <button type="submit" class="button">Search</button>
     </form>
 
     <?php if ($orders === []): ?>
-        <div class="data-card"><span class="subtle">No service orders found.</span></div>
+        <div class="data-card" style="text-align:center;padding:40px;">
+            <div class="eyebrow">No Results</div>
+            <p class="subtle" style="margin:8px 0 0;">No service orders found matching your search criteria.</p>
+            <?php if (\App\Core\Auth::can('service_orders.create')): ?>
+                <a href="<?= e(url('/service-orders/create')) ?>" class="button" style="margin-top:16px;">+ Create First Service Order</a>
+            <?php endif; ?>
+        </div>
     <?php else: ?>
         <div class="card-grid">
             <?php foreach ($orders as $order): ?>
@@ -40,8 +71,8 @@
                     <div class="stat-line"><span>Stage</span><strong><?= e(str_replace('_', ' ', $order['current_stage_code'])) ?></strong></div>
                     <div class="stat-line"><span>Period</span><strong><?= e($order['period_label'] ?: '-') ?></strong></div>
                     <div class="stat-line"><span>Created</span><strong><?= e($order['created_at']) ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-                        <a href="<?= e(url('/service-orders/show?id=' . $order['id'])) ?>" class="button button-secondary">View SO</a>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                        <a href="<?= e(url('/service-orders/show?id=' . $order['id'])) ?>" class="button button-secondary">View Workspace</a>
                     </div>
                 </article>
             <?php endforeach; ?>
