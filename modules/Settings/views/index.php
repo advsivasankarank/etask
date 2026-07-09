@@ -1,0 +1,28 @@
+<section class="panel">
+    <?php if (!empty($success)): ?><div class="flash flash-success"><?= e($success) ?></div><?php endif; ?>
+    <?php if (!empty($error)): ?><div class="flash" style="background:#fef3f2;color:#b42318;border:1px solid #fecdca;"><?= e($error) ?></div><?php endif; ?>
+
+    <div class="toolbar"><div><div class="eyebrow">Settings Module</div><h3 style="margin:0 0 6px;">Settings Dashboard</h3><div class="subtle">System configuration and maintenance centre.</div></div></div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));margin-bottom:20px;">
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Service Types</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['active_service_types'] ?? 0)) ?></div></div>
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Templates</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['active_reminder_templates'] ?? 0)) ?></div></div>
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Companies</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['total_companies'] ?? 0)) ?></div></div>
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Milestones</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['total_milestones'] ?? 0)) ?></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px;">
+        <a href="<?= e(url('/settings/company')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">General</div><h4 style="margin:4px 0;">Company Settings</h4><div class="subtle">Company profile, address, contact details.</div></a>
+        <a href="<?= e(url('/settings/service-types')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Operations</div><h4 style="margin:4px 0;">Service Types</h4><div class="subtle">Manage service type definitions.</div></a>
+        <a href="<?= e(url('/settings/workflow')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Operations</div><h4 style="margin:4px 0;">Workflow Settings</h4><div class="subtle">Global workflow options and policies.</div></a>
+        <a href="<?= e(url('/settings/milestones')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Operations</div><h4 style="margin:4px 0;">Milestones</h4><div class="subtle">Workflow milestone definitions.</div></a>
+        <a href="<?= e(url('/settings/reminder-templates')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Notifications</div><h4 style="margin:4px 0;">Reminder Templates</h4><div class="subtle">Manage reminder message templates.</div></a>
+        <a href="<?= e(url('/settings/numbering')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">General</div><h4 style="margin:4px 0;">Numbering Settings</h4><div class="subtle">Numbering prefixes for entities.</div></a>
+        <a href="<?= e(url('/settings/role-defaults')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Access</div><h4 style="margin:4px 0;">Role Defaults</h4><div class="subtle">Role default access profiles.</div></a>
+        <a href="<?= e(url('/settings/document-categories')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Documents</div><h4 style="margin:4px 0;">Document Categories</h4><div class="subtle">Manage document category definitions.</div></a>
+        <a href="<?= e(url('/settings/dsc-categories')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">DSC</div><h4 style="margin:4px 0;">DSC Categories</h4><div class="subtle">Manage DSC category definitions.</div></a>
+        <a href="<?= e(url('/settings/notifications')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Notifications</div><h4 style="margin:4px 0;">Notification Settings</h4><div class="subtle">Email, SMS, portal notification config.</div></a>
+        <a href="<?= e(url('/settings/security')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Security</div><h4 style="margin:4px 0;">Security Settings</h4><div class="subtle">Password policy, session, audit config.</div></a>
+        <a href="<?= e(url('/settings/maintenance')) ?>" class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;text-decoration:none;color:inherit;"><div class="eyebrow">Maintenance</div><h4 style="margin:4px 0;">Backup / Maintenance</h4><div class="subtle">System maintenance and backup status.</div></a>
+    </div>
+</section>

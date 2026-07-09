@@ -1065,10 +1065,52 @@ if ($isPortalUser):
                 </div>
                 <?php endif; ?>
 
-                <?php if (Auth::canAny('settings.view', 'users.manage.portal', 'users.manage.internal', 'users.manage.rights', 'settings.company.manage', 'settings.service_types.manage', 'settings.workflow.manage', 'settings.security.manage')): ?>
+                <?php if (Auth::canAny('settings.view', 'users.manage.portal', 'users.manage.internal', 'users.manage.rights')): ?>
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-module">
                     <div class="sidebar-module-header">Settings</div>
+                    <?php if (Auth::can('settings.view')): ?>
+                    <a href="<?= e(url('/settings')) ?>" class="sidebar-link <?= $activeModule === 'settings' && $requestUri === '/settings' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                        <span class="sidebar-link-label">Settings Dashboard</span>
+                    </a>
+                    <a href="<?= e(url('/settings/company')) ?>" class="sidebar-link <?= $requestUri === '/settings/company' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <span class="sidebar-link-label">Company Settings</span>
+                    </a>
+                    <a href="<?= e(url('/settings/service-types')) ?>" class="sidebar-link <?= $requestUri === '/settings/service-types' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                        <span class="sidebar-link-label">Service Types</span>
+                    </a>
+                    <a href="<?= e(url('/settings/workflow')) ?>" class="sidebar-link <?= $requestUri === '/settings/workflow' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+                        <span class="sidebar-link-label">Workflow Settings</span>
+                    </a>
+                    <a href="<?= e(url('/settings/milestones')) ?>" class="sidebar-link <?= $requestUri === '/settings/milestones' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                        <span class="sidebar-link-label">Milestones</span>
+                    </a>
+                    <a href="<?= e(url('/settings/reminder-templates')) ?>" class="sidebar-link <?= $requestUri === '/settings/reminder-templates' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                        <span class="sidebar-link-label">Reminder Templates</span>
+                    </a>
+                    <a href="<?= e(url('/settings/numbering')) ?>" class="sidebar-link <?= $requestUri === '/settings/numbering' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        <span class="sidebar-link-label">Numbering</span>
+                    </a>
+                    <a href="<?= e(url('/settings/notifications')) ?>" class="sidebar-link <?= $requestUri === '/settings/notifications' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                        <span class="sidebar-link-label">Notifications</span>
+                    </a>
+                    <a href="<?= e(url('/settings/security')) ?>" class="sidebar-link <?= $requestUri === '/settings/security' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <span class="sidebar-link-label">Security</span>
+                    </a>
+                    <a href="<?= e(url('/settings/maintenance')) ?>" class="sidebar-link <?= $requestUri === '/settings/maintenance' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                        <span class="sidebar-link-label">Maintenance</span>
+                    </a>
+                    <?php endif; ?>
                     <?php if (Auth::canAny('users.manage.portal', 'users.manage.internal')): ?>
                     <a href="<?= e(url('/users')) ?>" class="sidebar-link <?= $requestUri === '/users' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1081,36 +1123,6 @@ if ($isPortalUser):
                         <span class="sidebar-link-label">Roles & Permissions</span>
                     </a>
                     <?php endif; ?>
-                    <?php if (Auth::canAny('reminders.view', 'reminders.create', 'reminders.edit')): ?>
-                    <a href="<?= e(url('/reminders/templates')) ?>" class="sidebar-link <?= $requestUri === '/reminders/templates' ? 'active' : '' ?>">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-                        <span class="sidebar-link-label">Reminder Templates</span>
-                    </a>
-                    <a href="<?= e(url('/reminders/escalations')) ?>" class="sidebar-link <?= $requestUri === '/reminders/escalations' ? 'active' : '' ?>">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        <span class="sidebar-link-label">Escalation Rules</span>
-                    </a>
-                    <?php endif; ?>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-                        <span class="sidebar-link-label">Company Settings</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-                        <span class="sidebar-link-label">Service Types</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-                        <span class="sidebar-link-label">Workflow Settings</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                        <span class="sidebar-link-label">Security Settings</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
                 </div>
                 <?php endif; ?>
             </nav>
