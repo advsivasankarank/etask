@@ -898,10 +898,16 @@ if ($isPortalUser):
                 </div>
                 <?php endif; ?>
 
-                <?php if (Auth::canAny('workforce.view', 'attendance.view', 'attendance.report.submit', 'attendance.report.review', 'attendance.productivity.view', 'consultants.view', 'users.manage.internal', 'users.manage.portal')): ?>
+                <?php if (Auth::canAny('workforce.view', 'attendance.view', 'attendance.report.submit', 'attendance.report.review', 'attendance.productivity.view', 'workforce.consultants.view', 'users.manage.internal', 'users.manage.portal')): ?>
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-module">
                     <div class="sidebar-module-header">Workforce Module</div>
+                    <?php if (Auth::can('workforce.view')): ?>
+                    <a href="<?= e(url('/workforce')) ?>" class="sidebar-link <?= $activeModule === 'workforce' && $requestUri === '/workforce' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        <span class="sidebar-link-label">Workforce Dashboard</span>
+                    </a>
+                    <?php endif; ?>
                     <?php if (Auth::canAny('attendance.view', 'attendance.report.review', 'attendance.productivity.view')): ?>
                     <a href="<?= e(url('/attendance')) ?>" class="sidebar-link <?= $activeModule === 'workforce' && str_contains($requestUri, '/attendance') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
@@ -932,10 +938,18 @@ if ($isPortalUser):
                         <span class="sidebar-link-label">Productivity Summary</span>
                     </a>
                     <?php endif; ?>
-                    <?php if (Auth::can('consultants.view')): ?>
-                    <a href="<?= e(url('/consultants')) ?>" class="sidebar-link <?= $requestUri === '/consultants' ? 'active' : '' ?>">
+                    <?php if (Auth::can('workforce.consultants.view')): ?>
+                    <a href="<?= e(url('/workforce/consultants')) ?>" class="sidebar-link <?= $requestUri === '/workforce/consultants' || str_starts_with($requestUri, '/workforce/consultants') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                        <span class="sidebar-link-label">Consultants</span>
+                        <span class="sidebar-link-label">Consultant Register</span>
+                    </a>
+                    <a href="<?= e(url('/workforce/consultant-assignments')) ?>" class="sidebar-link <?= $requestUri === '/workforce/consultant-assignments' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                        <span class="sidebar-link-label">Consultant Assignments</span>
+                    </a>
+                    <a href="<?= e(url('/workforce/consultant-bills')) ?>" class="sidebar-link <?= $requestUri === '/workforce/consultant-bills' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span class="sidebar-link-label">Consultant Bills</span>
                     </a>
                     <?php endif; ?>
                     <?php if (Auth::canAny('users.manage.internal', 'users.manage.portal')): ?>
