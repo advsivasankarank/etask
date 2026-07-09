@@ -834,21 +834,24 @@ if ($isPortalUser):
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-module">
                     <div class="sidebar-module-header">Document Module</div>
-                    <span class="sidebar-link disabled">
+                    <?php if (Auth::canAny('documents.view', 'documents.download')): ?>
+                    <a href="<?= e(url('/documents')) ?>" class="sidebar-link <?= $activeModule === 'documents' && $requestUri === '/documents' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
                         <span class="sidebar-link-label">Document Register</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('documents.request')): ?>
+                    <a href="<?= e(url('/documents/requests')) ?>" class="sidebar-link <?= $requestUri === '/documents/requests' || str_starts_with($requestUri, '/documents/requests') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><path d="M12 16V8"/></svg>
                         <span class="sidebar-link-label">Document Requests</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('documents.movement.view')): ?>
+                    <a href="<?= e(url('/documents/movement')) ?>" class="sidebar-link <?= $requestUri === '/documents/movement' || str_starts_with($requestUri, '/documents/movement') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
                         <span class="sidebar-link-label">Document Movement</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
+                    </a>
+                    <?php endif; ?>
                     <?php if (Auth::canAny('documents.report', 'documents.access_log.view')): ?>
                     <a href="<?= e(url('/reports/document-access')) ?>" class="sidebar-link <?= $requestUri === '/reports/document-access' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
