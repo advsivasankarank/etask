@@ -11,9 +11,11 @@ use RuntimeException;
 
 final class DocumentAccessService
 {
-    public function __construct(
-        private readonly DocumentRepository $documents = new DocumentRepository()
-    ) {
+    private DocumentRepository $documents;
+
+    public function __construct()
+    {
+        $this->documents = new DocumentRepository();
     }
 
     public function downloadContext(int $documentId, Request $request): array

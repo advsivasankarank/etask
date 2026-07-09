@@ -25,6 +25,11 @@ final class Response
             self::abort(404, 'Requested file not found.');
         }
 
+        $fileSize = filesize($absolutePath);
+        if ($fileSize === false) {
+            self::abort(500, 'Unable to read file.');
+        }
+
         if (ob_get_level() > 0) {
             ob_end_clean();
         }
@@ -32,7 +37,7 @@ final class Response
         header('Content-Description: File Transfer');
         header('Content-Type: ' . $mimeType);
         header('Content-Disposition: attachment; filename="' . rawurlencode($downloadName) . '"');
-        header('Content-Length: ' . (string) filesize($absolutePath));
+        header('Content-Length: ' . (string) $fileSize);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-store, no-cache, must-revalidate');
         header('Pragma: no-cache');
@@ -48,13 +53,18 @@ final class Response
             self::abort(404, 'Requested file not found.');
         }
 
+        $fileSize = filesize($absolutePath);
+        if ($fileSize === false) {
+            self::abort(500, 'Unable to read file.');
+        }
+
         if (ob_get_level() > 0) {
             ob_end_clean();
         }
 
         header('Content-Type: ' . $mimeType);
         header('Content-Disposition: inline; filename="' . rawurlencode($displayName) . '"');
-        header('Content-Length: ' . (string) filesize($absolutePath));
+        header('Content-Length: ' . (string) $fileSize);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, max-age=300');
 

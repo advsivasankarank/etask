@@ -9,9 +9,11 @@ use Throwable;
 
 final class EnvironmentDoctorService
 {
-    public function __construct(
-        private readonly MigrationService $migrations = new MigrationService()
-    ) {
+    private MigrationService $migrations;
+
+    public function __construct()
+    {
+        $this->migrations = new MigrationService();
     }
 
     public function report(): array

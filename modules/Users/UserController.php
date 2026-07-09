@@ -15,10 +15,13 @@ use Throwable;
 
 final class UserController
 {
-    public function __construct(
-        private readonly UserRepository $users = new UserRepository(),
-        private readonly UserService $userService = new UserService()
-    ) {
+    private UserRepository $users;
+    private UserService $userService;
+
+    public function __construct()
+    {
+        $this->users = new UserRepository();
+        $this->userService = new UserService();
     }
 
     public function index(Request $request): void

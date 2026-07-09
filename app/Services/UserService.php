@@ -12,11 +12,15 @@ use Throwable;
 
 final class UserService
 {
-    public function __construct(
-        private readonly UserRepository $users = new UserRepository(),
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly EncryptionService $encryption = new EncryptionService()
-    ) {
+    private UserRepository $users;
+    private ClientRepository $clients;
+    private EncryptionService $encryption;
+
+    public function __construct()
+    {
+        $this->users = new UserRepository();
+        $this->clients = new ClientRepository();
+        $this->encryption = new EncryptionService();
     }
 
     public function create(array $input, array $actor): int

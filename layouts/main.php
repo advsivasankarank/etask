@@ -11,6 +11,7 @@ $profileLink = Auth::isPortalUser() ? '/client-portal/account' : '/change-passwo
 
 $navItems = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'path' => '/dashboard', 'permissions' => []],
+    ['key' => 'attendance', 'label' => 'Staff Monitor', 'path' => '/attendance', 'permissions' => ['attendance.view', 'attendance.report.review', 'attendance.productivity.view']],
     ['key' => 'clients', 'label' => 'Clients', 'path' => '/clients', 'permissions' => ['clients.view']],
     ['key' => 'service_orders', 'label' => 'Service Orders', 'path' => '/service-orders', 'permissions' => ['service_orders.view']],
     ['key' => 'client_portal', 'label' => 'Client Portal', 'path' => Auth::isPortalUser() ? '/client-portal/account' : '/client-portal/pso', 'permissions' => ['portal.self_access', 'portal.pso.create', 'portal.pso.review', 'portal.pso.approve', 'portal.pso.reject']],
@@ -652,6 +653,26 @@ $utilityItems = [
             text-align: center;
         }
 
+        @media (max-width: 1200px) {
+            .header-top {
+                grid-template-columns: minmax(180px, 240px) minmax(300px, 1fr) minmax(220px, 280px);
+                gap: 14px;
+            }
+            .menu { gap: 8px; }
+            .menu a { padding: 8px 12px; font-size: 0.88rem; }
+        }
+
+        @media (max-width: 1024px) {
+            .header-top {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            .header-command { grid-column: 1 / -1; }
+            .utility-bar { grid-column: 1 / -1; }
+            .menu { gap: 6px; }
+            .menu a { padding: 7px 11px; font-size: 0.85rem; }
+        }
+
         @media (max-width: 900px) {
             .shell { padding: 0 12px 18px; }
             .content { padding-top: 14px; }
@@ -668,37 +689,95 @@ $utilityItems = [
             .utility-bar { width: 100%; justify-content: flex-start; }
             .header-search { width: 100%; }
             .search-palette { left: 0; right: 0; }
+            .header-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .menu { flex-wrap: nowrap; width: auto; }
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 768px) {
             .content { padding-top: 12px; }
             .app-header { padding: 14px 16px; }
             .menu {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 10px;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
             }
             .menu a {
                 width: 100%;
                 text-align: center;
                 white-space: normal;
+                font-size: 0.82rem;
+                padding: 8px 6px;
             }
             .utility-bar {
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
             }
             .utility-link,
             .logout-button {
                 width: 100%;
                 justify-content: center;
             }
+            .header-search { min-height: 50px; padding: 10px 14px; }
+            .search-shortcut { display: none; }
+            .hero-card { padding: 20px; }
+            .panel { padding: 18px; }
+            .card-grid { grid-template-columns: 1fr; }
+            .grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
         }
 
         @media (max-width: 560px) {
             .content { padding-top: 10px; }
             .menu {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+            .menu a { font-size: 0.78rem; padding: 7px 4px; }
+            .utility-bar { grid-template-columns: 1fr; }
+            .utility-link--profile { min-width: auto; }
+            .brand-row { flex-direction: column; gap: 2px; }
+            .app-brand-title { font-size: 0.85rem; }
+            .logo { font-size: 24px; }
+            .hero-card { padding: 16px; border-radius: 18px; }
+            .panel { padding: 14px; border-radius: 16px; }
+            .data-card { padding: 14px; }
+        }
+
+        /* Table responsiveness */
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        .table-wrap table { min-width: 600px; }
+
+        /* Global table responsiveness for panels */
+        .panel table { width: 100%; }
+        .panel > div > table,
+        .panel > table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* Responsive card grids */
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        /* Responsive form groups */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .form-row > div { flex: 1; min-width: 160px; }
+
+        /* Form responsiveness */
+        @media (max-width: 768px) {
+            form { gap: 14px; }
+            input, select, textarea { padding: 12px 14px; font-size: 0.95rem; }
+            .form-row { flex-direction: column; }
+            .form-row > div { min-width: 100%; }
         }
     </style>
 </head>

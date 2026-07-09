@@ -13,9 +13,11 @@ use Throwable;
 
 final class ReminderController
 {
-    public function __construct(
-        private readonly ReminderService $reminders = new ReminderService()
-    ) {
+    private ReminderService $reminders;
+
+    public function __construct()
+    {
+        $this->reminders = new ReminderService();
     }
 
     public function index(): void

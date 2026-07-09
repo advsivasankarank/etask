@@ -25,7 +25,15 @@ final class RoleMiddleware
 
     public function handle(Request $request, array $params = []): void
     {
-        if ($params === [] || $this->authorized($params)) {
+        if ($params === []) {
+            Response::html(
+                View::render(base_path('app/Views/errors/403.php'), ['title' => 'Access Denied'], null),
+                403
+            );
+            exit;
+        }
+
+        if ($this->authorized($params)) {
             return;
         }
 

@@ -15,10 +15,13 @@ use Throwable;
 
 final class ClientController
 {
-    public function __construct(
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly ClientService $clientService = new ClientService()
-    ) {
+    private ClientRepository $clients;
+    private ClientService $clientService;
+
+    public function __construct()
+    {
+        $this->clients = new ClientRepository();
+        $this->clientService = new ClientService();
     }
 
     public function index(Request $request): void
@@ -201,17 +204,11 @@ final class ClientController
 
     public function publicCreate(): void
     {
-        $content = View::render(base_path('modules/Clients/views/form.php'), [
+        $content = View::render(base_path('modules/Auth/views/register-client.php'), [
             'title' => 'Client Registration',
-            'activeMenu' => null,
-            'mode' => 'public_register',
-            'publicRegistration' => true,
-            'client' => null,
-            'contact' => null,
-            'crmUsers' => [],
             'old' => Session::pullFlash('old', []),
             'error' => Session::pullFlash('error'),
-        ], 'auth');
+        ], null);
 
         Response::html($content);
     }

@@ -15,9 +15,11 @@ use PDOException;
 
 final class AuthService
 {
-    public function __construct(
-        private readonly UserRepository $users = new UserRepository()
-    ) {
+    private UserRepository $users;
+
+    public function __construct()
+    {
+        $this->users = new UserRepository();
     }
 
     public function attempt(string $username, string $password, Request $request): array
@@ -50,6 +52,18 @@ final class AuthService
         $this->users->updateSuccessfulLogin($user->id);
         Auth::login($user->toSessionArray());
         $this->recordLogin($user->id, $request);
+
+        if (!Auth::isPortalUser()) {
+            $attendanceService = new AttendanceService();
+            $sessionId = $attendanceService->startAttendanceSession(
+                $user->id,
+                $request->ip(),
+                $request->userAgent()
+            );
+            if ($sessionId > 0) {
+                \App\Core\Session::put('attendance_session_id', $sessionId);
+            }
+        }
 
         return ['success' => true, 'message' => 'Login successful.'];
     }

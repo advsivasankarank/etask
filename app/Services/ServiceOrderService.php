@@ -20,15 +20,23 @@ use Throwable;
 
 final class ServiceOrderService
 {
-    public function __construct(
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly CompanyRepository $companies = new CompanyRepository(),
-        private readonly FinancialYearRepository $financialYears = new FinancialYearRepository(),
-        private readonly PsoRepository $psos = new PsoRepository(),
-        private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
-        private readonly WorkflowRepository $workflows = new WorkflowRepository(),
-        private readonly ServiceOrderRepository $serviceOrders = new ServiceOrderRepository()
-    ) {
+    private ClientRepository $clients;
+    private CompanyRepository $companies;
+    private FinancialYearRepository $financialYears;
+    private PsoRepository $psos;
+    private ServiceTypeRepository $serviceTypes;
+    private WorkflowRepository $workflows;
+    private ServiceOrderRepository $serviceOrders;
+
+    public function __construct()
+    {
+        $this->clients = new ClientRepository();
+        $this->companies = new CompanyRepository();
+        $this->financialYears = new FinancialYearRepository();
+        $this->psos = new PsoRepository();
+        $this->serviceTypes = new ServiceTypeRepository();
+        $this->workflows = new WorkflowRepository();
+        $this->serviceOrders = new ServiceOrderRepository();
     }
 
     public function create(array $input, int $createdBy): int

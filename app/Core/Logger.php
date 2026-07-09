@@ -24,7 +24,7 @@ final class Logger
     private static function write(string $level, string $event, array $context): void
     {
         $logDirectory = base_path('storage/logs');
-        if (!is_dir($logDirectory) && !mkdir($logDirectory, 0775, true) && !is_dir($logDirectory)) {
+        if (!is_dir($logDirectory) && !mkdir($logDirectory, 0750, true) && !is_dir($logDirectory)) {
             return;
         }
 
@@ -43,11 +43,12 @@ final class Logger
             return;
         }
 
-        @file_put_contents(
-            $logDirectory . DIRECTORY_SEPARATOR . 'application-' . date('Y-m-d') . '.log',
-            $encoded . PHP_EOL,
-            FILE_APPEND | LOCK_EX
-        );
+        $logFile = $logDirectory . DIRECTORY_SEPARATOR . 'application-' . date('Y-m-d') . '.log';
+        $result = file_put_contents($logFile, $encoded . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        if ($result === false) {
+            error_log('e-Pani Logger: Failed to write to ' . $logFile);
+        }
     }
 
     private static function sanitizeContext(array $context): array
@@ -68,19 +69,17 @@ final class Logger
                 continue;
             }
 
-            if (in_array((string) $key, [
-                'password',
-                'new_password',
-                'current_password',
-                '_token',
-                'gateway_signature',
-                'password_hash',
-                'aadhaar_no',
-                'aadhaar_ciphertext',
-                'aadhaar_iv',
-                'app_key',
-                'encryption_key',
-            ], true)) {
+            $sensitivePatterns = ['password', 'token', 'secret', 'key', 'aadhaar', 'credential', 'otp', 'signature'];
+            $normalizedKey = strtolower((string) $key);
+            $isSensitive = false;
+            foreach ($sensitivePatterns as $pattern) {
+                if (str_contains($normalizedKey, $pattern)) {
+                    $isSensitive = true;
+                    break;
+                }
+            }
+
+            if ($isSensitive) {
                 $context[$key] = '[redacted]';
                 continue;
             }

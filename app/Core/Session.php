@@ -15,13 +15,20 @@ final class Session
         ini_set('session.use_only_cookies', '1');
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_trans_sid', '0');
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '100');
+        ini_set('session.gc_maxlifetime', '1800');
 
         session_name((string) config('app.session_name', 'COMPLIANCESESSID'));
+        $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+            || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
+
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
             'domain' => '',
-            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'secure' => $isSecure,
             'httponly' => true,
             'samesite' => 'Lax',
         ]);

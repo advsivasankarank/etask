@@ -30,6 +30,8 @@ final class Router
 
     public function dispatch(Request $request): void
     {
+        (new \App\Middleware\SecurityHeadersMiddleware())->handle($request);
+
         [$route, $routeParams] = $this->matchRoute($request->method(), $request->path());
 
         if ($route === null) {

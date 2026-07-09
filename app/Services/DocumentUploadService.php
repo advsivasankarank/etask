@@ -37,9 +37,11 @@ AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .cgi .pl .asp
 </FilesMatch>
 HTACCESS;
 
-    public function __construct(
-        private readonly DocumentRepository $documents = new DocumentRepository()
-    ) {
+    private DocumentRepository $documents;
+
+    public function __construct()
+    {
+        $this->documents = new DocumentRepository();
     }
 
     public function uploadLinkedDocuments(
@@ -376,7 +378,12 @@ HTACCESS;
             return;
         }
 
-        @file_put_contents($htaccessPath, self::UPLOAD_HTACCESS, LOCK_EX);
+        $result = file_put_contents($htaccessPath, self::UPLOAD_HTACCESS, LOCK_EX);
+        if ($result === false) {
+            Logger::warning('document_upload.htaccess_write_failed', [
+                'path' => $htaccessPath,
+            ]);
+        }
     }
 
     private function privateStorageRoot(): string

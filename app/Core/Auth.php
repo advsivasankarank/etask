@@ -36,7 +36,7 @@ final class Auth
     {
         $user = self::user();
         if ($user === null) {
-            return self::ACTOR_TYPE_INTERNAL;
+            return '';
         }
 
         $actorType = strtoupper((string) ($user['actor_type'] ?? ''));

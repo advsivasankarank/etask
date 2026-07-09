@@ -15,10 +15,13 @@ use Throwable;
 
 final class BillingController
 {
-    public function __construct(
-        private readonly BillingRepository $billing = new BillingRepository(),
-        private readonly BillingService $billingService = new BillingService()
-    ) {
+    private BillingRepository $billing;
+    private BillingService $billingService;
+
+    public function __construct()
+    {
+        $this->billing = new BillingRepository();
+        $this->billingService = new BillingService();
     }
 
     public function index(Request $request): void

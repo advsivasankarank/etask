@@ -12,12 +12,17 @@ use Throwable;
 
 final class ClientService
 {
-    public function __construct(
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly DocumentUploadService $documentUploads = new DocumentUploadService(),
-        private readonly EncryptionService $encryption = new EncryptionService(),
-        private readonly UserService $users = new UserService()
-    ) {
+    private ClientRepository $clients;
+    private DocumentUploadService $documentUploads;
+    private EncryptionService $encryption;
+    private UserService $users;
+
+    public function __construct()
+    {
+        $this->clients = new ClientRepository();
+        $this->documentUploads = new DocumentUploadService();
+        $this->encryption = new EncryptionService();
+        $this->users = new UserService();
     }
 
     public function create(array $input, array $files = [], ?int $uploadedBy = null): int

@@ -12,9 +12,11 @@ use Throwable;
 
 final class WorkflowController
 {
-    public function __construct(
-        private readonly WorkflowService $workflows = new WorkflowService()
-    ) {
+    private WorkflowService $workflows;
+
+    public function __construct()
+    {
+        $this->workflows = new WorkflowService();
     }
 
     public function advance(Request $request): void

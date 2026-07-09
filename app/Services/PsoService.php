@@ -16,14 +16,21 @@ use Throwable;
 
 final class PsoService
 {
-    public function __construct(
-        private readonly PsoRepository $psos = new PsoRepository(),
-        private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly FinancialYearRepository $financialYears = new FinancialYearRepository(),
-        private readonly DocumentUploadService $documents = new DocumentUploadService(),
-        private readonly ServiceOrderService $serviceOrders = new ServiceOrderService()
-    ) {
+    private PsoRepository $psos;
+    private ServiceTypeRepository $serviceTypes;
+    private ClientRepository $clients;
+    private FinancialYearRepository $financialYears;
+    private DocumentUploadService $documents;
+    private ServiceOrderService $serviceOrders;
+
+    public function __construct()
+    {
+        $this->psos = new PsoRepository();
+        $this->serviceTypes = new ServiceTypeRepository();
+        $this->clients = new ClientRepository();
+        $this->financialYears = new FinancialYearRepository();
+        $this->documents = new DocumentUploadService();
+        $this->serviceOrders = new ServiceOrderService();
     }
 
     public function create(array $input, array $files, int $userId, ?int $clientId, ?int $clientContactId): int

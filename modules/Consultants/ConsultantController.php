@@ -15,10 +15,13 @@ use Throwable;
 
 final class ConsultantController
 {
-    public function __construct(
-        private readonly ConsultantRepository $consultants = new ConsultantRepository(),
-        private readonly ConsultantService $consultantService = new ConsultantService()
-    ) {
+    private ConsultantRepository $consultants;
+    private ConsultantService $consultantService;
+
+    public function __construct()
+    {
+        $this->consultants = new ConsultantRepository();
+        $this->consultantService = new ConsultantService();
     }
 
     public function index(): void

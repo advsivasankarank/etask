@@ -21,15 +21,23 @@ use Throwable;
 
 final class ClientPortalController
 {
-    public function __construct(
-        private readonly PsoRepository $psos = new PsoRepository(),
-        private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
-        private readonly PsoService $psoService = new PsoService(),
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly DocumentRepository $documents = new DocumentRepository(),
-        private readonly BillingRepository $billing = new BillingRepository(),
-        private readonly BillingService $billingService = new BillingService()
-    ) {
+    private PsoRepository $psos;
+    private ServiceTypeRepository $serviceTypes;
+    private PsoService $psoService;
+    private ClientRepository $clients;
+    private DocumentRepository $documents;
+    private BillingRepository $billing;
+    private BillingService $billingService;
+
+    public function __construct()
+    {
+        $this->psos = new PsoRepository();
+        $this->serviceTypes = new ServiceTypeRepository();
+        $this->psoService = new PsoService();
+        $this->clients = new ClientRepository();
+        $this->documents = new DocumentRepository();
+        $this->billing = new BillingRepository();
+        $this->billingService = new BillingService();
     }
 
     public function index(): void

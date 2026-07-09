@@ -35,7 +35,8 @@
         <?php if (($items ?? []) === []): ?>
             <p class="subtle">No invoice lines are available.</p>
         <?php else: ?>
-            <table>
+            <div style="overflow-x:auto;">
+                <table>
                 <thead>
                     <tr>
                         <th>Description</th>
@@ -57,6 +58,7 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         <?php endif; ?>
     </div>
 </section>

@@ -6,21 +6,21 @@ namespace App\Models;
 
 final class User
 {
-    public readonly string $actorType;
+    public string $actorType;
 
     public function __construct(
-        public readonly int $id,
-        public readonly ?int $clientContactId,
-        public readonly ?int $clientId,
-        public readonly string $username,
-        public readonly string $passwordHash,
-        public readonly string $fullName,
-        public readonly string $email,
-        public readonly bool $isActive,
-        public readonly ?string $lockedUntil,
-        public readonly bool $mustChangePassword,
-        public readonly array $roles,
-        public readonly array $permissions = []
+        public int $id,
+        public ?int $clientContactId,
+        public ?int $clientId,
+        public string $username,
+        public string $passwordHash,
+        public string $fullName,
+        public string $email,
+        public bool $isActive,
+        public ?string $lockedUntil,
+        public bool $mustChangePassword,
+        public array $roles,
+        public array $permissions = []
     ) {
         $this->actorType = $this->resolveActorType();
     }

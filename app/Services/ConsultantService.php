@@ -12,11 +12,15 @@ use Throwable;
 
 final class ConsultantService
 {
-    public function __construct(
-        private readonly ConsultantRepository $consultants = new ConsultantRepository(),
-        private readonly ServiceOrderRepository $serviceOrders = new ServiceOrderRepository(),
-        private readonly DocumentUploadService $documents = new DocumentUploadService()
-    ) {
+    private ConsultantRepository $consultants;
+    private ServiceOrderRepository $serviceOrders;
+    private DocumentUploadService $documents;
+
+    public function __construct()
+    {
+        $this->consultants = new ConsultantRepository();
+        $this->serviceOrders = new ServiceOrderRepository();
+        $this->documents = new DocumentUploadService();
     }
 
     public function dashboard(int $serviceOrderId): array

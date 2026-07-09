@@ -10,11 +10,15 @@ use DateTimeImmutable;
 
 final class ReminderSchedulerService
 {
-    public function __construct(
-        private readonly ReminderRepository $reminders = new ReminderRepository(),
-        private readonly DashboardNotificationChannel $dashboardChannel = new DashboardNotificationChannel(),
-        private readonly EmailNotificationChannel $emailChannel = new EmailNotificationChannel()
-    ) {
+    private ReminderRepository $reminders;
+    private DashboardNotificationChannel $dashboardChannel;
+    private EmailNotificationChannel $emailChannel;
+
+    public function __construct()
+    {
+        $this->reminders = new ReminderRepository();
+        $this->dashboardChannel = new DashboardNotificationChannel();
+        $this->emailChannel = new EmailNotificationChannel();
     }
 
     public function run(): array

@@ -11,10 +11,13 @@ use App\Repositories\SearchRepository;
 
 final class SearchService
 {
-    public function __construct(
-        private readonly SearchRepository $searches = new SearchRepository(),
-        private readonly ReportRepository $reports = new ReportRepository()
-    ) {
+    private SearchRepository $searches;
+    private ReportRepository $reports;
+
+    public function __construct()
+    {
+        $this->searches = new SearchRepository();
+        $this->reports = new ReportRepository();
     }
 
     public function globalSearch(string $query, int $limitPerSource = 8): array

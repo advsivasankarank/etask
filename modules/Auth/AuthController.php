@@ -15,10 +15,13 @@ use Throwable;
 
 final class AuthController
 {
-    public function __construct(
-        private readonly AuthService $authService = new AuthService(),
-        private readonly UserService $userService = new UserService()
-    ) {
+    private AuthService $authService;
+    private UserService $userService;
+
+    public function __construct()
+    {
+        $this->authService = new AuthService();
+        $this->userService = new UserService();
     }
 
     public function showLogin(Request $request): void
@@ -63,7 +66,7 @@ final class AuthController
             'success' => Session::pullFlash('success'),
             'old_username' => Session::pullFlash('old_username'),
             'old_verification' => Session::pullFlash('old_verification'),
-        ], 'auth');
+        ], null);
 
         Response::html($content);
     }
@@ -114,7 +117,7 @@ final class AuthController
             'token' => $token,
             'error' => Session::pullFlash('error'),
             'success' => Session::pullFlash('success'),
-        ], 'auth');
+        ], null);
 
         Response::html($content);
     }
@@ -185,6 +188,22 @@ final class AuthController
 
     public function logout(Request $request): void
     {
+        if (Auth::check() && !Auth::isPortalUser()) {
+            $attendanceService = new \App\Services\AttendanceService();
+            $hasReport = $attendanceService->hasTodaysReport((int) Auth::id());
+
+            if (!$hasReport && !Session::pull('emergency_logout', false)) {
+                Session::put('logout_pending', true);
+                Session::flash('error', 'Please submit your Daily Work Report before logout.');
+                redirect('/attendance/report');
+            }
+
+            $sessionId = (int) Session::get('attendance_session_id', 0);
+            if ($sessionId > 0) {
+                $attendanceService->closeAttendanceSession($sessionId);
+            }
+        }
+
         Auth::logout();
         Session::flash('success', 'You have been logged out successfully.');
         redirect('/');
@@ -201,7 +220,7 @@ final class AuthController
             'title' => 'Change Password',
             'error' => Session::pullFlash('error'),
             'success' => Session::pullFlash('success'),
-        ], 'auth');
+        ], null);
 
         Response::html($content);
     }

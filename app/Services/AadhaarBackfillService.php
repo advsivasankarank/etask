@@ -12,10 +12,13 @@ use Throwable;
 
 final class AadhaarBackfillService
 {
-    public function __construct(
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly EncryptionService $encryption = new EncryptionService()
-    ) {
+    private ClientRepository $clients;
+    private EncryptionService $encryption;
+
+    public function __construct()
+    {
+        $this->clients = new ClientRepository();
+        $this->encryption = new EncryptionService();
     }
 
     public function preview(int $limit = 20): array

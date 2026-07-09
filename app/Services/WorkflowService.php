@@ -15,10 +15,13 @@ use Throwable;
 
 final class WorkflowService
 {
-    public function __construct(
-        private readonly ServiceOrderRepository $serviceOrders = new ServiceOrderRepository(),
-        private readonly WorkflowRepository $workflows = new WorkflowRepository()
-    ) {
+    private ServiceOrderRepository $serviceOrders;
+    private WorkflowRepository $workflows;
+
+    public function __construct()
+    {
+        $this->serviceOrders = new ServiceOrderRepository();
+        $this->workflows = new WorkflowRepository();
     }
 
     public function getWorkflowContext(int $serviceOrderId): array
@@ -352,10 +355,7 @@ final class WorkflowService
         }
 
         $this->runInTransaction(function () use ($serviceOrderId, $stageCode, $userId, $reason): void {
-            $order = $this->serviceOrders->lockForUpdate($serviceOrderId);
-            if ($order === null) {
-                throw new RuntimeException('Service order not found.');
-            }
+            $order = $this->requireLockedOrder($serviceOrderId);
 
             $sequence = $this->stageSequence($order);
             $currentStage = (string) $order['current_stage_code'];

@@ -42,10 +42,20 @@ if (strlen($appKey) < 32) {
 }
 
 $normalizedAppKey = strtolower($appKey);
-foreach (['replace_with_a_long_random_secret_key', 'changeme', 'app_key', 'default_app_key'] as $blockedValue) {
-    if (str_contains($normalizedAppKey, $blockedValue)) {
+foreach ([
+    'replace_with_a_long_random_secret_key',
+    'changeme',
+    'default_app_key',
+    'your_secret_key_here',
+    'secret_key',
+] as $blockedValue) {
+    if ($normalizedAppKey === $blockedValue) {
         throw new RuntimeException('APP_KEY is using an insecure placeholder and must be rotated.');
     }
+}
+
+if (str_contains($normalizedAppKey, 'please_rotate') || str_contains($normalizedAppKey, 'changeme')) {
+    error_log('APP_KEY WARNING: APP_KEY contains "please_rotate" or "changeme" — rotate before production deployment.');
 }
 
 if (!defined('ROOT_PATH')) {

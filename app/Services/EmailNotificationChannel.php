@@ -24,7 +24,12 @@ final class EmailNotificationChannel
             'From: ' . $fromName . ' <' . $fromEmail . '>',
         ];
 
-        $sent = @mail($toEmail, $subject, $message, implode("\r\n", $headers));
+        $sent = false;
+        try {
+            $sent = mail($toEmail, $subject, $message, implode("\r\n", $headers));
+        } catch (\Throwable) {
+            $sent = false;
+        }
 
         Logger::info('notifications.email_attempt', [
             'to_email' => $toEmail,

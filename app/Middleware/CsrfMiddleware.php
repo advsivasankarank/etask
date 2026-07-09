@@ -52,7 +52,9 @@ final class CsrfMiddleware
 
             if (is_string($publicPath)) {
                 $path = substr($publicPath, strlen('/public'));
-                return $path === '' ? '/dashboard' : $path;
+                if ($path !== '' && str_starts_with($path, '/') && !str_contains($path, '..')) {
+                    return $path;
+                }
             }
         }
 

@@ -8,9 +8,11 @@ use App\Repositories\ReminderRepository;
 
 final class DashboardNotificationChannel
 {
-    public function __construct(
-        private readonly ReminderRepository $reminders = new ReminderRepository()
-    ) {
+    private ReminderRepository $reminders;
+
+    public function __construct()
+    {
+        $this->reminders = new ReminderRepository();
     }
 
     public function send(array $reminder, array $template, array $rendered, ?int $recipientUserId, ?int $recipientContactId): array

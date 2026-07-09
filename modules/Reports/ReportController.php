@@ -12,10 +12,13 @@ use App\Repositories\ReportRepository;
 
 final class ReportController
 {
-    public function __construct(
-        private readonly ReportRepository $reports = new ReportRepository(),
-        private readonly DocumentRepository $documents = new DocumentRepository()
-    ) {
+    private ReportRepository $reports;
+    private DocumentRepository $documents;
+
+    public function __construct()
+    {
+        $this->reports = new ReportRepository();
+        $this->documents = new DocumentRepository();
     }
 
     public function index(): void

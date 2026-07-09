@@ -15,6 +15,7 @@ use Modules\Search\SearchController;
 use Modules\ServiceOrders\ServiceOrderController;
 use Modules\Users\UserController;
 use Modules\Workflow\WorkflowController;
+use Modules\Attendance\AttendanceController;
 
 $router->get('/', [AuthController::class, 'showLanding'], ['guest']);
 $router->get('/login', [AuthController::class, 'showLogin'], ['guest']);
@@ -66,8 +67,8 @@ $router->post('/users', [UserController::class, 'store'], ['auth', 'permission:u
 $router->get('/users/show', [UserController::class, 'show'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->get('/users/edit', [UserController::class, 'edit'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/update', [UserController::class, 'update'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
-$router->get('/users/rights', [UserController::class, 'rights'], ['auth']);
-$router->post('/users/rights', [UserController::class, 'saveRights'], ['auth']);
+$router->get('/users/rights', [UserController::class, 'rights'], ['auth', 'permission:users.manage.rights,users.manage.internal']);
+$router->post('/users/rights', [UserController::class, 'saveRights'], ['auth', 'permission:users.manage.rights,users.manage.internal']);
 $router->post('/users/archive', [UserController::class, 'archive'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/activate', [UserController::class, 'activate'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users/reset-password', [UserController::class, 'resetPassword'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
@@ -93,8 +94,8 @@ $router->post('/client-portal/pso/approve', [ClientPortalController::class, 'app
 $router->post('/client-portal/pso/reject', [ClientPortalController::class, 'reject'], ['auth', 'permission:portal.pso.reject']);
 $router->get('/billing', [BillingController::class, 'index'], ['auth', 'permission:billing.view']);
 $router->get('/billing/show', [BillingController::class, 'show'], ['auth', 'permission:billing.view']);
-$router->get('/billing/invoice', [BillingController::class, 'invoice'], ['auth']);
-$router->get('/billing/receipt', [BillingController::class, 'receipt'], ['auth']);
+$router->get('/billing/invoice', [BillingController::class, 'invoice'], ['auth', 'permission:billing.view']);
+$router->get('/billing/receipt', [BillingController::class, 'receipt'], ['auth', 'permission:billing.view']);
 $router->post('/billing/disbursements', [BillingController::class, 'addDisbursement'], ['auth', 'permission:billing.disbursements.manage']);
 $router->post('/billing/invoices', [BillingController::class, 'createInvoice'], ['auth', 'permission:billing.invoices.manage']);
 $router->post('/billing/payments', [BillingController::class, 'recordPayment'], ['auth', 'permission:billing.payments.manage']);
@@ -121,3 +122,18 @@ $router->post('/workflow/close-final', [WorkflowController::class, 'completeFina
 $router->post('/workflow/reopen', [WorkflowController::class, 'reopenMilestone'], ['auth', 'permission:workflow.reopen']);
 $router->post('/workflow/milestone-update', [WorkflowController::class, 'updateMilestone'], ['auth', 'permission:workflow.advance,workflow.payment.record,workflow.acknowledgement.capture,workflow.everification.complete']);
 $router->post('/workflow/follow-up', [WorkflowController::class, 'logFollowUp'], ['auth', 'permission:workflow.followup.log']);
+
+$router->get('/attendance', [AttendanceController::class, 'index'], ['auth', 'permission:attendance.view']);
+$router->get('/attendance/today', [AttendanceController::class, 'today'], ['auth', 'permission:attendance.view']);
+$router->get('/attendance/activity/start', [AttendanceController::class, 'showActivityForm'], ['auth', 'permission:attendance.activity.manage']);
+$router->post('/attendance/activity/start', [AttendanceController::class, 'startActivity'], ['auth', 'permission:attendance.activity.manage']);
+$router->post('/attendance/activity/stop', [AttendanceController::class, 'stopActivity'], ['auth', 'permission:attendance.activity.manage']);
+$router->post('/attendance/activity/pause', [AttendanceController::class, 'pauseActivity'], ['auth', 'permission:attendance.activity.manage']);
+$router->post('/attendance/activity/resume', [AttendanceController::class, 'resumeActivity'], ['auth', 'permission:attendance.activity.manage']);
+$router->get('/attendance/report', [AttendanceController::class, 'showReportForm'], ['auth', 'permission:attendance.report.submit']);
+$router->post('/attendance/report', [AttendanceController::class, 'submitReport'], ['auth', 'permission:attendance.report.submit']);
+$router->get('/attendance/admin', [AttendanceController::class, 'adminReports'], ['auth', 'permission:attendance.report.review']);
+$router->get('/attendance/report/show', [AttendanceController::class, 'showReport'], ['auth', 'permission:attendance.view']);
+$router->post('/attendance/report/review', [AttendanceController::class, 'reviewReport'], ['auth', 'permission:attendance.report.review']);
+$router->get('/attendance/productivity', [AttendanceController::class, 'productivity'], ['auth', 'permission:attendance.productivity.view']);
+$router->post('/attendance/emergency-logout', [AttendanceController::class, 'emergencyLogout'], ['auth', 'permission:attendance.view']);

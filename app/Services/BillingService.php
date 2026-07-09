@@ -13,10 +13,13 @@ use Throwable;
 
 final class BillingService
 {
-    public function __construct(
-        private readonly BillingRepository $billing = new BillingRepository(),
-        private readonly DocumentUploadService $documents = new DocumentUploadService()
-    ) {
+    private BillingRepository $billing;
+    private DocumentUploadService $documents;
+
+    public function __construct()
+    {
+        $this->billing = new BillingRepository();
+        $this->documents = new DocumentUploadService();
     }
 
     public function createDisbursement(array $input, int $userId, ?array $proofFile = null): int

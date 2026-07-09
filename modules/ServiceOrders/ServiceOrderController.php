@@ -23,18 +23,29 @@ use Throwable;
 
 final class ServiceOrderController
 {
-    public function __construct(
-        private readonly ServiceOrderRepository $serviceOrders = new ServiceOrderRepository(),
-        private readonly ClientRepository $clients = new ClientRepository(),
-        private readonly ServiceTypeRepository $serviceTypes = new ServiceTypeRepository(),
-        private readonly CompanyRepository $companies = new CompanyRepository(),
-        private readonly DocumentRepository $documents = new DocumentRepository(),
-        private readonly ConsultantRepository $consultants = new ConsultantRepository(),
-        private readonly ServiceOrderService $serviceOrderService = new ServiceOrderService(),
-        private readonly WorkflowService $workflows = new WorkflowService(),
-        private readonly BillingService $billingService = new BillingService(),
-        private readonly DocumentUploadService $documentUploads = new DocumentUploadService()
-    ) {
+    private ServiceOrderRepository $serviceOrders;
+    private ClientRepository $clients;
+    private ServiceTypeRepository $serviceTypes;
+    private CompanyRepository $companies;
+    private DocumentRepository $documents;
+    private ConsultantRepository $consultants;
+    private ServiceOrderService $serviceOrderService;
+    private WorkflowService $workflows;
+    private BillingService $billingService;
+    private DocumentUploadService $documentUploads;
+
+    public function __construct()
+    {
+        $this->serviceOrders = new ServiceOrderRepository();
+        $this->clients = new ClientRepository();
+        $this->serviceTypes = new ServiceTypeRepository();
+        $this->companies = new CompanyRepository();
+        $this->documents = new DocumentRepository();
+        $this->consultants = new ConsultantRepository();
+        $this->serviceOrderService = new ServiceOrderService();
+        $this->workflows = new WorkflowService();
+        $this->billingService = new BillingService();
+        $this->documentUploads = new DocumentUploadService();
     }
 
     public function index(Request $request): void

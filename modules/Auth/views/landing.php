@@ -22,7 +22,7 @@
             --radius-xl: 28px;
             --radius-lg: 22px;
             --radius-md: 16px;
-            --container: 1180px;
+            --container: 1400px;
         }
 
         * { box-sizing: border-box; }
@@ -43,7 +43,7 @@
         .page { min-height: 100vh; }
 
         .container {
-            width: min(var(--container), calc(100vw - 32px));
+            width: min(var(--container), calc(100vw - 48px));
             margin: 0 auto;
         }
 
@@ -57,17 +57,17 @@
         }
 
         .topbar-shell {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+            display: flex;
             align-items: center;
-            gap: 24px;
-            min-height: 82px;
+            gap: 20px;
+            min-height: 72px;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex: 0 0 auto;
         }
 
         .brand-mark {
@@ -103,10 +103,11 @@
         }
 
         .brand-title {
-            font-size: 1.95rem;
+            font-size: 1.6rem;
             font-weight: 800;
             line-height: 1;
             letter-spacing: -0.05em;
+            white-space: nowrap;
         }
 
         .brand-title .e { color: var(--accent); }
@@ -116,20 +117,24 @@
             font-size: 0.9rem;
             color: var(--muted);
             font-weight: 500;
+            display: none;
         }
 
         .nav {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
+            gap: 20px;
+            flex: 1 1 auto;
+            min-width: 0;
+            flex-wrap: nowrap;
         }
 
         .nav a {
-            font-size: 0.94rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #334155;
+            white-space: nowrap;
         }
 
         .nav a:hover { color: var(--primary); }
@@ -137,22 +142,24 @@
         .actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             justify-content: flex-end;
-            flex-wrap: wrap;
+            flex: 0 0 auto;
+            flex-wrap: nowrap;
         }
 
         .button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            min-height: 46px;
-            padding: 0 18px;
-            border-radius: 12px;
+            gap: 6px;
+            min-height: 40px;
+            padding: 0 16px;
+            border-radius: 10px;
             border: 1px solid transparent;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 700;
+            white-space: nowrap;
             transition: transform .18s ease, border-color .18s ease, background .18s ease;
         }
 
@@ -207,8 +214,8 @@
 
         .hero-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
-            gap: 42px;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 48px;
             align-items: center;
         }
 
@@ -241,10 +248,10 @@
 
         .hero h1 {
             margin: 0;
-            font-size: clamp(2.75rem, 5vw, 4.1rem);
-            line-height: 1.04;
-            letter-spacing: -0.06em;
-            max-width: 760px;
+            font-size: clamp(2.5rem, 4.5vw, 3.6rem);
+            line-height: 1.08;
+            letter-spacing: -0.05em;
+            max-width: 720px;
         }
 
         .hero h1 .accent { color: var(--accent); }
@@ -613,11 +620,82 @@
             font-weight: 600;
         }
 
+        .about-note {
+            margin-top: 24px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.7;
+            max-width: 640px;
+        }
+
+        .about-note strong { color: var(--text); }
+
+        .dashboard-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #FFFFFF;
+            border: 1px solid var(--line);
+        }
+
+        .dashboard-metric-label {
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .dashboard-metric-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .dashboard-metric-value.accent { color: var(--accent); }
+        .dashboard-metric-value.primary { color: var(--primary); }
+
+        .capability-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #F0FDF9;
+            border: 1px solid rgba(15, 118, 110, 0.12);
+            color: var(--primary-dark);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .capability-chip::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        @media (max-width: 1200px) {
+            .topbar-shell { gap: 14px; }
+            .nav { gap: 14px; }
+            .actions { gap: 8px; }
+            .button { min-height: 38px; padding: 0 12px; font-size: 0.84rem; }
+        }
+
         @media (max-width: 1120px) {
             .hero-grid,
             .cta-shell {
                 grid-template-columns: 1fr;
             }
+
+            .hero h1 { max-width: 100%; }
+            .hero-subtitle { max-width: 100%; }
+            .about-note { max-width: 100%; }
 
             .grid-4 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -636,53 +714,126 @@
 
         @media (max-width: 920px) {
             .topbar-shell {
-                grid-template-columns: 1fr;
-                align-items: stretch;
-                padding: 18px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+                min-height: auto;
+                padding: 14px 0;
             }
 
-            .nav,
+            .brand {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+            .brand-copy { align-items: center; }
+            .brand-subtitle { display: block; font-size: 0.82rem; }
+
+            .nav {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 8px 16px;
+            }
+
             .actions {
-                justify-content: flex-start;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 8px;
             }
 
-            .hero {
-                padding-top: 32px;
-            }
+            .hero { padding-top: 32px; }
+            .hero-panel { max-width: 100%; }
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 768px) {
+            .container {
+                width: min(var(--container), calc(100vw - 28px));
+            }
+
+            .topbar { padding: 0; border: none; backdrop-filter: none; background: transparent; }
+            .topbar-shell { padding: 10px 0; min-height: auto; gap: 10px; }
+
+            .brand-title { font-size: 1.4rem; }
+            .brand-subtitle { display: block; font-size: 0.78rem; }
+
+            .nav { gap: 6px 12px; }
+            .nav a { font-size: 0.82rem; }
+
+            .actions { gap: 6px; }
+            .button { min-height: 36px; padding: 0 10px; font-size: 0.8rem; border-radius: 8px; }
+
+            .hero { padding: 20px 0 16px; }
+            .hero h1 { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+            .hero-subtitle { font-size: 0.92rem; }
+            .about-note { font-size: 0.82rem; padding: 12px 14px; }
+            .hero-panel-body { padding: 12px; }
+            .dashboard-metric { padding: 8px 12px; }
+            .dashboard-metric-label { font-size: 0.78rem; }
+            .dashboard-metric-value { font-size: 0.92rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .workspace-grid { grid-template-columns: 1fr; }
+
+            .section { padding: 32px 0; }
+            .section-head h2 { font-size: clamp(1.4rem, 5vw, 2rem); }
+
+            .cta-shell { grid-template-columns: 1fr; }
+            .cta-primary { padding: 20px; }
+            .cta-primary h2 { font-size: clamp(1.4rem, 5vw, 2rem); }
+
+            .footer-shell { flex-direction: column; align-items: center; text-align: center; }
+            .footer-nav { justify-content: center; }
+        }
+
+        @media (max-width: 576px) {
             .container {
                 width: min(var(--container), calc(100vw - 22px));
             }
 
-            .grid-4,
-            .grid-3,
-            .grid-2,
-            .stats-shell,
-            .metrics-grid,
-            .workspace-grid,
-            .workflow-grid {
+            .brand-title { font-size: 1.2rem; }
+            .brand-mark { width: 34px; height: 34px; }
+            .brand-mark svg { width: 18px; height: 18px; }
+
+            .nav { gap: 4px 10px; }
+            .nav a { font-size: 0.78rem; }
+
+            .button { min-height: 34px; padding: 0 8px; font-size: 0.78rem; }
+
+            .hero h1 { font-size: clamp(1.3rem, 6vw, 2rem); letter-spacing: -0.04em; }
+            .hero-subtitle { font-size: 0.88rem; }
+            .about-note { font-size: 0.78rem; padding: 10px 12px; }
+            .hero-actions { gap: 8px; }
+            .hero-note { font-size: 0.85rem; }
+            .capability-chip { font-size: 0.72rem; padding: 4px 8px; }
+
+            .hero-panel-head { padding: 10px 12px; }
+            .hero-panel-brand { font-size: 1.1rem; }
+            .hero-panel-tools span { display: none; }
+
+            .grid-4, .grid-3, .grid-2, .stats-shell, .metrics-grid, .workspace-grid, .workflow-grid {
                 grid-template-columns: 1fr;
             }
 
-            .nav {
-                gap: 14px 18px;
-            }
+            .card, .workflow-shell, .cta-primary { padding: 16px; }
+            .stat-card { padding: 16px 14px; }
 
-            .hero h1 {
-                font-size: clamp(2.2rem, 11vw, 3rem);
-            }
+            .section { padding: 24px 0; }
+        }
 
-            .hero-subtitle {
-                font-size: 1rem;
-            }
-
-            .card,
-            .workflow-shell,
-            .cta-primary {
-                padding: 20px;
-            }
+        @media (max-width: 430px) {
+            .topbar-shell { padding: 8px 0; }
+            .brand-title { font-size: 1.1rem; }
+            .brand-subtitle { display: none; }
+            .nav { gap: 3px 8px; }
+            .nav a { font-size: 0.72rem; }
+            .actions { flex-direction: column; align-items: stretch; gap: 6px; }
+            .button { width: 100%; justify-content: center; min-height: 36px; }
+            .hero { padding: 14px 0 12px; }
+            .hero h1 { font-size: 1.3rem; }
+            .hero-subtitle { font-size: 0.82rem; }
+            .cta-primary { padding: 16px; }
+            .cta-primary h2 { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -724,14 +875,16 @@
             <div class="container">
                 <div class="hero-grid">
                     <div>
-                        <div class="eyebrow">Purpose-built for professional practice teams</div>
-                        <h1>The Practice Management Platform for <span class="accent">Tax, Legal &amp; Compliance Professionals</span></h1>
-                        <p class="hero-subtitle">Manage clients, assignments, documents, compliance deadlines, invoicing and team workflows from a single secure workspace.</p>
+                        <div class="eyebrow">Complete office automation for professional practices</div>
+                        <h1>Office Automation for <span class="accent">Tax, Legal &amp; Compliance</span> Professionals</h1>
+                        <p class="hero-subtitle">Manage daily work, staff productivity, service orders, documents, billing, collections, reminders and client communication from one secure platform.</p>
                         <div class="hero-actions">
                             <a class="button button-primary" href="#contact">Book a Live Demo</a>
                             <a class="button button-secondary" href="#features">Explore Features</a>
                         </div>
-                        <p class="hero-note">e-Pani comes from the Tamil word “பணி” (Pani), meaning work, duty, assignment, or task. It is designed for Tax Practitioners, Advocates, Chartered Accountants, Company Secretaries, and Compliance Professionals who need disciplined execution with visibility and control.</p>
+                        <div class="about-note">
+                            <strong>About e-Pani:</strong> e-Pani comes from the Tamil word "பணி" (Pani), meaning work, duty, assignment, or task. Built for Tax Practitioners, Advocates, Chartered Accountants, Company Secretaries, and Compliance Professionals who need disciplined execution with visibility and control.
+                        </div>
                     </div>
                     <div class="hero-panel">
                         <div class="hero-panel-head">
@@ -740,37 +893,50 @@
                                 <div class="panel-dot"></div>
                                 <div class="panel-dot"></div>
                                 <div class="panel-dot"></div>
-                                <span>Practice workspace</span>
+                                <span>Today's Office Control</span>
                             </div>
                         </div>
                         <div class="hero-panel-body">
-                            <div class="metrics-grid">
-                                <div class="metric-card"><strong>Client Management</strong><span>Master records, identifiers, ownership, and history</span></div>
-                                <div class="metric-card"><strong>Workflow Tracking</strong><span>Assignments, milestones, review, and closure</span></div>
-                                <div class="metric-card"><strong>Document Repository</strong><span>Secure files, proofs, and controlled access</span></div>
+                            <div style="display:grid;gap:8px;">
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Pending Works</span>
+                                    <span class="dashboard-metric-value accent">18</span>
+                                </div>
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Due Today</span>
+                                    <span class="dashboard-metric-value accent">7</span>
+                                </div>
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Staff Online</span>
+                                    <span class="dashboard-metric-value primary">5</span>
+                                </div>
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Documents Pending</span>
+                                    <span class="dashboard-metric-value">11</span>
+                                </div>
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Outstanding Bills</span>
+                                    <span class="dashboard-metric-value accent">₹2.45L</span>
+                                </div>
+                                <div class="dashboard-metric">
+                                    <span class="dashboard-metric-label">Collections Due</span>
+                                    <span class="dashboard-metric-value">9</span>
+                                </div>
                             </div>
-                            <div class="workspace-grid">
-                                <div class="workspace-card">
-                                    <h3>Operational capabilities</h3>
-                                    <div class="list">
-                                        <div class="list-item">Compliance Monitoring<span>Due dates and escalations</span></div>
-                                        <div class="list-item">Billing &amp; Collections<span>Invoices, receipts, and dues</span></div>
-                                        <div class="list-item">Team Productivity<span>Assignment visibility and ownership</span></div>
-                                    </div>
-                                </div>
-                                <div class="workspace-card">
-                                    <h3>Access points</h3>
-                                    <div class="list">
-                                        <div class="list-item">Internal Users<span>Operations, review, and billing</span></div>
-                                        <div class="list-item">Client Portal<span>Requests, status, and documents</span></div>
-                                        <div class="list-item">Controlled Records<span>Audit-ready and permission based</span></div>
-                                    </div>
-                                </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+                                <span class="capability-chip">Staff Monitor</span>
+                                <span class="capability-chip">Service Orders</span>
+                                <span class="capability-chip">Billing</span>
+                                <span class="capability-chip">Client Portal</span>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                                <span class="capability-chip">Document Repository</span>
+                                <span class="capability-chip">Reminders</span>
+                                <span class="capability-chip">Audit Trail</span>
                             </div>
                             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
                                 <a class="button button-secondary" href="<?= e(url('/login?audience=internal')) ?>">Staff Login</a>
                                 <a class="button button-primary" href="<?= e(url('/login?audience=portal')) ?>">Client Login</a>
-                                <a class="button button-ghost" href="<?= e(url('/register-client')) ?>">Register as Client</a>
                             </div>
                         </div>
                     </div>
@@ -782,32 +948,32 @@
             <div class="container">
                 <div class="section-head" style="margin-bottom:18px;">
                     <div class="label">Core Capabilities</div>
-                    <h2>A single platform for running professional work with structure, visibility, and accountability.</h2>
+                    <h2>One platform to run your entire professional practice with structure and control.</h2>
                 </div>
                 <div class="stats-shell">
                     <div class="stat-card">
+                        <h3>Work Register</h3>
+                        <div class="stat-label">Assign, track and close client work with ownership, deadlines, and review checkpoints.</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Staff Monitor</h3>
+                        <div class="stat-label">Track login, work sessions, idle time and daily work reports for full team visibility.</div>
+                    </div>
+                    <div class="stat-card">
                         <h3>Client Management</h3>
-                        <div class="stat-label">Maintain client masters, contact points, tax identifiers, portal credentials, and linked assignment history.</div>
+                        <div class="stat-label">Maintain client profiles, services, contacts, tax identifiers and service history.</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Workflow Tracking</h3>
-                        <div class="stat-label">Move each assignment through service orders, milestone stages, review checkpoints, and closure states.</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Document Repository</h3>
-                        <div class="stat-label">Keep operational and client documents organized with controlled access and secure storage patterns.</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Compliance Monitoring</h3>
-                        <div class="stat-label">Track due dates, follow-up, filing stages, e-verification, and office-level pending actions.</div>
+                        <h3>Document Centre</h3>
+                        <div class="stat-label">Store, version, search and control access to client and operational documents.</div>
                     </div>
                     <div class="stat-card">
                         <h3>Billing &amp; Collections</h3>
-                        <div class="stat-label">Connect execution with invoices, receipts, advances, disbursements, and collection follow-up.</div>
+                        <div class="stat-label">Raise invoices, record payments, track dues and monitor collection follow-ups.</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Team Productivity</h3>
-                        <div class="stat-label">Improve assignment ownership, consultant coordination, and execution visibility across teams.</div>
+                        <h3>Reminders</h3>
+                        <div class="stat-label">Manage statutory, internal and client follow-up deadlines with escalation alerts.</div>
                     </div>
                 </div>
             </div>
@@ -896,38 +1062,38 @@
             <div class="container">
                 <div class="section-head">
                     <div class="label">How e-Pani Works</div>
-                    <h2>A practical flow for handling client work from request to closure.</h2>
+                    <h2>From client request to final closure, every step is tracked and controlled.</h2>
                     <p>Keep each engagement visible, reviewable, billable, and accountable through a single operating model.</p>
                 </div>
                 <div class="workflow-shell">
                     <div class="workflow-grid">
                         <div class="workflow-step">
-                            <strong>Client Request</strong>
-                            <span>Capture the engagement need, initial documents, and client context.</span>
+                            <strong>Client Created</strong>
+                            <span>Capture client profile, tax identifiers, and portal access.</span>
                         </div>
                         <div class="workflow-step">
                             <strong>Service Order</strong>
-                            <span>Create the formal assignment with structured numbering and period details.</span>
+                            <span>Create the formal assignment with period and service type.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>Assignment</strong>
+                            <strong>Staff Assigned</strong>
                             <span>Allocate work to the appropriate internal or consultant resource.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>Execution</strong>
-                            <span>Track preparation, filing, client dependency, and operational progress.</span>
+                            <strong>Work Tracked</strong>
+                            <span>Track preparation, filing, client dependency, and progress.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>Review</strong>
+                            <strong>Reviewed</strong>
                             <span>Control checks, approvals, and query handling before completion.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>Invoice</strong>
-                            <span>Raise invoices and connect collections to the completed assignment.</span>
+                            <strong>Billed</strong>
+                            <span>Raise invoices and connect collections to the assignment.</span>
                         </div>
                         <div class="workflow-step">
-                            <strong>Closure</strong>
-                            <span>Complete procedural and financial closure with traceable records.</span>
+                            <strong>Closed</strong>
+                            <span>Complete procedural and financial closure with records.</span>
                         </div>
                     </div>
                 </div>

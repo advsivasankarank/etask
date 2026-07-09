@@ -12,9 +12,11 @@ use App\Services\DashboardService;
 
 final class DashboardController
 {
-    public function __construct(
-        private readonly DashboardService $dashboard = new DashboardService()
-    ) {
+    private DashboardService $dashboard;
+
+    public function __construct()
+    {
+        $this->dashboard = new DashboardService();
     }
 
     public function index(): void

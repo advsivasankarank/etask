@@ -9,9 +9,11 @@ use App\Repositories\DashboardRepository;
 
 final class DashboardService
 {
-    public function __construct(
-        private readonly DashboardRepository $dashboard = new DashboardRepository()
-    ) {
+    private DashboardRepository $dashboard;
+
+    public function __construct()
+    {
+        $this->dashboard = new DashboardRepository();
     }
 
     public function buildForCurrentUser(): array

@@ -15,10 +15,13 @@ use Throwable;
 
 final class DocumentController
 {
-    public function __construct(
-        private readonly DocumentAccessService $documents = new DocumentAccessService(),
-        private readonly DocumentUploadService $uploads = new DocumentUploadService()
-    ) {
+    private DocumentAccessService $documents;
+    private DocumentUploadService $uploads;
+
+    public function __construct()
+    {
+        $this->documents = new DocumentAccessService();
+        $this->uploads = new DocumentUploadService();
     }
 
     public function download(Request $request): void

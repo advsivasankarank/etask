@@ -13,9 +13,11 @@ use Throwable;
 
 final class ReminderService
 {
-    public function __construct(
-        private readonly ReminderRepository $reminders = new ReminderRepository()
-    ) {
+    private ReminderRepository $reminders;
+
+    public function __construct()
+    {
+        $this->reminders = new ReminderRepository();
     }
 
     public function overview(): array

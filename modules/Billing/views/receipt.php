@@ -35,22 +35,24 @@
         <?php if (($items ?? []) === []): ?>
             <p class="subtle">No allocation lines are available.</p>
         <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Invoice</th>
-                        <th>Allocated Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($items as $item): ?>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
                         <tr>
-                            <td><?= e($item['invoice_no'] ?: 'Advance / Unallocated') ?></td>
-                            <td>INR <?= e(number_format((float) $item['allocated_amount'], 2)) ?></td>
+                            <th>Invoice</th>
+                            <th>Allocated Amount</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $item): ?>
+                            <tr>
+                                <td><?= e($item['invoice_no'] ?: 'Advance / Unallocated') ?></td>
+                                <td>INR <?= e(number_format((float) $item['allocated_amount'], 2)) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
 </section>

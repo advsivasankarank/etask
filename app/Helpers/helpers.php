@@ -121,11 +121,6 @@ if (!function_exists('should_use_index_routes')) {
             return false;
         }
 
-        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
-        if (str_contains($requestUri, '/index.php/')) {
-            return true;
-        }
-
         return true;
     }
 }

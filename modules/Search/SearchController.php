@@ -11,9 +11,11 @@ use App\Services\SearchService;
 
 final class SearchController
 {
-    public function __construct(
-        private readonly SearchService $search = new SearchService()
-    ) {
+    private SearchService $search;
+
+    public function __construct()
+    {
+        $this->search = new SearchService();
     }
 
     public function index(Request $request): void
