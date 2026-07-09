@@ -17,8 +17,8 @@ final class WorkforceRepository
             'on_work' => $this->scalar("SELECT COUNT(DISTINCT user_id) FROM attendance_sessions WHERE DATE(login_at) = CURDATE() AND logout_at IS NULL"),
             'daily_reports_pending' => $this->scalar("SELECT COUNT(*) FROM daily_work_reports WHERE report_date = CURDATE() AND status = 'SUBMITTED'"),
             'consultants_active' => $this->scalar("SELECT COUNT(*) FROM consultants WHERE status = 'ACTIVE'"),
-            'consultant_assignments_pending' => $this->scalar("SELECT COUNT(*) FROM consultant_assignments WHERE status IN ('ASSIGNED','IN_PROGRESS')"),
-            'consultant_bills_pending' => $this->scalar("SELECT COUNT(*) FROM consultant_bills WHERE status IN ('DRAFT','SUBMITTED')"),
+            'consultant_assignments_pending' => $this->scalar("SELECT COUNT(*) FROM consultant_assignments WHERE status IN ('ASSIGNED')"),
+            'consultant_bills_pending' => $this->scalar("SELECT COUNT(*) FROM consultant_bills WHERE review_status IN ('PENDING')"),
         ];
     }
 
@@ -132,23 +132,25 @@ final class WorkforceRepository
     public function assignmentsForConsultant(int $consultantId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT ca.*, so.so_no, c.legal_name AS client_name
+            "SELECT ca.*, so.so_no
              FROM consultant_assignments ca
              LEFT JOIN service_orders so ON so.id = ca.service_order_id
-             LEFT JOIN clients c ON c.id = ca.client_id
-             WHERE ca.consultant_id = :consultant_id
+             WHERE ca.consultant_user_id = :consultant_user_id
              ORDER BY ca.id DESC"
         );
-        $statement->execute(['consultant_id' => $consultantId]);
+        $statement->execute(['consultant_user_id' => $consultantId]);
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function billsForConsultant(int $consultantId): array
     {
         $statement = Database::connection()->prepare(
-            "SELECT cb.* FROM consultant_bills cb WHERE cb.consultant_id = :consultant_id ORDER BY cb.id DESC"
+            "SELECT cb.* FROM consultant_bills cb
+             INNER JOIN consultant_assignments ca ON ca.id = cb.consultant_assignment_id
+             WHERE ca.consultant_user_id = :consultant_user_id
+             ORDER BY cb.id DESC"
         );
-        $statement->execute(['consultant_id' => $consultantId]);
+        $statement->execute(['consultant_user_id' => $consultantId]);
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -168,9 +170,8 @@ final class WorkforceRepository
         $offset = ($page - 1) * $perPage;
 
         $baseSql = "FROM consultant_assignments ca
-            LEFT JOIN consultants con ON con.id = ca.consultant_id
+            LEFT JOIN consultants con ON con.id = ca.consultant_user_id
             LEFT JOIN service_orders so ON so.id = ca.service_order_id
-            LEFT JOIN clients c ON c.id = ca.client_id
             WHERE 1=1";
 
         $whereSql = '';
@@ -186,7 +187,7 @@ final class WorkforceRepository
         $total = (int) $countStatement->fetchColumn();
 
         $dataStatement = Database::connection()->prepare(
-            "SELECT ca.*, con.name AS consultant_name, so.so_no, c.legal_name AS client_name
+            "SELECT ca.*, con.name AS consultant_name, so.so_no
              {$baseSql}{$whereSql}
              ORDER BY ca.id DESC
              LIMIT :limit OFFSET :offset"
@@ -211,19 +212,14 @@ final class WorkforceRepository
     public function createAssignment(array $data): int
     {
         $statement = Database::connection()->prepare(
-            "INSERT INTO consultant_assignments (consultant_id, service_order_id, client_id, assignment_title, assignment_description, assigned_by, due_date, status, fee_agreed, remarks)
-             VALUES (:consultant_id, :service_order_id, :client_id, :assignment_title, :assignment_description, :assigned_by, :due_date, :status, :fee_agreed, :remarks)"
+            "INSERT INTO consultant_assignments (consultant_user_id, service_order_id, assigned_by, status, remarks)
+             VALUES (:consultant_user_id, :service_order_id, :assigned_by, :status, :remarks)"
         );
         $statement->execute([
-            'consultant_id' => $data['consultant_id'],
+            'consultant_user_id' => $data['consultant_id'],
             'service_order_id' => $data['service_order_id'] ?: null,
-            'client_id' => $data['client_id'] ?: null,
-            'assignment_title' => $data['assignment_title'],
-            'assignment_description' => $data['assignment_description'] ?: null,
             'assigned_by' => $data['assigned_by'],
-            'due_date' => $data['due_date'] ?: null,
             'status' => $data['status'] ?? 'ASSIGNED',
-            'fee_agreed' => $data['fee_agreed'] ?: null,
             'remarks' => $data['remarks'] ?: null,
         ]);
         return (int) Database::connection()->lastInsertId();
@@ -244,15 +240,15 @@ final class WorkforceRepository
         $offset = ($page - 1) * $perPage;
 
         $baseSql = "FROM consultant_deliverables cd
-            LEFT JOIN consultant_assignments ca ON ca.id = cd.assignment_id
-            LEFT JOIN consultants con ON con.id = ca.consultant_id
+            LEFT JOIN consultant_assignments ca ON ca.id = cd.consultant_assignment_id
+            LEFT JOIN consultants con ON con.id = ca.consultant_user_id
             WHERE 1=1";
 
         $whereSql = '';
         $params = [];
 
         if (trim((string) ($filters['status'] ?? '')) !== '') {
-            $whereSql .= " AND cd.status = :status";
+            $whereSql .= " AND cd.review_status = :status";
             $params['status'] = trim((string) $filters['status']);
         }
 
@@ -261,7 +257,7 @@ final class WorkforceRepository
         $total = (int) $countStatement->fetchColumn();
 
         $dataStatement = Database::connection()->prepare(
-            "SELECT cd.*, ca.assignment_title, con.name AS consultant_name
+            "SELECT cd.*, con.name AS consultant_name, cd.review_status AS status
              {$baseSql}{$whereSql}
              ORDER BY cd.id DESC
              LIMIT :limit OFFSET :offset"
@@ -286,7 +282,7 @@ final class WorkforceRepository
     public function updateDeliverableStatus(int $id, string $status): void
     {
         $statement = Database::connection()->prepare(
-            "UPDATE consultant_deliverables SET status = :status, reviewed_at = NOW() WHERE id = :id"
+            "UPDATE consultant_deliverables SET review_status = :status, reviewed_at = NOW() WHERE id = :id"
         );
         $statement->execute(['status' => $status, 'id' => $id]);
     }
@@ -298,14 +294,15 @@ final class WorkforceRepository
         $offset = ($page - 1) * $perPage;
 
         $baseSql = "FROM consultant_bills cb
-            LEFT JOIN consultants con ON con.id = cb.consultant_id
+            LEFT JOIN consultant_assignments ca ON ca.id = cb.consultant_assignment_id
+            LEFT JOIN consultants con ON con.id = ca.consultant_user_id
             WHERE 1=1";
 
         $whereSql = '';
         $params = [];
 
         if (trim((string) ($filters['status'] ?? '')) !== '') {
-            $whereSql .= " AND cb.status = :status";
+            $whereSql .= " AND cb.review_status = :status";
             $params['status'] = trim((string) $filters['status']);
         }
 
@@ -314,7 +311,7 @@ final class WorkforceRepository
         $total = (int) $countStatement->fetchColumn();
 
         $dataStatement = Database::connection()->prepare(
-            "SELECT cb.*, con.name AS consultant_name
+            "SELECT cb.*, con.name AS consultant_name, cb.review_status AS status
              {$baseSql}{$whereSql}
              ORDER BY cb.id DESC
              LIMIT :limit OFFSET :offset"
@@ -339,7 +336,7 @@ final class WorkforceRepository
     public function updateBillStatus(int $id, string $status): void
     {
         $statement = Database::connection()->prepare(
-            "UPDATE consultant_bills SET status = :status WHERE id = :id"
+            "UPDATE consultant_bills SET review_status = :status WHERE id = :id"
         );
         $statement->execute(['status' => $status, 'id' => $id]);
     }
@@ -352,7 +349,8 @@ final class WorkforceRepository
 
         $baseSql = "FROM consultant_payments cp
             LEFT JOIN consultant_bills cb ON cb.id = cp.consultant_bill_id
-            LEFT JOIN consultants con ON con.id = cb.consultant_id
+            LEFT JOIN consultant_assignments ca ON ca.id = cb.consultant_assignment_id
+            LEFT JOIN consultants con ON con.id = ca.consultant_user_id
             WHERE 1=1";
 
         $countStatement = Database::connection()->prepare("SELECT COUNT(*) {$baseSql}");
@@ -360,7 +358,7 @@ final class WorkforceRepository
         $total = (int) $countStatement->fetchColumn();
 
         $dataStatement = Database::connection()->prepare(
-            "SELECT cp.*, cb.bill_no, con.name AS consultant_name
+            "SELECT cp.*, cb.bill_no, con.name AS consultant_name, cp.payment_mode AS mode
              {$baseSql}
              ORDER BY cp.id DESC
              LIMIT :limit OFFSET :offset"
@@ -382,17 +380,17 @@ final class WorkforceRepository
     public function createPayment(array $data): int
     {
         $statement = Database::connection()->prepare(
-            "INSERT INTO consultant_payments (consultant_bill_id, payment_date, amount, mode, reference_no, remarks, created_by)
-             VALUES (:consultant_bill_id, :payment_date, :amount, :mode, :reference_no, :remarks, :created_by)"
+            "INSERT INTO consultant_payments (consultant_bill_id, payment_date, amount, payment_mode, reference_no, remarks, paid_by)
+             VALUES (:consultant_bill_id, :payment_date, :amount, :payment_mode, :reference_no, :remarks, :paid_by)"
         );
         $statement->execute([
             'consultant_bill_id' => $data['consultant_bill_id'],
             'payment_date' => $data['payment_date'] ?: date('Y-m-d'),
             'amount' => $data['amount'],
-            'mode' => $data['mode'] ?: null,
+            'payment_mode' => $data['mode'] ?: null,
             'reference_no' => $data['reference_no'] ?: null,
             'remarks' => $data['remarks'] ?: null,
-            'created_by' => $data['created_by'],
+            'paid_by' => $data['created_by'],
         ]);
         return (int) Database::connection()->lastInsertId();
     }
