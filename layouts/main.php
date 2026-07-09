@@ -865,31 +865,36 @@ if ($isPortalUser):
                 <div class="sidebar-divider"></div>
                 <div class="sidebar-module">
                     <div class="sidebar-module-header">DSC Module</div>
-                    <span class="sidebar-link disabled">
+                    <?php if (Auth::can('dsc.view')): ?>
+                    <a href="<?= e(url('/dsc')) ?>" class="sidebar-link <?= $activeModule === 'dsc' && $requestUri === '/dsc' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                         <span class="sidebar-link-label">DSC Register</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <span class="sidebar-link-label">DSC Custody</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('dsc.movement.view')): ?>
+                    <a href="<?= e(url('/dsc/movement')) ?>" class="sidebar-link <?= $requestUri === '/dsc/movement' || str_starts_with($requestUri, '/dsc/movement') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 014-4h14"/></svg>
                         <span class="sidebar-link-label">DSC Movement</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('dsc.usage.view')): ?>
+                    <a href="<?= e(url('/dsc/usage')) ?>" class="sidebar-link <?= $requestUri === '/dsc/usage' || str_starts_with($requestUri, '/dsc/usage') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
                         <span class="sidebar-link-label">DSC Usage Log</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
-                    <span class="sidebar-link disabled">
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('dsc.renewal.view')): ?>
+                    <a href="<?= e(url('/dsc/renewals')) ?>" class="sidebar-link <?= $requestUri === '/dsc/renewals' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-                        <span class="sidebar-link-label">DSC Renewal</span>
-                        <span class="sidebar-badge">Planned</span>
-                    </span>
+                        <span class="sidebar-link-label">DSC Renewals</span>
+                    </a>
+                    <?php endif; ?>
+                    <?php if (Auth::can('dsc.reports.view')): ?>
+                    <a href="<?= e(url('/dsc/reports')) ?>" class="sidebar-link <?= $requestUri === '/dsc/reports' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <span class="sidebar-link-label">DSC Reports</span>
+                    </a>
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 
