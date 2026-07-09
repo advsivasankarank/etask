@@ -18,6 +18,15 @@ final class DashboardRepository
             'overdue_everification' => $this->scalar("SELECT COUNT(*) FROM service_order_status_flags WHERE is_overdue = 1"),
             'pending_consultant_settlement' => $this->scalar("SELECT COUNT(*) FROM service_order_status_flags WHERE is_consultant_payment_pending = 1"),
             'unpaid_invoices' => $this->scalar("SELECT COUNT(*) FROM invoices WHERE payment_status <> 'PAID' AND accounting_status <> 'CANCELLED'"),
+            'due_today' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL AND DATE(sla_due_at) = CURDATE()"),
+            'overdue_count' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL AND sla_due_at IS NOT NULL AND sla_due_at < NOW()"),
+            'procedural_pending' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE procedural_closed_at IS NULL AND final_closed_at IS NULL AND current_stage_code = 'PROCEDURALLY_CLOSED'"),
+            'accounts_pending' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE procedural_closed_at IS NOT NULL AND accounting_closed_at IS NULL AND final_closed_at IS NULL"),
+            'unbilled_completed' => $this->scalar("SELECT COUNT(*) FROM service_orders so WHERE so.final_closed_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM invoices i WHERE i.service_order_id = so.id AND i.accounting_status != 'CANCELLED')"),
+            'pending_documents' => $this->scalar("SELECT COUNT(*) FROM documents WHERE is_active = 1 AND verification_status = 'PENDING'"),
+            'staff_online_today' => $this->scalar("SELECT COUNT(DISTINCT user_id) FROM attendance_sessions WHERE DATE(login_at) = CURDATE()"),
+            'daily_reports_pending' => $this->scalar("SELECT COUNT(*) FROM daily_work_reports WHERE report_date = CURDATE() AND status = 'SUBMITTED'"),
+            'recently_closed' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NOT NULL AND final_closed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"),
         ];
     }
 

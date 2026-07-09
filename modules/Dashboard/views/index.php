@@ -4,7 +4,7 @@
     <?php endif; ?>
 
     <div class="hero-card">
-        <div class="eyebrow">Operations Hub</div>
+        <div class="eyebrow">Office Command Centre</div>
         <h3 style="margin:10px 0 8px;font-size:1.8rem;">Welcome, <?= e($user['full_name'] ?? 'User') ?></h3>
         <p class="subtle" style="margin:0 0 20px;">Active persona: <?= e($dashboard['persona'] ?? 'General') ?> | <?= e(date('l, d M Y')) ?></p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
