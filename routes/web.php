@@ -94,6 +94,13 @@ $router->get('/reports/outstanding', [ReportController::class, 'outstanding'], [
 $router->get('/reports/gst-summary', [ReportController::class, 'gstSummary'], ['auth', 'permission:reports.view']);
 $router->get('/reports/revenue', [ReportController::class, 'revenue'], ['auth', 'permission:reports.financial']);
 $router->get('/reports/consultants', [ReportController::class, 'consultants'], ['auth', 'permission:reports.view']);
+$router->get('/reports/operational', [ReportController::class, 'operational'], ['auth', 'permission:reports.view']);
+$router->get('/reports/workforce', [ReportController::class, 'workforce'], ['auth', 'permission:reports.view']);
+$router->get('/reports/attendance', [ReportController::class, 'attendance'], ['auth', 'permission:reports.view']);
+$router->get('/reports/documents', [ReportController::class, 'documents'], ['auth', 'permission:reports.view']);
+$router->get('/reports/dsc', [ReportController::class, 'dsc'], ['auth', 'permission:reports.view']);
+$router->get('/reports/accounts', [ReportController::class, 'accounts'], ['auth', 'permission:reports.view']);
+$router->get('/reports/audit', [ReportController::class, 'audit'], ['auth', 'permission:reports.view']);
 $router->get('/users', [UserController::class, 'index'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->get('/users/create', [UserController::class, 'create'], ['auth', 'permission:users.manage.portal,users.manage.internal']);
 $router->post('/users', [UserController::class, 'store'], ['auth', 'permission:users.manage.portal,users.manage.internal']);

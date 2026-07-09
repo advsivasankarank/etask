@@ -230,4 +230,70 @@ final class ReportController
             'report' => $this->documents->accessReport($filters, $page),
         ]));
     }
+
+    public function operational(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/operational.php'), [
+            'title' => 'Operational Reports',
+            'activeMenu' => 'reports',
+            'summary' => $this->reports->summaryCounts(),
+            'overdueOrders' => $this->reports->overdueServiceOrders(),
+        ]));
+    }
+
+    public function workforce(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/workforce.php'), [
+            'title' => 'Workforce Reports',
+            'activeMenu' => 'reports',
+            'summary' => $this->reports->summaryCounts(),
+            'attendance' => $this->reports->attendanceSummary(),
+        ]));
+    }
+
+    public function attendance(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/attendance.php'), [
+            'title' => 'Attendance Reports',
+            'activeMenu' => 'reports',
+            'attendance' => $this->reports->attendanceSummary(),
+        ]));
+    }
+
+    public function documents(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/documents.php'), [
+            'title' => 'Document Reports',
+            'activeMenu' => 'reports',
+            'summary' => $this->reports->documentSummary(),
+        ]));
+    }
+
+    public function dsc(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/dsc.php'), [
+            'title' => 'DSC Reports',
+            'activeMenu' => 'reports',
+            'summary' => $this->reports->dscSummary(),
+        ]));
+    }
+
+    public function accounts(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/accounts.php'), [
+            'title' => 'Accounts Reports',
+            'activeMenu' => 'reports',
+            'summary' => $this->reports->accountsSummary(),
+        ]));
+    }
+
+    public function audit(): void
+    {
+        Response::html(View::render(base_path('modules/Reports/views/audit.php'), [
+            'title' => 'Audit Reports',
+            'activeMenu' => 'reports',
+            'activity' => $this->reports->activitySummary(),
+            'followups' => $this->reports->pendingFollowups(),
+        ]));
+    }
 }

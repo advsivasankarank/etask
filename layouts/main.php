@@ -1022,9 +1022,13 @@ if ($isPortalUser):
                     <div class="sidebar-module-header">Reports</div>
                     <a href="<?= e(url('/reports')) ?>" class="sidebar-link <?= $activeModule === 'reports' && !str_contains($requestUri, '/reminders') ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                        <span class="sidebar-link-label">Reports Home</span>
+                        <span class="sidebar-link-label">Reports Dashboard</span>
                     </a>
                     <?php if (Auth::can('reports.view')): ?>
+                    <a href="<?= e(url('/reports/operational')) ?>" class="sidebar-link <?= $requestUri === '/reports/operational' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <span class="sidebar-link-label">Operational</span>
+                    </a>
                     <a href="<?= e(url('/reports/clients')) ?>" class="sidebar-link <?= $requestUri === '/reports/clients' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                         <span class="sidebar-link-label">Client Reports</span>
@@ -1033,15 +1037,29 @@ if ($isPortalUser):
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
                         <span class="sidebar-link-label">Service Order Reports</span>
                     </a>
+                    <a href="<?= e(url('/reports/workforce')) ?>" class="sidebar-link <?= $requestUri === '/reports/workforce' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        <span class="sidebar-link-label">Workforce Reports</span>
+                    </a>
+                    <a href="<?= e(url('/reports/attendance')) ?>" class="sidebar-link <?= $requestUri === '/reports/attendance' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <span class="sidebar-link-label">Attendance Reports</span>
+                    </a>
+                    <a href="<?= e(url('/reports/documents')) ?>" class="sidebar-link <?= $requestUri === '/reports/documents' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                        <span class="sidebar-link-label">Document Reports</span>
+                    </a>
+                    <a href="<?= e(url('/reports/accounts')) ?>" class="sidebar-link <?= $requestUri === '/reports/accounts' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span class="sidebar-link-label">Accounts Reports</span>
+                    </a>
                     <a href="<?= e(url('/reports/consultants')) ?>" class="sidebar-link <?= $requestUri === '/reports/consultants' ? 'active' : '' ?>">
                         <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         <span class="sidebar-link-label">Consultant Reports</span>
                     </a>
-                    <?php endif; ?>
-                    <?php if (Auth::canAny('reminders.view', 'reminders.report')): ?>
-                    <a href="<?= e(url('/reminders/register')) ?>" class="sidebar-link <?= $requestUri === '/reminders/register' ? 'active' : '' ?>">
-                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-                        <span class="sidebar-link-label">Reminder Reports</span>
+                    <a href="<?= e(url('/reports/audit')) ?>" class="sidebar-link <?= $requestUri === '/reports/audit' ? 'active' : '' ?>">
+                        <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="sidebar-link-label">Audit Reports</span>
                     </a>
                     <?php endif; ?>
                 </div>
