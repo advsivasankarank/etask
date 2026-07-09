@@ -165,7 +165,8 @@ final class AttendanceController
             Session::flash('success', 'Daily work report submitted successfully.');
 
             if (Session::pull('logout_pending', false)) {
-                redirect('/logout');
+                Session::flash('success', 'Daily report submitted. You may now logout from the sidebar.');
+                redirect('/dashboard');
             }
 
             redirect('/attendance');
