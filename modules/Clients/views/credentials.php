@@ -34,12 +34,12 @@ if ($customRows === []) {
 <section class="panel">
     <div class="toolbar">
         <div>
-            <div class="eyebrow">Portal Access</div>
+            <div class="eyebrow">Client Module</div>
             <h3 style="margin:0 0 6px;">Portal Credentials</h3>
             <div class="subtle"><?= e($client['legal_name']) ?> | PAN: <?= e($client['pan']) ?></div>
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <a href="<?= e(url('/service-orders/create?client_id=' . $client['id'])) ?>" class="button">Open Service Order</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="<?= e(url('/service-orders/create?client_id=' . $client['id'])) ?>" class="button">+ Create Service Order</a>
             <a href="<?= e(url('/clients/show?id=' . $client['id'])) ?>" class="button button-secondary">Back to Client</a>
         </div>
     </div>
@@ -67,11 +67,11 @@ if ($customRows === []) {
                 <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
                     <label style="display:grid;gap:8px;">
                         <span>User ID</span>
-                        <input type="text" name="<?= e($portalCode) ?>_user_identifier" value="<?= e((string) ($old[$portalCode . '_user_identifier'] ?? $saved['user_identifier'] ?? '')) ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <input type="text" name="<?= e($portalCode) ?>_user_identifier" value="<?= e((string) ($old[$portalCode . '_user_identifier'] ?? $saved['user_identifier'] ?? '')) ?>">
                     </label>
                     <label style="display:grid;gap:8px;">
                         <span>Password</span>
-                        <input type="password" name="<?= e($portalCode) ?>_password" value="" placeholder="<?= (int) ($saved['has_password'] ?? 0) === 1 ? 'Saved securely. Enter only to change.' : 'Enter password' ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <input type="password" name="<?= e($portalCode) ?>_password" value="" placeholder="<?= (int) ($saved['has_password'] ?? 0) === 1 ? 'Saved securely. Enter only to change.' : 'Enter password' ?>">
                     </label>
                 </div>
             </div>
@@ -80,7 +80,7 @@ if ($customRows === []) {
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
                 <h4 style="margin:0;">New Portals</h4>
-                <button type="button" class="button button-secondary" id="add-custom-portal">Add New Portal</button>
+                <button type="button" class="button button-secondary" id="add-custom-portal">+ Add New Portal</button>
             </div>
             <div id="custom-portal-list" style="display:grid;gap:14px;margin-top:16px;">
                 <?php foreach ($customRows as $saved): ?>
@@ -89,15 +89,15 @@ if ($customRows === []) {
                         <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
                             <label style="display:grid;gap:8px;">
                                 <span>Portal Name</span>
-                                <input type="text" name="custom_portal_label[]" value="<?= e((string) ($saved['portal_label'] ?? '')) ?>" placeholder="Example: UDYAM / ICEGATE / Profession Tax" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                                <input type="text" name="custom_portal_label[]" value="<?= e((string) ($saved['portal_label'] ?? '')) ?>" placeholder="Example: UDYAM / ICEGATE / Profession Tax">
                             </label>
                             <label style="display:grid;gap:8px;">
                                 <span>User ID</span>
-                                <input type="text" name="custom_portal_user_identifier[]" value="<?= e((string) ($saved['user_identifier'] ?? '')) ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                                <input type="text" name="custom_portal_user_identifier[]" value="<?= e((string) ($saved['user_identifier'] ?? '')) ?>">
                             </label>
                             <label style="display:grid;gap:8px;">
                                 <span>Password</span>
-                                <input type="password" name="custom_portal_password[]" value="" placeholder="<?= (int) ($saved['has_password'] ?? 0) === 1 ? 'Saved securely. Enter only to change.' : 'Enter password' ?>" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                                <input type="password" name="custom_portal_password[]" value="" placeholder="<?= (int) ($saved['has_password'] ?? 0) === 1 ? 'Saved securely. Enter only to change.' : 'Enter password' ?>">
                             </label>
                         </div>
                     </div>
@@ -111,15 +111,15 @@ if ($customRows === []) {
                 <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
                     <label style="display:grid;gap:8px;">
                         <span>Portal Name</span>
-                        <input type="text" name="custom_portal_label[]" value="" placeholder="Example: UDYAM / ICEGATE / Profession Tax" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <input type="text" name="custom_portal_label[]" value="" placeholder="Example: UDYAM / ICEGATE / Profession Tax">
                     </label>
                     <label style="display:grid;gap:8px;">
                         <span>User ID</span>
-                        <input type="text" name="custom_portal_user_identifier[]" value="" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <input type="text" name="custom_portal_user_identifier[]" value="">
                     </label>
                     <label style="display:grid;gap:8px;">
                         <span>Password</span>
-                        <input type="password" name="custom_portal_password[]" value="" placeholder="Enter password" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
+                        <input type="password" name="custom_portal_password[]" value="" placeholder="Enter password">
                     </label>
                 </div>
             </div>
@@ -127,7 +127,7 @@ if ($customRows === []) {
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button type="submit" class="button">Save Portal Credentials</button>
-            <a href="<?= e(url('/service-orders/create?client_id=' . $client['id'])) ?>" class="button button-secondary">Open Service Order</a>
+            <a href="<?= e(url('/service-orders/create?client_id=' . $client['id'])) ?>" class="button button-secondary">Create Service Order</a>
             <a href="<?= e(url('/clients/show?id=' . $client['id'])) ?>" class="button button-secondary">Skip for Now</a>
         </div>
     </form>
