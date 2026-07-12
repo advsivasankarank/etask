@@ -1331,9 +1331,6 @@ if ($isPortalUser):
                 </div>
             </header>
             <div class="content-area">
-                <?php if (!empty($success)): ?>
-                    <div class="flash flash-success"><?= e($success) ?></div>
-                <?php endif; ?>
                 <?= $content ?>
                 <footer class="app-footer">e-Pani : Office Management Suite from E Tax Advisors Private Limited</footer>
             </div>
