@@ -32,6 +32,7 @@ $router->get('/register-client', [ClientController::class, 'publicCreate'], ['gu
 $router->post('/register-client', [ClientController::class, 'publicStore'], ['guest']);
 $router->get('/change-password', [AuthController::class, 'showChangePassword'], ['auth']);
 $router->post('/change-password', [AuthController::class, 'changePassword'], ['auth']);
+$router->get('/logout', function () { redirect('/'); });
 $router->post('/logout', [AuthController::class, 'logout'], ['auth']);
 $router->get('/dashboard', [DashboardController::class, 'index'], ['auth']);
 $router->get('/search', [SearchController::class, 'index'], ['auth', 'permission:search.view']);
