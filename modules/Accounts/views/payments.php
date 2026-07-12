@@ -10,20 +10,31 @@
         <button type="submit" class="button">Search</button>
     </form>
 
-    <?php if (($payments['items'] ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Payments</div><p class="subtle" style="margin:8px 0 0;">No payments found.</p></div><?php else: ?>
-        <div style="overflow:auto;"><table><thead><tr><th>Date</th><th>Client</th><th>SO</th><th>Type</th><th>Amount</th><th>Mode</th><th>Reference</th><th>Status</th></tr></thead><tbody>
-        <?php foreach ($payments['items'] as $p): ?>
-            <tr>
-                <td><?= e($p['payment_date']) ?></td>
-                <td><?= e($p['client_name'] ?: '-') ?></td>
-                <td><?= e($p['so_no'] ?: '-') ?></td>
-                <td><span class="chip"><?= e($p['transaction_type']) ?></span></td>
-                <td>INR <?= e(number_format((float) $p['amount'], 2)) ?></td>
-                <td><?= e($p['payment_mode']) ?></td>
-                <td><?= e($p['reference_no'] ?: '-') ?></td>
-                <td><span class="chip <?= $p['status'] === 'SUCCESS' ? '' : 'chip-strong' ?>"><?= e($p['status']) ?></span></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody></table></div>
+    <?php if (($payments['items'] ?? []) === []): ?>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No payments found.</div>
+        </div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header"><tr><th>Date</th><th>Client</th><th>SO</th><th>Type</th><th>Amount</th><th>Mode</th><th>Reference</th><th>Status</th></tr></thead>
+                <tbody class="table-body">
+                <?php foreach ($payments['items'] as $p): ?>
+                    <tr>
+                        <td><?= e($p['payment_date']) ?></td>
+                        <td><?= queue_cell_html('client_name', $p['client_name'] ?? '') ?></td>
+                        <td><?= e($p['so_no'] ?: '—') ?></td>
+                        <td><span class="badge badge-neutral"><?= e(label_case((string) $p['transaction_type'])) ?></span></td>
+                        <td>INR <?= e(number_format((float) $p['amount'], 2)) ?></td>
+                        <td><?= e($p['payment_mode']) ?></td>
+                        <td><?= e($p['reference_no'] ?: '—') ?></td>
+                        <td><span class="badge badge-<?= e(status_severity((string) $p['status'])) ?>"><?= e(label_case((string) $p['status'])) ?></span></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 </section>

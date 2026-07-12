@@ -9,18 +9,29 @@
         <button type="submit" class="button">Search</button>
     </form>
 
-    <?php if (($receipts['items'] ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Receipts</div><p class="subtle" style="margin:8px 0 0;">No receipts found.</p></div><?php else: ?>
-        <div style="overflow:auto;"><table><thead><tr><th>Receipt No.</th><th>Client</th><th>Date</th><th>Amount</th><th>Mode</th><th>Reference</th></tr></thead><tbody>
-        <?php foreach ($receipts['items'] as $r): ?>
-            <tr>
-                <td><strong><?= e($r['receipt_no']) ?></strong></td>
-                <td><?= e($r['client_name'] ?: '-') ?></td>
-                <td><?= e($r['receipt_date']) ?></td>
-                <td>INR <?= e(number_format((float) $r['receipt_amount'], 2)) ?></td>
-                <td><?= e($r['payment_mode'] ?: '-') ?></td>
-                <td><?= e($r['reference_no'] ?: '-') ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody></table></div>
+    <?php if (($receipts['items'] ?? []) === []): ?>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No receipts found.</div>
+        </div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header"><tr><th>Receipt No.</th><th>Client</th><th>Date</th><th>Amount</th><th>Mode</th><th>Reference</th></tr></thead>
+                <tbody class="table-body">
+                <?php foreach ($receipts['items'] as $r): ?>
+                    <tr>
+                        <td><strong><?= e($r['receipt_no']) ?></strong></td>
+                        <td><?= queue_cell_html('client_name', $r['client_name'] ?? '') ?></td>
+                        <td><?= e($r['receipt_date']) ?></td>
+                        <td>INR <?= e(number_format((float) $r['receipt_amount'], 2)) ?></td>
+                        <td><?= e($r['payment_mode'] ?: '—') ?></td>
+                        <td><?= e($r['reference_no'] ?: '—') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 </section>

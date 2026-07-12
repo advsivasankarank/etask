@@ -25,7 +25,13 @@ final class DashboardService
             return [
                 'persona' => 'Admin',
                 'metrics' => $this->dashboard->adminMetrics(),
+                'heroStats' => $this->dashboard->adminHeroStats(),
                 'queues' => $this->dashboard->adminQueues(),
+                'stageBreakdown' => $this->dashboard->adminStageBreakdown(),
+                'creationTrend' => $this->dashboard->adminCreationTrend(14),
+                'complianceDueThisWeek' => $this->dashboard->adminComplianceDueThisWeek(),
+                'documentsAwaitingReview' => $this->dashboard->adminDocumentsAwaitingReview(),
+                'upcomingDeadlines' => $this->dashboard->adminUpcomingDeadlines(3),
                 'notifications' => $this->dashboard->dashboardNotifications($userId, null),
             ];
         }

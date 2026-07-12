@@ -13,17 +13,22 @@
             <?php if ($rows === []): ?>
                 <p class="subtle">No invoices in this bucket.</p>
             <?php else: ?>
-                <div style="overflow:auto;"><table><thead><tr><th>Invoice</th><th>Client</th><th>Due</th><th>Total</th><th>Ageing</th></tr></thead><tbody>
-                <?php foreach ($rows as $row): ?>
-                    <tr>
-                        <td><strong><?= e($row['invoice_no']) ?></strong></td>
-                        <td><?= e($row['client_name'] ?: '-') ?></td>
-                        <td><?= e($row['due_date'] ?: '-') ?></td>
-                        <td>INR <?= e(number_format((float) $row['net_payable'], 2)) ?></td>
-                        <td><?= e((string) ($row['ageing_days'] ?? 0)) ?> days</td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody></table></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead class="table-header"><tr><th>Invoice</th><th>Client</th><th>Due</th><th>Total</th><th>Ageing</th></tr></thead>
+                        <tbody class="table-body">
+                        <?php foreach ($rows as $row): ?>
+                            <tr>
+                                <td><strong><?= e($row['invoice_no']) ?></strong></td>
+                                <td><?= queue_cell_html('client_name', $row['client_name'] ?? '') ?></td>
+                                <td><?= e($row['due_date'] ?: '—') ?></td>
+                                <td>INR <?= e(number_format((float) $row['net_payable'], 2)) ?></td>
+                                <td><?= e((string) ($row['ageing_days'] ?? 0)) ?> days</td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         </div>
     <?php endforeach; ?>

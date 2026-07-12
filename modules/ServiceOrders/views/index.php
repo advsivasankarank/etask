@@ -48,34 +48,56 @@
     </form>
 
     <?php if ($orders === []): ?>
-        <div class="data-card" style="text-align:center;padding:40px;">
-            <div class="eyebrow">No Results</div>
-            <p class="subtle" style="margin:8px 0 0;">No service orders found matching your search criteria.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No service orders found matching your search criteria.</div>
             <?php if (\App\Core\Auth::can('service_orders.create')): ?>
                 <a href="<?= e(url('/service-orders/create')) ?>" class="button" style="margin-top:16px;">+ Create First Service Order</a>
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <div class="card-grid">
-            <?php foreach ($orders as $order): ?>
-                <article class="data-card">
-                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-                        <div>
-                            <div class="eyebrow"><?= e($order['so_no']) ?></div>
-                            <h4 style="margin:4px 0 0;"><?= e($order['client_name']) ?></h4>
-                        </div>
-                        <span class="chip <?= (int) $order['is_locked'] === 1 ? 'chip-strong' : '' ?>"><?= (int) $order['is_locked'] === 1 ? 'Locked' : e($order['priority_level']) ?></span>
-                    </div>
-                    <div class="stat-line"><span>Service</span><strong><?= e($order['service_type_name']) ?></strong></div>
-                    <div class="stat-line"><span>Company</span><strong><?= e($order['company_name']) ?></strong></div>
-                    <div class="stat-line"><span>Stage</span><strong><?= e(str_replace('_', ' ', $order['current_stage_code'])) ?></strong></div>
-                    <div class="stat-line"><span>Period</span><strong><?= e($order['period_label'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>Created</span><strong><?= e($order['created_at']) ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
-                        <a href="<?= e(url('/service-orders/show?id=' . $order['id'])) ?>" class="button button-secondary">View Workspace</a>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header">
+                    <tr>
+                        <th>SO No</th>
+                        <th>Client</th>
+                        <th>Service</th>
+                        <th>Stage</th>
+                        <th>Period</th>
+                        <th>Priority</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td><?= e($order['so_no']) ?></td>
+                            <td>
+                                <div class="cell-with-avatar">
+                                    <span class="avatar-chip"><?= e(strtoupper(substr($order['client_name'], 0, 1))) ?></span>
+                                    <span><?= e($order['client_name']) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div><?= e($order['service_type_name']) ?></div>
+                                <div class="subtle" style="font-size:0.78rem;"><?= e($order['company_name']) ?></div>
+                            </td>
+                            <td><span class="badge badge-<?= e(status_severity((string) $order['current_stage_code'])) ?>"><?= e(label_case((string) $order['current_stage_code'])) ?></span></td>
+                            <td><?= e($order['period_label'] ?: '—') ?></td>
+                            <td>
+                                <?php if ((int) $order['is_locked'] === 1): ?>
+                                    <span class="badge badge-neutral">Locked</span>
+                                <?php else: ?>
+                                    <span class="badge badge-<?= e(priority_severity((string) $order['priority_level'])) ?>"><?= e(label_case((string) $order['priority_level'])) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td><a href="<?= e(url('/service-orders/show?id=' . $order['id'])) ?>" class="btn btn-secondary btn-sm">View</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?= \App\Core\View::render(base_path('app/Views/partials/pagination.php'), [
             'pagination' => $pagination ?? null,

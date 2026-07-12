@@ -75,6 +75,94 @@ final class DashboardRepository
         ];
     }
 
+    public function adminStageBreakdown(): array
+    {
+        return $this->fetchAll(
+            "SELECT current_stage_code, COUNT(*) AS cnt
+             FROM service_orders
+             WHERE final_closed_at IS NULL
+             GROUP BY current_stage_code
+             ORDER BY cnt DESC"
+        );
+    }
+
+    public function adminHeroStats(): array
+    {
+        return [
+            'active_clients' => $this->scalar("SELECT COUNT(*) FROM clients WHERE is_active = 1"),
+            'open_service_orders' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL"),
+            'overdue_compliance' => $this->scalar("SELECT COUNT(*) FROM service_orders WHERE final_closed_at IS NULL AND sla_due_at IS NOT NULL AND sla_due_at < NOW()"),
+            'pending_documents' => $this->scalar("SELECT COUNT(*) FROM documents WHERE is_active = 1 AND verification_status = 'PENDING'"),
+        ];
+    }
+
+    public function adminComplianceDueThisWeek(): array
+    {
+        return $this->fetchAll(
+            "SELECT so.so_no, c.legal_name AS client_name, st.name AS service_type_name, so.sla_due_at
+             FROM service_orders so
+             INNER JOIN clients c ON c.id = so.client_id
+             INNER JOIN service_types st ON st.id = so.service_type_id
+             WHERE so.final_closed_at IS NULL
+               AND so.sla_due_at IS NOT NULL
+               AND so.sla_due_at >= NOW()
+               AND so.sla_due_at <= DATE_ADD(NOW(), INTERVAL 7 DAY)
+             ORDER BY so.sla_due_at ASC
+             LIMIT 8"
+        );
+    }
+
+    public function adminDocumentsAwaitingReview(): array
+    {
+        return $this->fetchAll(
+            "SELECT d.document_name, c.legal_name AS client_name, d.uploaded_at
+             FROM documents d
+             INNER JOIN clients c ON c.id = d.client_id
+             WHERE d.is_active = 1 AND d.verification_status = 'PENDING'
+             ORDER BY d.uploaded_at DESC
+             LIMIT 8"
+        );
+    }
+
+    public function adminUpcomingDeadlines(int $limit = 3): array
+    {
+        $limit = max(1, $limit);
+
+        return $this->fetchAll(
+            "SELECT DATE(so.sla_due_at) AS due_date, st.name AS service_type_name, COUNT(*) AS cnt
+             FROM service_orders so
+             INNER JOIN service_types st ON st.id = so.service_type_id
+             WHERE so.final_closed_at IS NULL AND so.sla_due_at IS NOT NULL AND so.sla_due_at >= NOW()
+             GROUP BY DATE(so.sla_due_at), st.id
+             ORDER BY due_date ASC
+             LIMIT {$limit}"
+        );
+    }
+
+    public function adminCreationTrend(int $days = 14): array
+    {
+        $days = max(1, $days);
+        $rows = $this->fetchAll(
+            "SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+             FROM service_orders
+             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+             GROUP BY DATE(created_at)"
+        );
+
+        $byDay = [];
+        foreach ($rows as $row) {
+            $byDay[$row['day']] = (int) $row['cnt'];
+        }
+
+        $trend = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = date('Y-m-d', strtotime("-{$i} days"));
+            $trend[] = ['date' => $date, 'count' => $byDay[$date] ?? 0];
+        }
+
+        return $trend;
+    }
+
     public function adminQueues(): array
     {
         return [

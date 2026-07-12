@@ -125,6 +125,200 @@ if (!function_exists('should_use_index_routes')) {
     }
 }
 
+if (!function_exists('label_case')) {
+    function label_case(string $key): string
+    {
+        static $acronyms = ['sla', 'pso', 'dsc', 'gst', 'tds', 'pan', 'tan', 'itr', 'id', 'crm'];
+        $words = explode(' ', str_replace('_', ' ', $key));
+        foreach ($words as &$word) {
+            $word = in_array(strtolower($word), $acronyms, true)
+                ? strtoupper($word)
+                : ucfirst(strtolower($word));
+        }
+        return implode(' ', $words);
+    }
+}
+
+if (!function_exists('metric_severity')) {
+    function metric_severity(string $key): string
+    {
+        $key = strtolower($key);
+        $danger = ['breach', 'overdue'];
+        $warning = ['pending', 'unpaid', 'due', 'unbilled'];
+        $success = ['closed', 'online', 'approved', 'recently', 'paid'];
+
+        foreach ($danger as $needle) {
+            if (str_contains($key, $needle)) {
+                return 'danger';
+            }
+        }
+        foreach ($warning as $needle) {
+            if (str_contains($key, $needle)) {
+                return 'warning';
+            }
+        }
+        foreach ($success as $needle) {
+            if (str_contains($key, $needle)) {
+                return 'success';
+            }
+        }
+
+        return 'neutral';
+    }
+}
+
+if (!function_exists('severity_hex')) {
+    function severity_hex(string $severity): string
+    {
+        return match ($severity) {
+            'danger' => '#dc2626',
+            'warning' => '#d97706',
+            'success' => '#16a34a',
+            default => '#1499a8',
+        };
+    }
+}
+
+if (!function_exists('metric_icon_svg')) {
+    function metric_icon_svg(string $severity): string
+    {
+        $paths = [
+            'danger' => '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+            'warning' => '<circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>',
+            'success' => '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>',
+            'neutral' => '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+        ];
+        $inner = $paths[$severity] ?? $paths['neutral'];
+
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' . $inner . '</svg>';
+    }
+}
+
+if (!function_exists('status_severity')) {
+    function status_severity(string $value): string
+    {
+        $value = strtoupper($value);
+        $danger = ['OVERDUE', 'BREACH', 'REJECTED', 'CANCELLED', 'BLOCKED', 'UNPAID', 'FAILED', 'DISPUTED'];
+        $warning = ['PENDING', 'SUBMITTED', 'UNDER_REVIEW', 'DRAFT', 'SENT', 'PARTIALLY'];
+        $success = ['DONE', 'CLOSED', 'APPROVED', 'PAID', 'COMPLETED', 'ACTIVE', 'VERIFIED'];
+
+        foreach ($danger as $needle) {
+            if (str_contains($value, $needle)) {
+                return 'danger';
+            }
+        }
+        foreach ($warning as $needle) {
+            if (str_contains($value, $needle)) {
+                return 'warning';
+            }
+        }
+        foreach ($success as $needle) {
+            if (str_contains($value, $needle)) {
+                return 'success';
+            }
+        }
+
+        return 'neutral';
+    }
+}
+
+if (!function_exists('priority_severity')) {
+    function priority_severity(string $priority): string
+    {
+        return match (strtoupper($priority)) {
+            'CRITICAL' => 'danger',
+            'HIGH' => 'warning',
+            'LOW' => 'neutral',
+            default => 'neutral',
+        };
+    }
+}
+
+if (!function_exists('due_badge')) {
+    function due_badge(string $datetime): array
+    {
+        $timestamp = strtotime($datetime);
+        if ($timestamp === false) {
+            return ['severity' => 'neutral', 'label' => '-'];
+        }
+
+        $daysUntil = (int) floor((strtotime(date('Y-m-d', $timestamp)) - strtotime(date('Y-m-d'))) / 86400);
+
+        if ($daysUntil <= 1) {
+            return ['severity' => 'danger', 'label' => $daysUntil <= 0 ? 'Due Today' : 'Tomorrow'];
+        }
+        if ($daysUntil <= 5) {
+            return ['severity' => 'warning', 'label' => "In {$daysUntil} days"];
+        }
+
+        return ['severity' => 'info', 'label' => "In {$daysUntil} days"];
+    }
+}
+
+if (!function_exists('relative_time')) {
+    function relative_time(string $datetime): string
+    {
+        $timestamp = strtotime($datetime);
+        if ($timestamp === false) {
+            return $datetime;
+        }
+
+        $diff = time() - $timestamp;
+        if ($diff < 60) {
+            return 'Just now';
+        }
+        if ($diff < 3600) {
+            $minutes = (int) floor($diff / 60);
+            return $minutes . ' minute' . ($minutes === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 86400) {
+            $hours = (int) floor($diff / 3600);
+            return $hours . ' hour' . ($hours === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 172800) {
+            return 'Yesterday';
+        }
+        $days = (int) floor($diff / 86400);
+        if ($days < 7) {
+            return $days . ' days ago';
+        }
+
+        return date('d M Y', $timestamp);
+    }
+}
+
+if (!function_exists('queue_cell_html')) {
+    function queue_cell_html(string $key, mixed $value): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $keyLower = strtolower($key);
+
+        if ($value === '') {
+            return '<span class="subtle">&mdash;</span>';
+        }
+
+        if (str_contains($keyLower, 'status') || str_contains($keyLower, 'stage')) {
+            $severity = status_severity($value);
+            return '<span class="badge badge-' . e($severity) . '">' . e(label_case($value)) . '</span>';
+        }
+
+        if (str_contains($keyLower, 'client_name') || $keyLower === 'name') {
+            return '<span class="cell-with-avatar">'
+                . '<span class="avatar-chip">' . e(strtoupper(substr($value, 0, 1))) . '</span>'
+                . '<span>' . e($value) . '</span></span>';
+        }
+
+        if (str_ends_with($keyLower, '_at')) {
+            $timestamp = strtotime($value);
+            if ($timestamp !== false) {
+                return e(date('d M Y', $timestamp));
+            }
+        }
+
+        return e($value);
+    }
+}
+
 if (!function_exists('pagination_url')) {
     function pagination_url(string $path, array $query = [], int $page = 1): string
     {

@@ -15,22 +15,29 @@
     </div>
 
     <?php if ($orders === []): ?>
-        <div class="data-card"><span class="subtle">No consultant-linked service orders found.</span></div>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No consultant-linked service orders found.</div>
+        </div>
     <?php else: ?>
-        <div class="card-grid">
-            <?php foreach ($orders as $order): ?>
-                <article class="data-card">
-                    <div>
-                        <div class="eyebrow"><?= e($order['so_no']) ?></div>
-                        <h4 style="margin:4px 0 0;"><?= e($order['client_name']) ?></h4>
-                    </div>
-                    <div class="stat-line"><span>Service</span><strong><?= e($order['service_type_name']) ?></strong></div>
-                    <div class="stat-line"><span>Company</span><strong><?= e($order['company_name']) ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-                        <a class="button button-secondary" href="<?= e(url('/consultants/show?service_order_id=' . $order['id'])) ?>">Open Workspace</a>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header">
+                    <tr><th>SO No</th><th>Client</th><th>Service</th><th>Company</th><th></th></tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td><?= e($order['so_no']) ?></td>
+                            <td><?= queue_cell_html('client_name', $order['client_name']) ?></td>
+                            <td><?= e($order['service_type_name']) ?></td>
+                            <td><?= e($order['company_name']) ?></td>
+                            <td><a class="btn btn-secondary btn-sm" href="<?= e(url('/consultants/show?service_order_id=' . $order['id'])) ?>">Open</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     <?php endif; ?>
 </section>

@@ -12,21 +12,45 @@
         <button type="submit" class="button">Search</button>
     </form>
 
-    <?php if (($consultants['items'] ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Results</div><p class="subtle" style="margin:8px 0 0;">No consultants found.</p></div><?php else: ?>
-        <div class="card-grid">
-            <?php foreach ($consultants['items'] as $con): ?>
-                <article class="data-card">
-                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;"><div><div class="eyebrow"><?= e($con['firm_name'] ?: 'Consultant') ?></div><h4 style="margin:4px 0 0;"><?= e($con['name']) ?></h4></div><span class="chip"><?= e($con['status']) ?></span></div>
-                    <div class="stat-line"><span>Mobile</span><strong><?= e($con['mobile'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>Email</span><strong><?= e($con['email'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>PAN</span><strong><?= e($con['pan'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>Expertise</span><strong><?= e($con['expertise'] ?: '-') ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
-                        <a href="<?= e(url('/workforce/consultants/show?id=' . $con['id'])) ?>" class="button button-secondary">View</a>
-                        <?php if (\App\Core\Auth::can('workforce.consultants.manage')): ?><a href="<?= e(url('/workforce/consultants/edit?id=' . $con['id'])) ?>" class="button button-secondary">Edit</a><?php endif; ?>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+    <?php if (($consultants['items'] ?? []) === []): ?>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No consultants found.</div>
+        </div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header">
+                    <tr><th>Consultant</th><th>Mobile</th><th>Email</th><th>PAN</th><th>Expertise</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php foreach ($consultants['items'] as $con): ?>
+                        <tr>
+                            <td>
+                                <div class="cell-with-avatar">
+                                    <span class="avatar-chip"><?= e(strtoupper(substr($con['name'], 0, 1))) ?></span>
+                                    <span>
+                                        <div style="font-weight:700;"><?= e($con['name']) ?></div>
+                                        <div class="subtle" style="font-size:0.78rem;"><?= e($con['firm_name'] ?: 'Consultant') ?></div>
+                                    </span>
+                                </div>
+                            </td>
+                            <td><?= e($con['mobile'] ?: '—') ?></td>
+                            <td><?= e($con['email'] ?: '—') ?></td>
+                            <td><?= e($con['pan'] ?: '—') ?></td>
+                            <td><?= e($con['expertise'] ?: '—') ?></td>
+                            <td><span class="badge badge-<?= e(status_severity((string) $con['status'])) ?>"><?= e(label_case((string) $con['status'])) ?></span></td>
+                            <td>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                                    <a href="<?= e(url('/workforce/consultants/show?id=' . $con['id'])) ?>" class="btn btn-secondary btn-sm">View</a>
+                                    <?php if (\App\Core\Auth::can('workforce.consultants.manage')): ?><a href="<?= e(url('/workforce/consultants/edit?id=' . $con['id'])) ?>" class="btn btn-secondary btn-sm">Edit</a><?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     <?php endif; ?>
 </section>

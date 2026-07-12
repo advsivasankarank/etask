@@ -11,7 +11,7 @@
             <div class="eyebrow">Client Profile</div>
             <h3 style="margin:0 0 6px;"><?= e($client['legal_name']) ?></h3>
             <div class="subtle">
-                <span class="chip <?= (int) $client['is_active'] === 1 ? '' : 'chip-strong' ?>"><?= (int) $client['is_active'] === 1 ? 'Active' : 'Archived' ?></span>
+                <span class="badge <?= (int) $client['is_active'] === 1 ? 'badge-success' : 'badge-neutral' ?>"><?= (int) $client['is_active'] === 1 ? 'Active' : 'Archived' ?></span>
                 PAN: <?= e($client['pan']) ?>
             </div>
         </div>
@@ -129,8 +129,9 @@
                     <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                         <div>
                             <div><strong><?= e($serviceOrder['so_no']) ?></strong> — <?= e($serviceOrder['title']) ?></div>
-                            <div style="margin-top:4px;font-size:0.85rem;color:#64748b;">
-                                <?= e($serviceOrder['service_type_name']) ?> | Stage: <?= e($serviceOrder['current_stage_code']) ?>
+                            <div style="margin-top:4px;font-size:0.85rem;color:#64748b;display:flex;align-items:center;gap:8px;">
+                                <?= e($serviceOrder['service_type_name']) ?>
+                                <span class="badge badge-<?= e(status_severity((string) $serviceOrder['current_stage_code'])) ?>"><?= e(label_case((string) $serviceOrder['current_stage_code'])) ?></span>
                             </div>
                         </div>
                         <a href="<?= e(url('/service-orders/show?id=' . $serviceOrder['id'])) ?>" class="button button-secondary" style="padding:6px 12px;font-size:0.82rem;">Open</a>

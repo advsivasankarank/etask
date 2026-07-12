@@ -23,35 +23,61 @@
     </form>
 
     <?php if ($clients === []): ?>
-        <div class="data-card" style="text-align:center;padding:40px;">
-            <div class="eyebrow">No Results</div>
-            <p class="subtle" style="margin:8px 0 0;">No clients found matching your search criteria.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No clients found matching your search criteria.</div>
         </div>
     <?php else: ?>
-        <div class="card-grid">
-            <?php foreach ($clients as $client): ?>
-                <article class="data-card">
-                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-                        <div>
-                            <div class="eyebrow"><?= e($client['pan'] ?: 'Client') ?></div>
-                            <h4 style="margin:4px 0 0;"><?= e($client['legal_name']) ?></h4>
-                        </div>
-                        <span class="chip <?= (int) $client['is_active'] === 1 ? '' : 'chip-strong' ?>"><?= (int) $client['is_active'] === 1 ? 'Active' : 'Archived' ?></span>
-                    </div>
-                    <div class="stat-line"><span>GST / TAN</span><strong><?= e(($client['gstin'] ?: '-') . ' / ' . ($client['tan'] ?: '-')) ?></strong></div>
-                    <div class="stat-line"><span>Mobile</span><strong><?= e($client['mobile'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>CRM</span><strong><?= e($client['assigned_crm_name'] ?: '-') ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap;">
-                        <a href="<?= e(url('/clients/show?id=' . $client['id'])) ?>" class="button button-secondary">View Profile</a>
-                        <?php if (\App\Core\Auth::can('clients.edit')): ?>
-                            <a href="<?= e(url('/clients/edit?id=' . $client['id'])) ?>" class="button button-secondary">Edit</a>
-                        <?php endif; ?>
-                        <?php if (\App\Core\Auth::can('clients.credentials.manage')): ?>
-                            <a href="<?= e(url('/clients/credentials?id=' . $client['id'])) ?>" class="button button-secondary">Credentials</a>
-                        <?php endif; ?>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header">
+                    <tr>
+                        <th>Client</th>
+                        <th>GST / TAN</th>
+                        <th>Mobile</th>
+                        <th>CRM</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php foreach ($clients as $client): ?>
+                        <tr>
+                            <td>
+                                <div class="cell-with-avatar">
+                                    <span class="avatar-chip"><?= e(strtoupper(substr($client['legal_name'], 0, 1))) ?></span>
+                                    <span>
+                                        <div style="font-weight:700;"><?= e($client['legal_name']) ?></div>
+                                        <div class="subtle" style="font-size:0.78rem;"><?= e($client['pan'] ?: 'No PAN') ?></div>
+                                    </span>
+                                </div>
+                            </td>
+                            <td><?= e(($client['gstin'] ?: '—') . ' / ' . ($client['tan'] ?: '—')) ?></td>
+                            <td><?= e($client['mobile'] ?: '—') ?></td>
+                            <td><?= e($client['assigned_crm_name'] ?: '—') ?></td>
+                            <td>
+                                <?php if ((int) $client['is_active'] === 1): ?>
+                                    <span class="badge badge-success">Active</span>
+                                <?php else: ?>
+                                    <span class="badge badge-neutral">Archived</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                                    <a href="<?= e(url('/clients/show?id=' . $client['id'])) ?>" class="btn btn-secondary btn-sm">View</a>
+                                    <?php if (\App\Core\Auth::can('clients.edit')): ?>
+                                        <a href="<?= e(url('/clients/edit?id=' . $client['id'])) ?>" class="btn btn-secondary btn-sm">Edit</a>
+                                    <?php endif; ?>
+                                    <?php if (\App\Core\Auth::can('clients.credentials.manage')): ?>
+                                        <a href="<?= e(url('/clients/credentials?id=' . $client['id'])) ?>" class="btn btn-secondary btn-sm">Credentials</a>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?= \App\Core\View::render(base_path('app/Views/partials/pagination.php'), [
             'pagination' => $pagination ?? null,

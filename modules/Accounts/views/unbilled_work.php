@@ -4,18 +4,29 @@
 
     <div class="toolbar"><div><div class="eyebrow">Accounts Module</div><h3 style="margin:0 0 6px;">Unbilled Completed Work</h3><div class="subtle">Service orders that are completed but not yet invoiced.</div></div></div>
 
-    <?php if ($workOrders === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Unbilled Work</div><p class="subtle" style="margin:8px 0 0;">All completed work has been invoiced.</p></div><?php else: ?>
-        <div style="overflow:auto;"><table><thead><tr><th>SO No.</th><th>Client</th><th>Service Type</th><th>Completed</th><th>Assigned CRM</th><th>Status</th></tr></thead><tbody>
-        <?php foreach ($workOrders as $wo): ?>
-            <tr>
-                <td><strong><?= e($wo['so_no']) ?></strong></td>
-                <td><?= e($wo['client_name'] ?: '-') ?></td>
-                <td><?= e($wo['service_type_name'] ?: '-') ?></td>
-                <td><?= e($wo['final_closed_at'] ?: '-') ?></td>
-                <td><?= e($wo['assigned_crm_name'] ?: '-') ?></td>
-                <td><span class="chip chip-strong">Unbilled</span></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody></table></div>
+    <?php if ($workOrders === []): ?>
+        <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <div class="empty-state-title">All caught up</div>
+            <div class="empty-state-text">All completed work has been invoiced.</div>
+        </div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header"><tr><th>SO No.</th><th>Client</th><th>Service Type</th><th>Completed</th><th>Assigned CRM</th><th>Status</th></tr></thead>
+                <tbody class="table-body">
+                <?php foreach ($workOrders as $wo): ?>
+                    <tr>
+                        <td><strong><?= e($wo['so_no']) ?></strong></td>
+                        <td><?= queue_cell_html('client_name', $wo['client_name'] ?? '') ?></td>
+                        <td><?= e($wo['service_type_name'] ?: '—') ?></td>
+                        <td><?= e($wo['final_closed_at'] ?: '—') ?></td>
+                        <td><?= e($wo['assigned_crm_name'] ?: '—') ?></td>
+                        <td><span class="badge badge-warning">Unbilled</span></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 </section>

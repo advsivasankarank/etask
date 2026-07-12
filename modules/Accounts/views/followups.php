@@ -21,19 +21,30 @@
         <button type="submit" class="button">Filter</button>
     </form>
 
-    <?php if (($followups['items'] ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Follow-ups</div><p class="subtle" style="margin:8px 0 0;">No follow-up records found.</p></div><?php else: ?>
-        <div style="overflow:auto;"><table><thead><tr><th>Date</th><th>Client</th><th>Invoice</th><th>Mode</th><th>Note</th><th>Next</th><th>Status</th></tr></thead><tbody>
-        <?php foreach ($followups['items'] as $f): ?>
-            <tr>
-                <td><?= e($f['followup_date']) ?></td>
-                <td><?= e($f['client_name'] ?: '-') ?></td>
-                <td><?= e($f['invoice_no'] ?: '-') ?></td>
-                <td><?= e($f['followup_mode'] ?: '-') ?></td>
-                <td><?= e($f['followup_note'] ?: '-') ?></td>
-                <td><?= e($f['next_followup_date'] ?: '-') ?></td>
-                <td><span class="chip <?= $f['status'] === 'CLOSED' ? '' : ($f['status'] === 'DISPUTED' ? 'chip-strong' : '') ?>"><?= e($f['status']) ?></span></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody></table></div>
+    <?php if (($followups['items'] ?? []) === []): ?>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No follow-up records found.</div>
+        </div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header"><tr><th>Date</th><th>Client</th><th>Invoice</th><th>Mode</th><th>Note</th><th>Next</th><th>Status</th></tr></thead>
+                <tbody class="table-body">
+                <?php foreach ($followups['items'] as $f): ?>
+                    <tr>
+                        <td><?= e($f['followup_date']) ?></td>
+                        <td><?= queue_cell_html('client_name', $f['client_name'] ?? '') ?></td>
+                        <td><?= e($f['invoice_no'] ?: '—') ?></td>
+                        <td><?= e($f['followup_mode'] ?: '—') ?></td>
+                        <td><?= e($f['followup_note'] ?: '—') ?></td>
+                        <td><?= e($f['next_followup_date'] ?: '—') ?></td>
+                        <td><span class="badge badge-<?= e(status_severity((string) $f['status'])) ?>"><?= e(label_case((string) $f['status'])) ?></span></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 </section>

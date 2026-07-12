@@ -26,27 +26,45 @@
     </form>
 
     <?php if ($users === []): ?>
-        <div class="data-card"><span class="subtle">No users found.</span></div>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No results</div>
+            <div class="empty-state-text">No users found.</div>
+        </div>
     <?php else: ?>
-        <div class="card-grid">
-            <?php foreach ($users as $row): ?>
-                <article class="data-card">
-                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-                        <div>
-                            <div class="eyebrow"><?= e($row['username']) ?></div>
-                            <h4 style="margin:4px 0 0;"><?= e($row['full_name']) ?></h4>
-                        </div>
-                        <span class="chip <?= (int) $row['is_active'] === 1 ? '' : 'chip-strong' ?>"><?= (int) $row['is_active'] === 1 ? 'Active' : 'Archived' ?></span>
-                    </div>
-                    <div class="stat-line"><span>Roles</span><strong><?= e($row['role_labels'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>Email</span><strong><?= e($row['email']) ?></strong></div>
-                    <div class="stat-line"><span>Mobile</span><strong><?= e($row['mobile'] ?: '-') ?></strong></div>
-                    <div class="stat-line"><span>Client Link</span><strong><?= e($row['client_name'] ?: '-') ?><?= !empty($row['contact_name']) ? ' / ' . e($row['contact_name']) : '' ?></strong></div>
-                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-                        <a href="<?= e(url('/users/show?id=' . $row['id'])) ?>" class="button button-secondary">View User</a>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <div class="table-wrap">
+            <table>
+                <thead class="table-header">
+                    <tr><th>User</th><th>Roles</th><th>Email</th><th>Mobile</th><th>Client Link</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php foreach ($users as $row): ?>
+                        <tr>
+                            <td>
+                                <div class="cell-with-avatar">
+                                    <span class="avatar-chip"><?= e(strtoupper(substr($row['full_name'], 0, 1))) ?></span>
+                                    <span>
+                                        <div style="font-weight:700;"><?= e($row['full_name']) ?></div>
+                                        <div class="subtle" style="font-size:0.78rem;"><?= e($row['username']) ?></div>
+                                    </span>
+                                </div>
+                            </td>
+                            <td><?= e($row['role_labels'] ?: '—') ?></td>
+                            <td><?= e($row['email']) ?></td>
+                            <td><?= e($row['mobile'] ?: '—') ?></td>
+                            <td><?= e($row['client_name'] ?: '—') ?><?= !empty($row['contact_name']) ? ' / ' . e($row['contact_name']) : '' ?></td>
+                            <td>
+                                <?php if ((int) $row['is_active'] === 1): ?>
+                                    <span class="badge badge-success">Active</span>
+                                <?php else: ?>
+                                    <span class="badge badge-neutral">Archived</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><a href="<?= e(url('/users/show?id=' . $row['id'])) ?>" class="btn btn-secondary btn-sm">View</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?= \App\Core\View::render(base_path('app/Views/partials/pagination.php'), [
             'pagination' => $pagination ?? null,

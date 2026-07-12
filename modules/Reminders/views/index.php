@@ -8,11 +8,24 @@
         <p class="subtle" style="margin:0;">Templates, escalation rules, scheduler delivery, dashboard alerts, and reminder reporting in one place.</p>
     </div>
 
-    <div class="grid">
-        <div class="metric"><div class="eyebrow">Open</div><strong>Active Reminders</strong><div style="margin-top:8px;font-size:1.85rem;"><?= e((string) ($overview['summary']['open_reminders'] ?? 0)) ?></div></div>
-        <div class="metric"><div class="eyebrow">Today</div><strong>Due Today</strong><div style="margin-top:8px;font-size:1.85rem;"><?= e((string) ($overview['summary']['due_today'] ?? 0)) ?></div></div>
-        <div class="metric"><div class="eyebrow">Overdue</div><strong>Escalation Queue</strong><div style="margin-top:8px;font-size:1.85rem;"><?= e((string) ($overview['summary']['overdue'] ?? 0)) ?></div></div>
-        <div class="metric"><div class="eyebrow">Email</div><strong>Delivery Failures</strong><div style="margin-top:8px;font-size:1.85rem;"><?= e((string) ($overview['summary']['email_failures'] ?? 0)) ?></div></div>
+    <?php
+        $reminderTiles = [
+            'open_reminders' => ['label' => 'Active Reminders', 'severity' => 'neutral'],
+            'due_today' => ['label' => 'Due Today', 'severity' => 'warning'],
+            'overdue' => ['label' => 'Escalation Queue', 'severity' => 'danger'],
+            'email_failures' => ['label' => 'Delivery Failures', 'severity' => 'danger'],
+        ];
+    ?>
+    <div class="kpi-grid">
+        <?php foreach ($reminderTiles as $key => $tile): ?>
+            <div class="kpi-card severity-<?= e($tile['severity']) ?>">
+                <div class="kpi-icon"><?= metric_icon_svg($tile['severity']) ?></div>
+                <div class="kpi-body">
+                    <div class="kpi-label"><?= e($tile['label']) ?></div>
+                    <div class="kpi-value"><?= e((string) ($overview['summary'][$key] ?? 0)) ?></div>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
 
     <div class="card-grid">

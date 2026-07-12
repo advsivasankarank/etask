@@ -1,25 +1,22 @@
 <section style="display:grid;gap:18px;">
-    <div class="grid">
-        <div class="metric">
-            <div class="eyebrow">Outstanding</div>
-            <strong>Invoices</strong>
-            <div style="margin-top:8px;font-size:1.85rem;"><?= e((string) ($report['summary']['invoice_count'] ?? 0)) ?></div>
-        </div>
-        <div class="metric">
-            <div class="eyebrow">Invoiced</div>
-            <strong>Total</strong>
-            <div style="margin-top:8px;font-size:1.85rem;"><?= e(number_format((float) ($report['summary']['invoiced_total'] ?? 0), 2)) ?></div>
-        </div>
-        <div class="metric">
-            <div class="eyebrow">Collected</div>
-            <strong>Total</strong>
-            <div style="margin-top:8px;font-size:1.85rem;"><?= e(number_format((float) ($report['summary']['collected_total'] ?? 0), 2)) ?></div>
-        </div>
-        <div class="metric">
-            <div class="eyebrow">Receivable</div>
-            <strong>Outstanding</strong>
-            <div style="margin-top:8px;font-size:1.85rem;"><?= e(number_format((float) ($report['summary']['outstanding_total'] ?? 0), 2)) ?></div>
-        </div>
+    <?php
+        $outstandingTiles = [
+            ['label' => 'Outstanding Invoices', 'value' => (string) ($report['summary']['invoice_count'] ?? 0), 'severity' => 'neutral'],
+            ['label' => 'Invoiced Total', 'value' => number_format((float) ($report['summary']['invoiced_total'] ?? 0), 2), 'severity' => 'neutral'],
+            ['label' => 'Collected Total', 'value' => number_format((float) ($report['summary']['collected_total'] ?? 0), 2), 'severity' => 'success'],
+            ['label' => 'Outstanding Receivable', 'value' => number_format((float) ($report['summary']['outstanding_total'] ?? 0), 2), 'severity' => 'warning'],
+        ];
+    ?>
+    <div class="kpi-grid">
+        <?php foreach ($outstandingTiles as $tile): ?>
+            <div class="kpi-card severity-<?= e($tile['severity']) ?>">
+                <div class="kpi-icon"><?= metric_icon_svg($tile['severity']) ?></div>
+                <div class="kpi-body">
+                    <div class="kpi-label"><?= e($tile['label']) ?></div>
+                    <div class="kpi-value"><?= e($tile['value']) ?></div>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
 
     <section class="panel">
@@ -58,11 +55,15 @@
         </form>
 
         <?php if (($report['items'] ?? []) === []): ?>
-            <div class="data-card"><span class="subtle">No outstanding invoices matched the selected filters.</span></div>
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-title">No results</div>
+                <div class="empty-state-text">No outstanding invoices matched the selected filters.</div>
+            </div>
         <?php else: ?>
-            <div style="overflow:auto;">
+            <div class="table-wrap">
                 <table>
-                    <thead>
+                    <thead class="table-header">
                         <tr>
                             <th>Invoice</th>
                             <th>Client</th>
@@ -71,7 +72,7 @@
                             <th>Ageing</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="table-body">
                         <?php foreach ($report['items'] as $row): ?>
                             <tr>
                                 <td>
@@ -80,14 +81,14 @@
                                     <span class="subtle"><?= e($row['company_name']) ?></span>
                                 </td>
                                 <td>
-                                    <strong><?= e($row['client_name']) ?></strong><br>
+                                    <?= queue_cell_html('client_name', $row['client_name']) ?><br>
                                     <span class="subtle"><?= e($row['mobile'] ?: '-') ?></span><br>
                                     <span class="subtle"><?= e($row['so_no']) ?> | <?= e($row['service_type_name']) ?></span>
                                 </td>
                                 <td>
                                     Net: <?= e(number_format((float) $row['net_payable'], 2)) ?><br>
                                     <span class="subtle">Collected: <?= e(number_format((float) $row['collected_amount'], 2)) ?></span><br>
-                                    <span class="chip"><?= e($row['payment_status']) ?></span>
+                                    <span class="badge badge-<?= e(status_severity((string) $row['payment_status'])) ?>"><?= e(label_case((string) $row['payment_status'])) ?></span>
                                 </td>
                                 <td><strong><?= e(number_format((float) $row['outstanding_amount'], 2)) ?></strong></td>
                                 <td><?= (int) $row['due_days'] > 0 ? e((string) $row['due_days']) . ' days overdue' : 'Current' ?></td>
