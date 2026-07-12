@@ -2,6 +2,7 @@
 /private_storage/
 /storage/logs/
 /storage/cache/
+/storage/backups/
 /backups/
 /vendor/
 /node_modules/
