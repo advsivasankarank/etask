@@ -65,6 +65,8 @@ if ($isPortalUser):
                         linear-gradient(180deg, #edf9fc 0%, #f7fcfd 50%, #ecf7fb 100%);
             color: var(--text);
             min-height: 100vh;
+            max-width: 100%;
+            overflow-x: clip;
         }
         a { color: inherit; text-decoration: none; }
 
@@ -325,6 +327,8 @@ if ($isPortalUser):
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
+            max-width: 100%;
+            overflow-x: clip;
         }
         a { color: inherit; text-decoration: none; }
 
@@ -363,8 +367,9 @@ if ($isPortalUser):
 
         .app-shell {
             display: grid;
-            grid-template-columns: 76px 1fr;
+            grid-template-columns: 76px minmax(0, 1fr);
             min-height: 100vh;
+            max-width: 100%;
         }
 
         /* Sidebar: 76px icon rail, expands to 264px as a fixed overlay on hover */
@@ -589,6 +594,8 @@ if ($isPortalUser):
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            min-width: 0;
+            width: 100%;
             background: linear-gradient(180deg, #edf9fc 0%, #f7fcfd 50%, #ecf7fb 100%);
         }
 
@@ -604,12 +611,16 @@ if ($isPortalUser):
             background: rgba(255,255,255,0.92);
             border-bottom: 1px solid rgba(20, 113, 135, 0.08);
             backdrop-filter: blur(12px);
+            min-width: 0;
+            max-width: 100%;
         }
 
         .topbar-left {
             display: flex;
             align-items: center;
             gap: 16px;
+            flex: 1;
+            min-width: 0;
         }
 
         .mobile-toggle {
@@ -625,6 +636,10 @@ if ($isPortalUser):
             font-family: var(--font-display);
             font-size: 1.2rem;
             font-weight: 600;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .topbar-avatar {
@@ -644,6 +659,8 @@ if ($isPortalUser):
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 0;
+            flex-shrink: 0;
         }
 
         .topbar-search {
@@ -694,6 +711,18 @@ if ($isPortalUser):
             padding: 28px 32px;
             display: grid;
             gap: 22px;
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .content-area > *,
+        .content-area section,
+        .content-area form,
+        .content-area .grid > *,
+        .content-area .responsive-grid > * {
+            min-width: 0;
+            max-width: 100%;
         }
 
         .flash {
@@ -737,8 +766,13 @@ if ($isPortalUser):
         }
 
         @media (max-width: 768px) {
-            .topbar-right { gap: 6px; }
+            .topbar { gap: 8px; }
+            .topbar-left { gap: 10px; }
+            .topbar-title { font-size: 1rem; }
+            .topbar-right { gap: 2px; }
             .topbar-search { display: none; }
+            .topbar-link { padding: 8px; }
+            .topbar-profile-name { display: none; }
         }
 
         /* Overlay */
@@ -758,6 +792,8 @@ if ($isPortalUser):
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow);
             padding: 24px;
+            min-width: 0;
+            max-width: 100%;
         }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
         .metric {
@@ -885,10 +921,10 @@ if ($isPortalUser):
             color: var(--muted);
         }
         .chip-strong { background: #fff3e5; color: #7e3f1e; border-color: rgba(201, 109, 66, 0.16); }
-        .table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .table-wrap { width: 100%; max-width: 100%; overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
         .table-wrap table { min-width: 600px; }
         .panel table { width: 100%; }
-        .panel > div > table, .panel > table { display: block; overflow-x: auto; }
+        .panel > div > table, .panel > table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .responsive-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
         .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
         .form-row > div { flex: 1; min-width: 160px; }
@@ -950,16 +986,18 @@ if ($isPortalUser):
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
             padding: 14px 16px;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             background: #fff;
             transition: box-shadow 0.15s, border-color 0.15s;
         }
+        .quick-tile > span:last-child { min-width: 0; }
         .quick-tile:hover { border-color: rgba(20, 113, 135, 0.25); box-shadow: var(--shadow-sm); }
         .quick-tile-icon { width: 36px; height: 36px; border-radius: 50%; background: #e8f6f8; color: var(--primary-dark); display: grid; place-items: center; flex-shrink: 0; }
         .quick-tile-icon svg { width: 16px; height: 16px; }
-        .quick-tile-title { font-weight: 600; font-size: 0.9rem; }
+        .quick-tile-title { font-weight: 600; font-size: 0.9rem; overflow-wrap: anywhere; }
         .quick-tile-sub { font-size: 0.78rem; color: var(--muted); }
 
         /* Improved form styling */
@@ -1018,7 +1056,85 @@ if ($isPortalUser):
             input, select, textarea { padding: 12px 14px; font-size: 0.95rem; }
             .form-row { flex-direction: column; }
             .form-row > div { min-width: 100%; }
-            .form-section { padding: 14px; }
+            .form-section, .panel { padding: 16px; }
+            .grid, .responsive-grid, .card-grid, .kpi-grid, .stat-row,
+            .content-area [style*="minmax("] {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+            .search-bar { grid-template-columns: minmax(0, 1fr); }
+            .toolbar { align-items: stretch; }
+            .toolbar > * { min-width: 0; }
+            .hero-card { padding: 22px 20px; align-items: stretch; }
+            .hero-card-body { min-width: 0; }
+            .hero-card-actions {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr);
+                width: 100%;
+            }
+            .hero-btn { justify-content: center; text-align: center; }
+            table:not(.mobile-card-table) {
+                display: block;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mobile-card-wrap {
+                overflow: visible;
+                border: 0;
+                background: transparent;
+            }
+            .mobile-card-table,
+            .mobile-card-table tbody,
+            .mobile-card-table tr,
+            .mobile-card-table td {
+                display: block;
+                width: 100%;
+                min-width: 0;
+            }
+            .mobile-card-table {
+                min-width: 0 !important;
+                overflow: visible;
+            }
+            .mobile-card-table thead { display: none; }
+            .mobile-card-table tbody { display: grid; gap: 14px; }
+            .mobile-card-table tr {
+                padding: 6px 14px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                background: #fff;
+                box-shadow: var(--shadow-sm);
+            }
+            .mobile-card-table td {
+                display: grid;
+                grid-template-columns: minmax(88px, 0.42fr) minmax(0, 1fr);
+                gap: 12px;
+                align-items: start;
+                padding: 10px 0;
+                overflow-wrap: anywhere;
+            }
+            .mobile-card-table td::before {
+                content: attr(data-label);
+                color: var(--muted);
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }
+            .mobile-card-table td.mobile-card-actions {
+                grid-template-columns: minmax(0, 1fr);
+                padding-top: 12px;
+            }
+            .mobile-card-table td.mobile-card-actions::before { content: none; }
+            .mobile-card-table td.mobile-card-actions > div {
+                justify-content: stretch !important;
+            }
+            .mobile-card-table td.mobile-card-actions .btn {
+                flex: 1;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -1324,9 +1440,9 @@ if ($isPortalUser):
                     <a href="<?= e(url($notificationLink)) ?>" class="topbar-link">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
                     </a>
-                    <a href="<?= e(url($profileLink)) ?>" class="topbar-link" style="gap:10px;">
+                    <a href="<?= e(url($profileLink)) ?>" class="topbar-link" style="gap:10px;" aria-label="Profile: <?= e($currentUser['full_name'] ?? 'User') ?>">
                         <span class="topbar-avatar"><?= e(strtoupper(substr((string) ($currentUser['full_name'] ?? 'U'), 0, 1))) ?></span>
-                        <?= e($currentUser['full_name'] ?? 'Profile') ?>
+                        <span class="topbar-profile-name"><?= e($currentUser['full_name'] ?? 'Profile') ?></span>
                     </a>
                 </div>
             </header>

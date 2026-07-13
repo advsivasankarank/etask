@@ -29,8 +29,8 @@
             <div class="empty-state-text">No clients found matching your search criteria.</div>
         </div>
     <?php else: ?>
-        <div class="table-wrap">
-            <table>
+        <div class="table-wrap mobile-card-wrap">
+            <table class="mobile-card-table">
                 <thead class="table-header">
                     <tr>
                         <th>Client</th>
@@ -44,7 +44,7 @@
                 <tbody class="table-body">
                     <?php foreach ($clients as $client): ?>
                         <tr>
-                            <td>
+                            <td data-label="Client">
                                 <div class="cell-with-avatar">
                                     <span class="avatar-chip"><?= e(strtoupper(substr($client['legal_name'], 0, 1))) ?></span>
                                     <span>
@@ -53,17 +53,17 @@
                                     </span>
                                 </div>
                             </td>
-                            <td><?= e(($client['gstin'] ?: '—') . ' / ' . ($client['tan'] ?: '—')) ?></td>
-                            <td><?= e($client['mobile'] ?: '—') ?></td>
-                            <td><?= e($client['assigned_crm_name'] ?: '—') ?></td>
-                            <td>
+                            <td data-label="GST / TAN"><?= e(($client['gstin'] ?: '—') . ' / ' . ($client['tan'] ?: '—')) ?></td>
+                            <td data-label="Mobile"><?= e($client['mobile'] ?: '—') ?></td>
+                            <td data-label="CRM"><?= e($client['assigned_crm_name'] ?: '—') ?></td>
+                            <td data-label="Status">
                                 <?php if ((int) $client['is_active'] === 1): ?>
                                     <span class="badge badge-success">Active</span>
                                 <?php else: ?>
                                     <span class="badge badge-neutral">Archived</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="mobile-card-actions" data-label="Actions">
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
                                     <a href="<?= e(url('/clients/show?id=' . $client['id'])) ?>" class="btn btn-secondary btn-sm">View</a>
                                     <?php if (\App\Core\Auth::can('clients.edit')): ?>
