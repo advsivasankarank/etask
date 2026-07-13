@@ -1,8 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /etask/public/
 
     Options -Indexes
+    DirectoryIndex index.php
 
     RewriteRule "(^|/)\." - [F]
 
