@@ -58,6 +58,14 @@ final class Session
         unset($_SESSION[$key]);
     }
 
+    public static function pull(string $key, mixed $default = null): mixed
+    {
+        $value = self::get($key, $default);
+        self::forget($key);
+
+        return $value;
+    }
+
     public static function flash(string $key, mixed $value): void
     {
         $_SESSION['_flash'][$key] = $value;

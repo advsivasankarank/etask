@@ -64,6 +64,7 @@ final class RegressionSuite
 
         try {
             $this->bootstrapActors();
+            $this->runTest('Session Pull Semantics', fn (): array => $this->testSessionPullSemantics());
             $this->runTest('Authentication', fn (): array => $this->testAuthentication());
             $this->runTest('Client Creation', fn (): array => $this->testClientCreation());
             $this->runTest('Portal Credential Creation', fn (): array => $this->testPortalCredentialCreation());
@@ -100,6 +101,33 @@ final class RegressionSuite
                 'started_at' => date('Y-m-d H:i:s', (int) $this->startedAt),
                 'finished_at' => date('Y-m-d H:i:s', (int) $finishedAt),
                 'coverage' => $this->coverageSummary($summary),
+            ],
+        ];
+    }
+
+    private function testSessionPullSemantics(): array
+    {
+        Session::put('emergency_logout', true);
+        Session::put('logout_pending', true);
+
+        $emergencyLogout = Session::pull('emergency_logout', false);
+        $logoutPending = Session::pull('logout_pending', false);
+
+        $this->assertTrue($emergencyLogout === true, 'Expected the emergency logout flag to be returned.');
+        $this->assertTrue($logoutPending === true, 'Expected the pending logout flag to be returned.');
+        $this->assertTrue(Session::get('emergency_logout') === null, 'Expected the emergency logout flag to be removed after pull.');
+        $this->assertTrue(Session::get('logout_pending') === null, 'Expected the pending logout flag to be removed after pull.');
+        $this->assertTrue(Session::pull('missing_logout_flag', false) === false, 'Expected a missing flag to return its default.');
+
+        return [
+            'checks' => [
+                'Emergency logout flags are returned and removed atomically.',
+                'Pending logout flags are returned and removed atomically.',
+                'Missing session values return the supplied default.',
+            ],
+            'details' => [
+                'emergency_logout_removed' => Session::get('emergency_logout') === null,
+                'logout_pending_removed' => Session::get('logout_pending') === null,
             ],
         ];
     }

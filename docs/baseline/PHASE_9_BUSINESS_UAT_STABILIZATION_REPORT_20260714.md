@@ -66,7 +66,7 @@ The local regression suite validates the following business chain with synthetic
 11. Search, reminders, and management reports
 12. Database rollback and temporary-file cleanup
 
-The suite passed twice consecutively at **15/15**, with zero database or document fixture residue after each run.
+The original Phase 9 suite passed twice consecutively at **15/15**, with zero database or document fixture residue after each run. The logout hotfix adds a sixteenth check for pull-and-forget session flags used by both normal and emergency logout paths.
 
 ## Stabilization correction
 
