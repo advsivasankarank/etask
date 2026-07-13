@@ -72,7 +72,7 @@ if ($isPortalUser):
 
         .portal-shell {
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 260px minmax(0, 1fr);
             min-height: 100vh;
         }
 
@@ -180,6 +180,7 @@ if ($isPortalUser):
 
         .portal-content {
             padding: 24px;
+            min-width: 0;
             overflow-y: auto;
         }
 
@@ -199,6 +200,43 @@ if ($isPortalUser):
             margin: 0;
             font-size: 1.4rem;
             font-weight: 700;
+        }
+
+        .portal-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .portal-mobile-toggle {
+            display: none;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--primary-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(20, 113, 135, 0.08);
+        }
+
+        .portal-mobile-toggle svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .portal-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            border: 0;
+            background: rgba(13, 61, 74, 0.52);
+            cursor: pointer;
         }
 
         .flash {
@@ -230,27 +268,36 @@ if ($isPortalUser):
                 position: fixed;
                 left: -280px;
                 width: 280px;
-                z-index: 100;
+                z-index: 110;
                 transition: left 0.3s;
             }
             .portal-sidebar.open { left: 0; }
+            .portal-sidebar-overlay.active { display: block; }
+            .portal-mobile-toggle { display: inline-flex; }
             .portal-content { padding: 16px; }
+            .portal-topbar { padding: 16px; }
+            .portal-topbar h1 {
+                overflow: hidden;
+                font-size: 1.2rem;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
         }
     </style>
 </head>
 <body>
     <div class="portal-shell">
-        <aside class="portal-sidebar">
+        <aside class="portal-sidebar" id="portalSidebar">
             <div class="portal-brand">
                 <div class="portal-brand-logo"><span class="e">e-</span>Pani</div>
                 <div class="portal-brand-sub">Client Portal</div>
             </div>
             <nav class="portal-nav">
-                <a href="<?= e(url('/client-portal/account')) ?>" class="<?= $activeMenu === 'client_portal' ? 'active' : '' ?>">
+                <a href="<?= e(url('/client-portal/account')) ?>" class="<?= $requestUri === '/client-portal/account' ? 'active' : '' ?>">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
                     My Account
                 </a>
-                <a href="<?= e(url('/client-portal/pso')) ?>" class="<?= $activeMenu === 'client_portal' && $requestUri === '/client-portal/pso' ? 'active' : '' ?>">
+                <a href="<?= e(url('/client-portal/pso')) ?>" class="<?= (str_starts_with($requestUri, '/client-portal/pso') || str_starts_with($requestUri, '/service-orders')) ? 'active' : '' ?>">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
                     My Services
                 </a>
@@ -274,9 +321,15 @@ if ($isPortalUser):
                 </form>
             </div>
         </aside>
+        <button type="button" class="portal-sidebar-overlay" id="portalSidebarOverlay" aria-label="Close portal navigation" tabindex="-1"></button>
         <main class="portal-content">
             <div class="portal-topbar">
-                <h1><?= e($title ?? 'Dashboard') ?></h1>
+                <div class="portal-topbar-left">
+                    <button type="button" class="portal-mobile-toggle" id="portalMobileToggle" aria-label="Open portal navigation" aria-controls="portalSidebar" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+                    </button>
+                    <h1><?= e($title ?? 'Dashboard') ?></h1>
+                </div>
             </div>
             <?php if (!empty($success)): ?>
                 <div class="flash flash-success"><?= e($success) ?></div>
@@ -285,6 +338,41 @@ if ($isPortalUser):
             <footer class="app-footer">e-Pani : Office Management Suite from E Tax Advisors Private Limited</footer>
         </main>
     </div>
+    <script>
+        (() => {
+            const toggle = document.getElementById('portalMobileToggle');
+            const sidebar = document.getElementById('portalSidebar');
+            const overlay = document.getElementById('portalSidebarOverlay');
+            if (!toggle || !sidebar || !overlay) return;
+
+            const closeNavigation = () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open portal navigation');
+            };
+
+            const openNavigation = () => {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                toggle.setAttribute('aria-expanded', 'true');
+                toggle.setAttribute('aria-label', 'Close portal navigation');
+            };
+
+            toggle.addEventListener('click', () => {
+                if (sidebar.classList.contains('open')) closeNavigation();
+                else openNavigation();
+            });
+            overlay.addEventListener('click', closeNavigation);
+            sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeNavigation));
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeNavigation();
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900) closeNavigation();
+            });
+        })();
+    </script>
 </body>
 </html>
 <?php else: ?>

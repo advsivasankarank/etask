@@ -226,6 +226,10 @@ final class ServiceOrderController
             redirect('/service-orders');
         }
 
+        if (Auth::isPortalUser() && (int) ($order['client_id'] ?? 0) !== (int) Auth::clientId()) {
+            Response::abort(403, 'You do not have access to this service order.');
+        }
+
         try {
             $documentCategory = trim((string) $request->input('document_category', 'SERVICE_ORDER_DOC')) ?: 'SERVICE_ORDER_DOC';
             $files = $request->files()['documents'] ?? null;

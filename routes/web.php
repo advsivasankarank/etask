@@ -39,9 +39,9 @@ $router->get('/search', [SearchController::class, 'index'], ['auth', 'permission
 $router->get('/search/quick', [SearchController::class, 'quick'], ['auth', 'permission:search.quick,search.view']);
 $router->get('/search/advanced', [SearchController::class, 'advanced'], ['auth', 'permission:search.advanced']);
 $router->get('/search/history', [SearchController::class, 'history'], ['auth', 'permission:search.history,search.audit']);
-$router->get('/documents/show', [DocumentController::class, 'show'], ['auth', 'permission:documents.view,documents.download']);
-$router->get('/documents/{id}/download', [DocumentController::class, 'download'], ['auth', 'permission:documents.download']);
-$router->get('/documents/{id}/preview', [DocumentController::class, 'preview'], ['auth', 'permission:documents.view,documents.download']);
+$router->get('/documents/show', [DocumentController::class, 'show'], ['auth', 'permission:documents.view,documents.download,portal.self_access']);
+$router->get('/documents/{id}/download', [DocumentController::class, 'download'], ['auth', 'permission:documents.download,portal.self_access']);
+$router->get('/documents/{id}/preview', [DocumentController::class, 'preview'], ['auth', 'permission:documents.view,documents.download,portal.self_access']);
 $router->post('/documents/replace', [DocumentController::class, 'replace'], ['auth', 'permission:documents.replace']);
 $router->post('/documents/verify', [DocumentController::class, 'verify'], ['auth', 'permission:documents.verify']);
 $router->get('/documents', [DocumentController::class, 'index'], ['auth', 'permission:documents.view,documents.download']);
@@ -136,8 +136,8 @@ $router->post('/client-portal/pso/approve', [ClientPortalController::class, 'app
 $router->post('/client-portal/pso/reject', [ClientPortalController::class, 'reject'], ['auth', 'permission:portal.pso.reject']);
 $router->get('/billing', [BillingController::class, 'index'], ['auth', 'permission:billing.view']);
 $router->get('/billing/show', [BillingController::class, 'show'], ['auth', 'permission:billing.view']);
-$router->get('/billing/invoice', [BillingController::class, 'invoice'], ['auth', 'permission:billing.view']);
-$router->get('/billing/receipt', [BillingController::class, 'receipt'], ['auth', 'permission:billing.view']);
+$router->get('/billing/invoice', [BillingController::class, 'invoice'], ['auth', 'permission:billing.view,portal.self_access']);
+$router->get('/billing/receipt', [BillingController::class, 'receipt'], ['auth', 'permission:billing.view,portal.self_access']);
 $router->post('/billing/disbursements', [BillingController::class, 'addDisbursement'], ['auth', 'permission:billing.disbursements.manage']);
 $router->post('/billing/invoices', [BillingController::class, 'createInvoice'], ['auth', 'permission:billing.invoices.manage']);
 $router->post('/billing/payments', [BillingController::class, 'recordPayment'], ['auth', 'permission:billing.payments.manage']);
