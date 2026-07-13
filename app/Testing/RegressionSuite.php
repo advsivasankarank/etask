@@ -41,10 +41,17 @@ final class RegressionSuite
         'shared' => [],
         'cleanup_files' => [],
     ];
+    private string $runToken;
     private float $startedAt;
 
     public function __construct()
     {
+        $environment = strtolower((string) Config::get('app.env', 'production'));
+        if (!in_array($environment, ['local', 'testing'], true)) {
+            throw new RuntimeException('The regression suite can only run in a local or testing environment.');
+        }
+
+        $this->runToken = strtolower(bin2hex(random_bytes(4)));
         $this->startedAt = microtime(true);
         $this->connection = $this->installNestedConnection();
     }
@@ -61,6 +68,7 @@ final class RegressionSuite
             $this->runTest('Client Creation', fn (): array => $this->testClientCreation());
             $this->runTest('Portal Credential Creation', fn (): array => $this->testPortalCredentialCreation());
             $this->runTest('PSO Creation', fn (): array => $this->testPsoCreation());
+            $this->runTest('Portal Authentication', fn (): array => $this->testPortalAuthentication());
             $this->runTest('RBAC Permissions', fn (): array => $this->testRbacPermissions());
             $this->runTest('Service Order Creation', fn (): array => $this->testServiceOrderCreation());
             $this->runTest('Workflow Progression', fn (): array => $this->testWorkflowProgression());
@@ -79,6 +87,8 @@ final class RegressionSuite
             Session::destroy();
             $this->resetDatabaseConnection();
         }
+
+        $this->recordFixtureCleanupVerification();
 
         $finishedAt = microtime(true);
         $summary = $this->summary($finishedAt - $this->startedAt);
@@ -147,6 +157,38 @@ final class RegressionSuite
         ];
     }
 
+    private function testPortalAuthentication(): array
+    {
+        $portalUser = $this->requireShared('portal_user');
+        $request = $this->makeRequest('POST', '/login');
+
+        Session::forget('auth_user');
+        $result = (new AuthService())->attempt(
+            (string) $portalUser['username'],
+            (string) $portalUser['password'],
+            $request
+        );
+        $sessionUser = Auth::user();
+
+        $this->assertTrue(($result['success'] ?? false) === true, 'Expected PAN-based portal credentials to authenticate.');
+        $this->assertTrue(Auth::isPortalUser(), 'Expected the authenticated account to be recognized as a portal user.');
+        $this->assertTrue((int) ($sessionUser['client_id'] ?? 0) > 0, 'Expected portal authentication to retain the linked client scope.');
+
+        Session::forget('auth_user');
+
+        return [
+            'checks' => [
+                'PAN-based portal username authenticates successfully.',
+                'Authenticated session is restricted to the portal actor type.',
+                'Portal session retains its linked client scope.',
+            ],
+            'details' => [
+                'username' => $portalUser['username'],
+                'client_id' => $sessionUser['client_id'] ?? null,
+            ],
+        ];
+    }
+
     private function testClientCreation(): array
     {
         $superAdmin = $this->requireShared('super_admin');
@@ -154,16 +196,16 @@ final class RegressionSuite
 
         $clientId = (new ClientService())->create([
             'client_type' => 'INDIVIDUAL',
-            'legal_name' => 'Regression Client ' . date('His'),
-            'trade_name' => 'Regression Client Trade',
-            'pan' => 'RGXPA' . substr(strtoupper(md5((string) microtime(true))), 0, 5),
+            'legal_name' => 'Regression Client ' . $this->runToken,
+            'trade_name' => 'Regression Client Trade ' . $this->runToken,
+            'pan' => $this->uniqueFixturePan(),
             'tan' => 'CHNR' . random_int(10000, 99999) . 'A',
             'gstin' => '33ABCDE1234F1Z5',
             'aadhaar_no' => '123412341234',
-            'email' => 'regression.client@example.test',
+            'email' => 'regression.client.' . $this->runToken . '@example.test',
             'mobile' => '9000000001',
             'contact_name' => 'Regression Contact',
-            'contact_email' => 'regression.contact@example.test',
+            'contact_email' => 'regression.contact.' . $this->runToken . '@example.test',
             'contact_mobile' => '9000000002',
             'assigned_crm_id' => $crm['id'],
             'city' => 'Chennai',
@@ -622,7 +664,7 @@ final class RegressionSuite
         $actor = $this->requireShared('super_admin');
         $roleId = $this->roleId($roleCode);
         $password = 'Smoke!234';
-        $username = 'reg.internal.' . substr(md5((string) microtime(true)), 0, 8);
+        $username = 'reg.' . $this->runToken . '.' . substr(md5((string) microtime(true)), 0, 8);
 
         $userId = (new UserService())->create([
             'user_type' => 'INTERNAL',
@@ -648,20 +690,19 @@ final class RegressionSuite
     private function createPortalUser(int $clientContactId): array
     {
         $actor = $this->requireShared('portal_manager');
-        $roleId = $this->roleId('CLIENT');
         $password = 'Portal!234';
-        $username = 'reg.portal.' . substr(md5((string) microtime(true)), 0, 8);
-
-        $userId = (new UserService())->create([
-            'user_type' => 'PORTAL',
-            'role_ids' => [$roleId],
-            'client_contact_id' => $clientContactId,
-            'username' => $username,
-            'password' => $password,
-            'full_name' => 'Regression Portal User',
-            'email' => $username . '@example.test',
-            'mobile' => '9000000200',
-        ], $actor['session']);
+        $email = 'regression.portal.' . $this->runToken . '@example.test';
+        $created = (new UserService())->createPortalUserForClientContact(
+            $clientContactId,
+            'PAN',
+            $password,
+            'Regression Portal User',
+            $email,
+            '9000000200',
+            (int) $actor['id']
+        );
+        $userId = (int) $created['user_id'];
+        $username = (string) $created['username'];
 
         return [
             'id' => $userId,
@@ -684,7 +725,7 @@ final class RegressionSuite
             throw new RuntimeException('Unable to create regression document directory.');
         }
 
-        $fileName = 'regression-document-' . substr(md5((string) microtime(true)), 0, 12) . '.txt';
+        $fileName = 'regression-document-' . $this->runToken . '-' . substr(md5((string) microtime(true)), 0, 12) . '.txt';
         $absolutePath = $absoluteDirectory . DIRECTORY_SEPARATOR . $fileName;
         file_put_contents($absolutePath, 'Regression secure document test');
         $this->context['cleanup_files'][] = $absolutePath;
@@ -725,6 +766,82 @@ final class RegressionSuite
         ]);
 
         return $documentId;
+    }
+
+    private function uniqueFixturePan(): string
+    {
+        for ($attempt = 0; $attempt < 20; $attempt++) {
+            $candidate = 'RGXPA'
+                . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT)
+                . chr(random_int(65, 90));
+            $exists = (int) $this->fetchValue('SELECT COUNT(*) FROM clients WHERE pan = :pan', ['pan' => $candidate]);
+
+            if ($exists === 0) {
+                return $candidate;
+            }
+        }
+
+        throw new RuntimeException('Unable to generate a unique valid PAN fixture.');
+    }
+
+    private function recordFixtureCleanupVerification(): void
+    {
+        $startedAt = microtime(true);
+
+        try {
+            $connection = Database::connection();
+            $queries = [
+                'clients' => [
+                    'sql' => 'SELECT COUNT(*) FROM clients WHERE legal_name = :marker',
+                    'params' => ['marker' => 'Regression Client ' . $this->runToken],
+                ],
+                'users' => [
+                    'sql' => 'SELECT COUNT(*) FROM users WHERE username LIKE :username_prefix OR email = :portal_email',
+                    'params' => [
+                        'username_prefix' => 'reg.' . $this->runToken . '.%',
+                        'portal_email' => 'regression.portal.' . $this->runToken . '@example.test',
+                    ],
+                ],
+                'documents' => [
+                    'sql' => 'SELECT COUNT(*) FROM documents WHERE latest_file_name LIKE :file_prefix',
+                    'params' => ['file_prefix' => 'regression-document-' . $this->runToken . '-%'],
+                ],
+            ];
+
+            $residue = [];
+            foreach ($queries as $label => $query) {
+                $statement = $connection->prepare($query['sql']);
+                $statement->execute($query['params']);
+                $residue[$label] = (int) $statement->fetchColumn();
+            }
+
+            $residue['files'] = count(array_filter(
+                $this->context['cleanup_files'],
+                static fn (mixed $file): bool => is_string($file) && is_file($file)
+            ));
+
+            $this->assertTrue(array_sum($residue) === 0, 'Regression fixtures were not fully removed after rollback.');
+            $status = 'PASS';
+            $error = null;
+            $checks = [
+                'Database fixtures are removed by the outer transaction rollback.',
+                'Temporary secure-document files are deleted after execution.',
+            ];
+        } catch (Throwable $throwable) {
+            $status = 'FAIL';
+            $error = $throwable->getMessage();
+            $checks = [];
+            $residue = [];
+        }
+
+        $this->results[] = [
+            'name' => 'Fixture Cleanup',
+            'status' => $status,
+            'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            'checks' => $checks,
+            'details' => $residue,
+            'error' => $error,
+        ];
     }
 
     private function runTest(string $name, callable $callback): void
@@ -776,7 +893,7 @@ final class RegressionSuite
         return [
             'Execution model' => 'CLI smoke suite with nested transaction rollback',
             'Command' => 'php database/scripts/run_regression_suite.php',
-            'Covered modules' => 'Authentication, RBAC, Clients, Portal Credentials, PSO, Service Orders, Workflow, Billing, Documents, Search, Reminders, Reports',
+            'Covered modules' => 'Internal and portal authentication, RBAC, Clients, Portal Credentials, PSO, Service Orders, Workflow, Billing, Documents, Search, Reminders, Reports, Fixture Cleanup',
             'Total smoke tests' => (string) $summary['total'],
             'Passed' => (string) $summary['passed'],
             'Failed' => (string) $summary['failed'],
