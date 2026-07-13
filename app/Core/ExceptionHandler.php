@@ -43,7 +43,14 @@ final class ExceptionHandler
 
     public static function handle(Throwable $exception): void
     {
+        $incidentReference = 'ERR-' . date('Ymd-His') . '-' . strtoupper(substr(hash(
+            'sha256',
+            $exception->getMessage() . '|' . $exception->getFile() . '|' . $exception->getLine() . '|' . microtime(true)
+        ), 0, 8));
+        $occurredAt = date(DATE_ATOM);
+
         Logger::error('application.exception', [
+            'incident_reference' => $incidentReference,
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
@@ -57,12 +64,24 @@ final class ExceptionHandler
 
         http_response_code(500);
 
+        $retryPath = null;
+        $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        if (in_array($requestMethod, ['GET', 'HEAD'], true)) {
+            $candidatePath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+            if (is_string($candidatePath) && str_starts_with($candidatePath, '/')) {
+                $retryPath = $candidatePath;
+            }
+        }
+
         try {
             echo View::render(base_path('app/Views/errors/500.php'), [
                 'title' => 'Server Error',
+                'incidentReference' => $incidentReference,
+                'occurredAt' => $occurredAt,
+                'retryPath' => $retryPath,
             ], null);
         } catch (Throwable) {
-            echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Server Error</title></head><body><h1>500</h1><p>An unexpected error occurred.</p></body></html>';
+            echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Server Error</title></head><body><h1>500</h1><p>An unexpected error occurred. Reference: ' . htmlspecialchars($incidentReference, ENT_QUOTES, 'UTF-8') . '</p></body></html>';
         }
     }
 }

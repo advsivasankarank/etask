@@ -29,6 +29,9 @@
         $allMetrics = $dashboard['metrics'] ?? [];
         $heroMetrics = $dashboard['heroStats'] ?? array_slice($allMetrics, 0, 4, true);
         $restMetrics = isset($dashboard['heroStats']) ? $allMetrics : array_slice($allMetrics, 4, null, true);
+        $activeRestMetrics = array_filter($restMetrics, static fn ($value): bool => (float) $value !== 0.0);
+        $clearMetricCount = count($restMetrics) - count($activeRestMetrics);
+        $creationTrendTotal = array_sum(array_map(static fn ($row): int => (int) ($row['count'] ?? 0), $dashboard['creationTrend'] ?? []));
     ?>
 
     <div class="stat-row">
@@ -111,50 +114,58 @@
             <div class="panel" style="box-shadow:none;">
                 <div class="eyebrow">Trend</div>
                 <h2 class="section-title" style="margin-top:2px;">Service Orders Created — Last 14 Days</h2>
-                <div style="height:190px;">
-                    <canvas id="creationTrendChart" role="img" aria-label="Service orders created each day during the last 14 days"></canvas>
-                </div>
-                <script>
-                (function() {
-                    var el = document.getElementById('creationTrendChart');
-                    if (!el || typeof Chart === 'undefined') return;
-                    if (typeof Chart.defaults !== 'undefined') { Chart.defaults.font.family = "'Poppins', sans-serif"; }
-                    var gradient = el.getContext('2d').createLinearGradient(0, 0, 0, 190);
-                    gradient.addColorStop(0, 'rgba(20, 153, 168, 0.25)');
-                    gradient.addColorStop(1, 'rgba(20, 153, 168, 0.02)');
-                    new Chart(el, {
-                        type: 'line',
-                        data: {
-                            labels: <?= json_encode(array_map(static fn ($row) => date('d M', strtotime((string) $row['date'])), $dashboard['creationTrend'] ?? [])) ?>,
-                            datasets: [{
-                                label: 'Service Orders Created',
-                                data: <?= json_encode(array_map(static fn ($row) => $row['count'], $dashboard['creationTrend'] ?? [])) ?>,
-                                borderColor: '#1499a8',
-                                backgroundColor: gradient,
-                                fill: true,
-                                tension: 0.35,
-                                pointRadius: 3,
-                                pointBackgroundColor: '#1499a8'
-                            }]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(16,24,40,0.05)' } },
-                                x: { grid: { display: false } }
+                <?php if ($creationTrendTotal === 0): ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <div class="empty-state-title">No recent service-order activity</div>
+                        <div class="empty-state-text">The 14-day trend will appear after the first service order is created.</div>
+                    </div>
+                <?php else: ?>
+                    <div style="height:190px;">
+                        <canvas id="creationTrendChart" role="img" aria-label="Service orders created each day during the last 14 days"></canvas>
+                    </div>
+                    <script>
+                    (function() {
+                        var el = document.getElementById('creationTrendChart');
+                        if (!el || typeof Chart === 'undefined') return;
+                        if (typeof Chart.defaults !== 'undefined') { Chart.defaults.font.family = "'Poppins', sans-serif"; }
+                        var gradient = el.getContext('2d').createLinearGradient(0, 0, 0, 190);
+                        gradient.addColorStop(0, 'rgba(20, 153, 168, 0.25)');
+                        gradient.addColorStop(1, 'rgba(20, 153, 168, 0.02)');
+                        new Chart(el, {
+                            type: 'line',
+                            data: {
+                                labels: <?= json_encode(array_map(static fn ($row) => date('d M', strtotime((string) $row['date'])), $dashboard['creationTrend'] ?? [])) ?>,
+                                datasets: [{
+                                    label: 'Service Orders Created',
+                                    data: <?= json_encode(array_map(static fn ($row) => $row['count'], $dashboard['creationTrend'] ?? [])) ?>,
+                                    borderColor: '#1499a8',
+                                    backgroundColor: gradient,
+                                    fill: true,
+                                    tension: 0.35,
+                                    pointRadius: 3,
+                                    pointBackgroundColor: '#1499a8'
+                                }]
+                            },
+                            options: {
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(16,24,40,0.05)' } },
+                                    x: { grid: { display: false } }
+                                }
                             }
-                        }
-                    });
-                })();
-                </script>
+                        });
+                    })();
+                    </script>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if ($restMetrics !== []): ?>
         <div class="kpi-grid">
-            <?php foreach ($restMetrics as $label => $value): ?>
+            <?php foreach ($activeRestMetrics as $label => $value): ?>
                 <?php $severity = metric_severity((string) $label); ?>
                 <div class="kpi-card severity-<?= e($severity) ?>">
                     <div class="kpi-icon"><?= metric_icon_svg($severity) ?></div>
@@ -164,6 +175,16 @@
                     </div>
                 </div>
             <?php endforeach; ?>
+            <?php if ($clearMetricCount > 0): ?>
+                <div class="kpi-card severity-success">
+                    <div class="kpi-icon"><?= metric_icon_svg('success') ?></div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">No Exceptions</div>
+                        <div class="kpi-value"><?= e((string) $clearMetricCount) ?></div>
+                        <div class="subtle" style="font-size:0.78rem;margin-top:2px;">checks are clear</div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
