@@ -354,10 +354,15 @@ final class AttendanceRepository
                 LEFT JOIN attendance_sessions att ON att.user_id = u.id
                     AND DATE(att.login_at) BETWEEN :date_from AND :date_to
                 LEFT JOIN daily_work_reports dwr ON dwr.user_id = u.id
-                    AND dwr.report_date BETWEEN :date_from AND :date_to
+                    AND dwr.report_date BETWEEN :report_date_from AND :report_date_to
                 WHERE r.scope = 'SYSTEM' AND r.code != 'CLIENT' AND u.is_active = 1";
 
-        $params = ['date_from' => $dateFrom, 'date_to' => $dateTo];
+        $params = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'report_date_from' => $dateFrom,
+            'report_date_to' => $dateTo,
+        ];
 
         if ($staffId !== null && $staffId > 0) {
             $sql .= " AND u.id = :staff_id";

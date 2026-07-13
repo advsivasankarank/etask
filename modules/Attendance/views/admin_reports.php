@@ -25,7 +25,7 @@ $totalPages = $reports['total_pages'] ?? 1;
         <h1 style="margin:0;font-size:1.6rem;font-weight:700;">Staff Daily Reports</h1>
         <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem;">Review and manage staff work reports</p>
     </div>
-    <?php if (Auth::can('attendance.productivity.view')): ?>
+    <?php if (\App\Core\Auth::can('attendance.productivity.view')): ?>
     <a href="/attendance/productivity" class="button" style="background:var(--primary);color:#fff;padding:10px 20px;border-radius:12px;">Productivity View</a>
     <?php endif; ?>
 </div>

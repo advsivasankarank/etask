@@ -186,6 +186,20 @@ final class UserController
     {
         $this->guardRightsManagementAccess();
         $userId = (int) $request->input('id', 0);
+
+        if ($userId <= 0) {
+            $pagination = $this->users->paginateSearch('', false, true, 1, 100);
+
+            Response::html(View::render(base_path('modules/Users/views/rights_index.php'), [
+                'title' => 'Roles & Permissions',
+                'activeMenu' => 'users',
+                'users' => $pagination['items'],
+                'success' => Session::pullFlash('success'),
+                'error' => Session::pullFlash('error'),
+            ]));
+            return;
+        }
+
         $catalog = $this->userService->rightsCatalogForUser($userId);
 
         $content = View::render(base_path('modules/Users/views/rights.php'), [

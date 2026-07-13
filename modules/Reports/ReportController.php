@@ -27,6 +27,7 @@ final class ReportController
             'title' => 'Reports',
             'activeMenu' => 'reports',
             'cards' => $this->reports->overviewCards(),
+            'summary' => $this->reports->summaryCounts(),
         ]));
     }
 
