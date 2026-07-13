@@ -10,7 +10,7 @@
             <?php foreach (($templates ?? []) as $template): ?>
                 <tr>
                     <td><?= e($template['code']) ?></td>
-                    <td><?= e($template['reminder_type']) ?></td>
+                    <td><?= e(label_case((string) $template['reminder_type'])) ?></td>
                     <td><?= e($template['channel']) ?></td>
                     <td><?= e($template['subject'] ?: '-') ?></td>
                     <td><span class="chip <?= (int) $template['is_active'] === 1 ? 'chip-strong' : '' ?>"><?= (int) $template['is_active'] === 1 ? 'Active' : 'Inactive' ?></span></td>

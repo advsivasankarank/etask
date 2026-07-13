@@ -55,7 +55,7 @@
         <?php $assignment = $block['assignment']; ?>
         <div class="grid" style="margin-top:18px;">
             <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6fafb);">
-                <h4 style="margin-top:0;"><?= e($assignment['consultant_name']) ?> | <?= e($assignment['status']) ?></h4>
+                <h4 style="margin-top:0;"><?= e($assignment['consultant_name']) ?> | <?= e(label_case((string) $assignment['status'])) ?></h4>
                 <p>Reviewer: <?= e($assignment['reviewer_name'] ?: 'Not assigned') ?></p>
                 <p>Assigned at: <?= e($assignment['assigned_at']) ?></p>
 
@@ -89,7 +89,7 @@
                     <div style="display:grid;gap:10px;">
                         <?php foreach ($block['deliverables'] as $deliverable): ?>
                             <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
-                                <div><strong><?= e($deliverable['document_name']) ?></strong> | <?= e($deliverable['review_status']) ?></div>
+                                <div><strong><?= e($deliverable['document_name']) ?></strong> | <?= e(label_case((string) $deliverable['review_status'])) ?></div>
                                 <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
                                     <a href="<?= e(url('/documents/show?id=' . $deliverable['document_id'])) ?>" class="button button-secondary">Open Deliverable</a>
                                     <a href="<?= e(url('/documents/' . $deliverable['document_id'] . '/download')) ?>" class="button button-secondary">Download Deliverable</a>
@@ -122,7 +122,7 @@
                     <div style="display:grid;gap:10px;">
                         <?php foreach ($block['bills'] as $bill): ?>
                             <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
-                                <div><strong><?= e($bill['bill_no']) ?></strong> | <?= e($bill['review_status']) ?> | INR <?= e(number_format((float) $bill['total_amount'], 2)) ?></div>
+                                <div><strong><?= e($bill['bill_no']) ?></strong> | <?= e(label_case((string) $bill['review_status'])) ?> | <?= e(money_inr($bill['total_amount'])) ?></div>
                                 <?php if (!empty($bill['document_id'])): ?>
                                     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
                                         <a href="<?= e(url('/documents/show?id=' . $bill['document_id'])) ?>" class="button button-secondary">Open Bill</a>

@@ -22,8 +22,8 @@
     <?php if ($orders === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No billing-ready service orders found.</div>
+            <div class="empty-state-title">No billing-ready services found</div>
+            <div class="empty-state-text">No service orders are ready for billing. Complete the required service workflow or adjust the search.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

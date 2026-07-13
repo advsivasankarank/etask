@@ -41,7 +41,7 @@
                 <select name="payment_status">
                     <option value="">All Payment Status</option>
                     <?php foreach (['UNPAID', 'PARTIALLY_PAID', 'PAID'] as $status): ?>
-                        <option value="<?= e($status) ?>" <?= ($filters['payment_status'] ?? '') === $status ? 'selected' : '' ?>><?= e($status) ?></option>
+                        <option value="<?= e($status) ?>" <?= ($filters['payment_status'] ?? '') === $status ? 'selected' : '' ?>><?= e(label_case($status)) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>">
@@ -57,8 +57,8 @@
         <?php if (($report['items'] ?? []) === []): ?>
             <div class="empty-state">
                 <div class="empty-state-icon">🔍</div>
-                <div class="empty-state-title">No results</div>
-                <div class="empty-state-text">No outstanding invoices matched the selected filters.</div>
+                <div class="empty-state-title">No outstanding invoices found</div>
+                <div class="empty-state-text">No outstanding invoices match the selected filters. Adjust or clear the filters to broaden the report.</div>
             </div>
         <?php else: ?>
             <div class="table-wrap">

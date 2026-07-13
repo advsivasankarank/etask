@@ -6,7 +6,7 @@
     <div class="hero-card">
         <div class="hero-card-body">
             <div class="eyebrow">Office Command Centre</div>
-            <h1 style="margin:10px 0 6px;font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:#fff;">Welcome back, <?= e($user['full_name'] ?? 'User') ?></h1>
+            <h2 style="margin:10px 0 6px;font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:#fff;">Welcome back, <?= e($user['full_name'] ?? 'User') ?></h2>
             <p class="subtle" style="margin:0;font-size:14.5px;"><?= e($dashboard['persona'] ?? 'General') ?> workspace &middot; <?= e(date('l, d M Y')) ?></p>
         </div>
         <div class="hero-card-actions" style="display:flex;gap:10px;flex-wrap:wrap;">

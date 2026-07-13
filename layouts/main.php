@@ -721,6 +721,7 @@ if ($isPortalUser):
         }
 
         .topbar-title {
+            margin: 0;
             font-family: var(--font-display);
             font-size: 1.2rem;
             font-weight: 600;
@@ -1515,7 +1516,7 @@ if ($isPortalUser):
                     <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </button>
-                    <span class="topbar-title"><?= e($title ?? 'Dashboard') ?></span>
+                    <h1 class="topbar-title"><?= e($title ?? 'Dashboard') ?></h1>
                 </div>
                 <div class="topbar-right">
                     <?php if ($hasUniversalSearch): ?>

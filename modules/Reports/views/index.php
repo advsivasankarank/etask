@@ -11,8 +11,8 @@
         <div class="metric" style="min-height:80px;"><div class="eyebrow">Pending Docs</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['pending_documents'] ?? 0)) ?></div></div>
         <div class="metric" style="min-height:80px;"><div class="eyebrow">DSC Expiring</div><div style="font-size:1.6rem;font-weight:800;color:#ea580c;"><?= e((string) ($summary['dsc_expiring_soon'] ?? 0)) ?></div></div>
         <div class="metric" style="min-height:80px;"><div class="eyebrow">Staff Present</div><div style="font-size:1.6rem;font-weight:800;"><?= e((string) ($summary['staff_present_today'] ?? 0)) ?></div></div>
-        <div class="metric" style="min-height:80px;"><div class="eyebrow">Outstanding</div><div style="font-size:1.4rem;font-weight:800;color:#ea580c;">INR <?= e(number_format((float) ($summary['outstanding_amount'] ?? 0), 0)) ?></div></div>
-        <div class="metric" style="min-height:80px;"><div class="eyebrow">Consultant Payables</div><div style="font-size:1.4rem;font-weight:800;color:#ea580c;">INR <?= e(number_format((float) ($summary['consultant_payables'] ?? 0), 0)) ?></div></div>
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Outstanding</div><div style="font-size:1.4rem;font-weight:800;color:#ea580c;"><?= e(money_inr($summary['outstanding_amount'] ?? 0)) ?></div></div>
+        <div class="metric" style="min-height:80px;"><div class="eyebrow">Consultant Payables</div><div style="font-size:1.4rem;font-weight:800;color:#ea580c;"><?= e(money_inr($summary['consultant_payables'] ?? 0)) ?></div></div>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">

@@ -26,7 +26,7 @@
             <select name="current_status">
                 <option value="">All Statuses</option>
                 <?php foreach (['SUBMITTED', 'UNDER_REVIEW', 'REJECTED', 'CONVERTED_TO_SO'] as $status): ?>
-                    <option value="<?= e($status) ?>" <?= ($filters['current_status'] ?? '') === $status ? 'selected' : '' ?>><?= e($status) ?></option>
+                    <option value="<?= e($status) ?>" <?= ($filters['current_status'] ?? '') === $status ? 'selected' : '' ?>><?= e(label_case($status)) ?></option>
                 <?php endforeach; ?>
             </select>
             <input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>">
@@ -70,7 +70,7 @@
                                 <span class="subtle"><?= e($row['requested_for_period'] ?: '-') ?></span>
                             </td>
                             <td>
-                                <span class="chip chip-strong"><?= e($row['current_status']) ?></span><br>
+                                <span class="chip chip-strong"><?= e(label_case((string) $row['current_status'])) ?></span><br>
                                 <span class="subtle">Reviewed: <?= e($row['reviewed_at'] ?: '-') ?></span>
                             </td>
                             <td><?= e($row['requested_by_name'] ?: '-') ?></td>

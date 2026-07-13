@@ -50,8 +50,8 @@
     <?php if ($orders === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No service orders found matching your search criteria.</div>
+            <div class="empty-state-title">No service orders found</div>
+            <div class="empty-state-text">No service orders match the current search. Clear the search or create a service order if permitted.</div>
             <?php if (\App\Core\Auth::can('service_orders.create')): ?>
                 <a href="<?= e(url('/service-orders/create')) ?>" class="button" style="margin-top:16px;">+ Create First Service Order</a>
             <?php endif; ?>

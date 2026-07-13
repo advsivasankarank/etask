@@ -17,8 +17,8 @@
     <?php if ($orders === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No consultant-linked service orders found.</div>
+            <div class="empty-state-title">No consultant deliveries found</div>
+            <div class="empty-state-text">No service orders currently have consultant delivery activity. Assign a consultant from a service order to begin.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

@@ -6,15 +6,15 @@
 
     <form method="get" action="<?= e(url('/accounts/invoices')) ?>" class="search-bar">
         <input type="text" name="search" value="<?= e($filters['search'] ?? '') ?>" placeholder="Search by invoice no, client, or SO...">
-        <select name="payment_status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Status</option><option value="UNPAID" <?= ($filters['payment_status'] ?? '') === 'UNPAID' ? 'selected' : '' ?>>Unpaid</option><option value="PARTIALLY_PAID" <?= ($filters['payment_status'] ?? '') === 'PARTIALLY_PAID' ? 'selected' : '' ?>>Partially Paid</option><option value="PAID" <?= ($filters['payment_status'] ?? '') === 'PAID' ? 'selected' : '' ?>>Paid</option></select>
+        <select name="payment_status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Statuses</option><option value="UNPAID" <?= ($filters['payment_status'] ?? '') === 'UNPAID' ? 'selected' : '' ?>>Unpaid</option><option value="PARTIALLY_PAID" <?= ($filters['payment_status'] ?? '') === 'PARTIALLY_PAID' ? 'selected' : '' ?>>Partially Paid</option><option value="PAID" <?= ($filters['payment_status'] ?? '') === 'PAID' ? 'selected' : '' ?>>Paid</option></select>
         <button type="submit" class="button">Search</button>
     </form>
 
     <?php if (($invoices['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No invoices found.</div>
+            <div class="empty-state-title">No invoices found</div>
+            <div class="empty-state-text">No invoices match the current search. Adjust the search or create an invoice from service-order billing.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

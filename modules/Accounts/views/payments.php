@@ -13,8 +13,8 @@
     <?php if (($payments['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No payments found.</div>
+            <div class="empty-state-title">No payments found</div>
+            <div class="empty-state-text">No payments match the current search. Adjust the search or record a payment from service-order billing.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

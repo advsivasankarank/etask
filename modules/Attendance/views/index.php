@@ -32,7 +32,7 @@ $activities = $dashboard['activities'];
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="margin:0;font-size:1.6rem;font-weight:700;">Staff Monitor</h1>
+        <h2 style="margin:0;font-size:1.6rem;font-weight:700;">Staff Monitor</h2>
         <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem;">Your work day at a glance</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">

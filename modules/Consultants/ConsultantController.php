@@ -27,7 +27,7 @@ final class ConsultantController
     public function index(): void
     {
         $content = View::render(base_path('modules/Consultants/views/index.php'), [
-            'title' => 'Consultants',
+            'title' => 'Consultant Delivery Workspace',
             'activeMenu' => 'consultants',
             'orders' => $this->consultants->serviceOrdersForConsultants(),
             'success' => Session::pullFlash('success'),
@@ -43,7 +43,7 @@ final class ConsultantController
         $dashboard = $this->consultantService->dashboard($serviceOrderId);
 
         $content = View::render(base_path('modules/Consultants/views/show.php'), [
-            'title' => 'Consultant Workspace',
+            'title' => 'Consultant Delivery Workspace',
             'activeMenu' => 'consultants',
             'dashboard' => $dashboard,
             'success' => Session::pullFlash('success'),

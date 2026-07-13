@@ -9,5 +9,5 @@
         <?php endforeach; ?>
     </div>
 
-    <?php if (($summary ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Data</div><p class="subtle" style="margin:8px 0 0;">No document data found.</p></div><?php endif; ?>
+    <?php if (($summary ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No document report data</div><p class="subtle" style="margin:8px 0 0;">No documents are available for this report yet. Upload documents through their linked workflows to populate it.</p></div><?php endif; ?>
 </section>

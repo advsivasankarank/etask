@@ -38,7 +38,7 @@
                             <div class="eyebrow"><?= e($pso['pso_no']) ?></div>
                             <h4 style="margin:4px 0 0;"><?= e($pso['client_name']) ?></h4>
                         </div>
-                        <span class="chip chip-strong"><?= e($pso['current_status']) ?></span>
+                        <span class="chip chip-strong"><?= e(label_case((string) $pso['current_status'])) ?></span>
                     </div>
                     <div class="stat-line"><span>Service</span><strong><?= e($pso['service_type_name']) ?></strong></div>
                     <div class="stat-line"><span>Company</span><strong><?= e($pso['company_name']) ?></strong></div>

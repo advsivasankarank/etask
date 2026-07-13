@@ -9,7 +9,7 @@
         <button type="submit" class="button">Filter</button>
     </form>
 
-    <?php if ($dscList === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Data</div><p class="subtle" style="margin:8px 0 0;">No DSC records found.</p></div><?php else: ?>
+    <?php if ($dscList === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No DSC records found</div><p class="subtle" style="margin:8px 0 0;">No certificates are available for reporting yet. Add a DSC record to populate this report.</p></div><?php else: ?>
         <div style="overflow:auto;"><table><thead><tr><th>Holder</th><th>Client</th><th>PAN</th><th>Type</th><th>Valid To</th><th>Custody</th><th>Assigned</th></tr></thead><tbody>
         <?php foreach ($dscList as $dsc): ?>
             <?php $isExpired = !empty($dsc['valid_to']) && strtotime($dsc['valid_to']) < time(); ?>

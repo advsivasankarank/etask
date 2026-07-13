@@ -21,7 +21,7 @@
         </div>
         <div class="metric">
             <strong>Status</strong>
-            <div style="margin-top:8px;"><?= e($invoice['payment_status']) ?></div>
+            <div style="margin-top:8px;"><?= e(label_case((string) $invoice['payment_status'])) ?></div>
             <div style="margin-top:4px;color:#62748a;"><?= e($invoice['invoice_type']) ?></div>
         </div>
         <div class="metric">

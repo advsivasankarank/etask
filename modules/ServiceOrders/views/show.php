@@ -1042,7 +1042,7 @@ $closureCards = [
         <div class="so-hero-top">
             <div>
                 <div class="so-hero-kicker">Service Order Workspace</div>
-                <h1><?= e($order['so_no']) ?></h1>
+                <h2><?= e($order['so_no']) ?></h2>
                 <p class="so-hero-subtitle">
                     <?= e($order['service_type_name']) ?> for <?= e($order['client_name']) ?>.
                     Current workflow stage is <?= e($currentStatusLabel) ?> with <?= e((string) $progressPercent) ?>% progress
@@ -1278,8 +1278,8 @@ $closureCards = [
                         <div class="so-doc-grid">
                             <?php foreach ($workflowReminders as $reminder): ?>
                                 <article class="so-doc-card">
-                                    <strong><?= e($reminder['reminder_type']) ?></strong>
-                                    <div class="so-note" style="margin-top:6px;">Day <?= e((string) $reminder['schedule_day_no']) ?> reminder | Status: <?= e($reminder['status']) ?></div>
+                                    <strong><?= e(label_case((string) $reminder['reminder_type'])) ?></strong>
+                                    <div class="so-note" style="margin-top:6px;">Day <?= e((string) $reminder['schedule_day_no']) ?> reminder | Status: <?= e(label_case((string) $reminder['status'])) ?></div>
                                     <div class="so-note">Due at: <?= e($reminder['due_at']) ?></div>
                                     <?php if (\App\Core\Auth::can('workflow.followup.log')): ?>
                                         <form method="post" action="<?= e(url('/workflow/follow-up')) ?>" class="so-followup-form">
@@ -1569,7 +1569,7 @@ $closureCards = [
                             <p class="so-panel-text">Financial position, invoice coverage, and collection status for this service order.</p>
                         </div>
                         <?php if (\App\Core\Auth::can('billing.view')): ?>
-                            <a href="<?= e(url('/billing/show?service_order_id=' . $order['id'])) ?>" class="button button-secondary">Open Billing Workspace</a>
+                            <a href="<?= e(url('/billing/show?service_order_id=' . $order['id'])) ?>" class="button button-secondary">Open Service Order Billing</a>
                         <?php endif; ?>
                     </div>
 
@@ -1619,7 +1619,7 @@ $closureCards = [
                                                 <td><?= e($invoice['invoice_no']) ?></td>
                                                 <td><?= e($invoice['invoice_type']) ?></td>
                                                 <td>INR <?= e(number_format((float) $invoice['net_payable'], 2)) ?></td>
-                                                <td><?= e($invoice['payment_status']) ?></td>
+                                                <td><?= e(label_case((string) $invoice['payment_status'])) ?></td>
                                                 <td><a href="<?= e(url('/billing/invoice?id=' . $invoice['id'])) ?>" class="chip">Open Invoice</a></td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -1652,9 +1652,9 @@ $closureCards = [
                         <div class="so-payment-grid" style="margin-top:18px;">
                             <?php foreach ($payments as $payment): ?>
                                 <article class="so-payment-card">
-                                    <strong><?= e($payment['transaction_type']) ?></strong>
+                                    <strong><?= e(label_case((string) $payment['transaction_type'])) ?></strong>
                                     <div class="so-note">Amount: INR <?= e(number_format((float) $payment['amount'], 2)) ?></div>
-                                    <div class="so-note">Mode: <?= e($payment['payment_mode']) ?> | Status: <?= e($payment['status']) ?></div>
+                                    <div class="so-note">Mode: <?= e(label_case((string) $payment['payment_mode'])) ?> | Status: <?= e(label_case((string) $payment['status'])) ?></div>
                                     <div class="so-note">Receipt: <?= e($payment['receipt_no'] ?: '-') ?> | Ref: <?= e($payment['reference_no'] ?: '-') ?></div>
                                     <?php if (!empty($payment['receipt_id'])): ?>
                                         <div class="so-inline-actions">
@@ -1825,7 +1825,7 @@ $closureCards = [
                             <strong>Latest Consultant Assignment</strong>
                             <div class="so-note" style="margin-top:8px;">Consultant: <?= e($latestConsultant['consultant_name'] ?: '-') ?></div>
                             <div class="so-note">Reviewer: <?= e($latestConsultant['reviewer_name'] ?: '-') ?></div>
-                            <div class="so-note">Status: <?= e($latestConsultant['status'] ?: '-') ?></div>
+                            <div class="so-note">Status: <?= e(label_case((string) ($latestConsultant['status'] ?: '-'))) ?></div>
                             <div class="so-note">Assigned at: <?= e($latestConsultant['assigned_at'] ?: '-') ?></div>
                         </div>
                     <?php else: ?>
@@ -1920,7 +1920,7 @@ $closureCards = [
                         <?php $closureData = $closureByType[$closureCard['type']] ?? null; ?>
                         <article class="so-closure-card <?= !empty($closureCard['completed_at']) ? 'status-complete' : 'status-pending' ?>">
                             <strong><?= e($closureCard['title']) ?></strong>
-                            <div class="so-note" style="margin-top:8px;">Status: <?= e($closureData['closure_status'] ?? (!empty($closureCard['completed_at']) ? 'COMPLETED' : 'PENDING')) ?></div>
+                            <div class="so-note" style="margin-top:8px;">Status: <?= e(label_case((string) ($closureData['closure_status'] ?? (!empty($closureCard['completed_at']) ? 'COMPLETED' : 'PENDING')))) ?></div>
                             <div class="so-note">Completed On: <?= e($closureCard['completed_at'] ?: '-') ?></div>
                             <div class="so-note">Completed By: <?= e($closureData['closed_by_name'] ?? '-') ?></div>
                             <div class="so-note">Blocking Reason: <?= e($closureData['block_reason'] ?? '-') ?></div>

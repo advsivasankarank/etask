@@ -19,7 +19,7 @@
         <?php if (($followups ?? []) === []): ?><p class="subtle">No pending follow-ups.</p><?php else: ?>
             <div style="overflow:auto;"><table><thead><tr><th>Date</th><th>Client</th><th>Invoice</th><th>Note</th><th>Next</th><th>Status</th></tr></thead><tbody>
             <?php foreach ($followups as $f): ?>
-                <tr><td><?= e($f['followup_date']) ?></td><td><?= e($f['client_name'] ?: '-') ?></td><td><?= e($f['invoice_no'] ?: '-') ?></td><td><?= e($f['followup_note'] ?: '-') ?></td><td><?= e($f['next_followup_date'] ?: '-') ?></td><td><span class="chip"><?= e($f['status']) ?></span></td></tr>
+                <tr><td><?= e($f['followup_date']) ?></td><td><?= e($f['client_name'] ?: '-') ?></td><td><?= e($f['invoice_no'] ?: '-') ?></td><td><?= e($f['followup_note'] ?: '-') ?></td><td><?= e($f['next_followup_date'] ?: '-') ?></td><td><span class="chip"><?= e(label_case((string) $f['status'])) ?></span></td></tr>
             <?php endforeach; ?>
             </tbody></table></div>
         <?php endif; ?>

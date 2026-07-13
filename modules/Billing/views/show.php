@@ -9,7 +9,7 @@
 
     <div class="toolbar">
         <div>
-            <div class="eyebrow">Billing Workspace</div>
+            <div class="eyebrow">Service Order Billing</div>
             <h3 style="margin:0 0 6px;"><?= e($order['so_no']) ?></h3>
             <div class="subtle"><?= e($order['client_name']) ?> | <?= e($order['service_type_name']) ?></div>
         </div>
@@ -130,7 +130,7 @@
                         <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
                             <div><strong><?= e($invoice['invoice_no']) ?></strong> | <?= e($invoice['invoice_type']) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Gross: INR <?= e(number_format((float) $invoice['gross_total'], 2)) ?> | Advance adjusted: INR <?= e(number_format((float) $invoice['advance_adjusted'], 2)) ?></div>
-                            <div style="margin-top:6px;color:#64748b;">Net payable: INR <?= e(number_format((float) $invoice['net_payable'], 2)) ?> | Status: <?= e($invoice['payment_status']) ?></div>
+                            <div style="margin-top:6px;color:#64748b;">Net payable: <?= e(money_inr($invoice['net_payable'])) ?> | Status: <?= e(label_case((string) $invoice['payment_status'])) ?></div>
                             <div style="margin-top:8px;">
                                 <a href="<?= e(url('/billing/invoice?id=' . $invoice['id'])) ?>" class="button button-secondary">Open Invoice</a>
                             </div>
@@ -148,8 +148,8 @@
                 <div style="display:grid;gap:10px;">
                     <?php foreach ($billing['payments'] as $payment): ?>
                         <div style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;background:#fff;">
-                            <div><strong><?= e($payment['transaction_type']) ?></strong> | INR <?= e(number_format((float) $payment['amount'], 2)) ?></div>
-                            <div style="margin-top:6px;color:#64748b;">Mode: <?= e($payment['payment_mode']) ?> | Status: <?= e($payment['status']) ?></div>
+                            <div><strong><?= e(label_case((string) $payment['transaction_type'])) ?></strong> | <?= e(money_inr($payment['amount'])) ?></div>
+                            <div style="margin-top:6px;color:#64748b;">Mode: <?= e(label_case((string) $payment['payment_mode'])) ?> | Status: <?= e(label_case((string) $payment['status'])) ?></div>
                             <div style="margin-top:6px;color:#64748b;">Receipt: <?= e($payment['receipt_no'] ?: 'Pending') ?> | Ref: <?= e($payment['reference_no'] ?: '-') ?></div>
                             <?php if (!empty($payment['receipt_id'])): ?>
                                 <div style="margin-top:8px;">

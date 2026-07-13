@@ -39,7 +39,7 @@ $isExpiringSoon = !$isExpired && !empty($dsc['valid_to']) && strtotime($dsc['val
         <h4 style="margin-top:0;">Movement History</h4>
         <?php if ($movements === []): ?><p class="subtle">No movements recorded.</p><?php else: ?>
             <div style="overflow:auto;"><table><thead><tr><th>Type</th><th>From</th><th>To</th><th>Date</th><th>Status</th></tr></thead><tbody>
-            <?php foreach ($movements as $mov): ?><tr><td><?= e($mov['movement_type']) ?></td><td><?= e($mov['from_user_name'] ?: $mov['from_location'] ?: '-') ?></td><td><?= e($mov['to_user_name'] ?: $mov['to_location'] ?: '-') ?></td><td><?= e($mov['movement_date']) ?></td><td><span class="chip"><?= e($mov['status']) ?></span></td></tr><?php endforeach; ?>
+            <?php foreach ($movements as $mov): ?><tr><td><?= e(label_case((string) $mov['movement_type'])) ?></td><td><?= e($mov['from_user_name'] ?: $mov['from_location'] ?: '-') ?></td><td><?= e($mov['to_user_name'] ?: $mov['to_location'] ?: '-') ?></td><td><?= e($mov['movement_date']) ?></td><td><span class="chip"><?= e(label_case((string) $mov['status'])) ?></span></td></tr><?php endforeach; ?>
             </tbody></table></div>
         <?php endif; ?>
     </div>

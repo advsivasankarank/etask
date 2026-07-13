@@ -22,7 +22,7 @@ $totalPages = $reports['total_pages'] ?? 1;
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="margin:0;font-size:1.6rem;font-weight:700;">Staff Daily Reports</h1>
+        <h2 style="margin:0;font-size:1.6rem;font-weight:700;">Staff Daily Reports</h2>
         <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem;">Review and manage staff work reports</p>
     </div>
     <?php if (\App\Core\Auth::can('attendance.productivity.view')): ?>
@@ -87,7 +87,7 @@ $totalPages = $reports['total_pages'] ?? 1;
                     <td style="padding:10px 12px;">
                         <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:600;
                             background:<?= ($row['status'] ?? '') === 'SUBMITTED' ? 'rgba(4,120,87,0.1);color:var(--success)' : (($row['status'] ?? '') === 'REVIEWED' ? 'rgba(20,153,168,0.1);color:var(--primary)' : 'rgba(239,139,44,0.15);color:var(--accent)') ?>;">
-                            <?= e($row['status'] ?? 'N/A') ?>
+                            <?= e(label_case((string) ($row['status'] ?? 'N/A'))) ?>
                         </span>
                     </td>
                     <td style="padding:10px 12px;"><?= !empty($row['reviewed_by_name']) ? e($row['reviewed_by_name']) : '—' ?></td>

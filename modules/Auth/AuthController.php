@@ -218,6 +218,7 @@ final class AuthController
 
         $content = View::render(base_path('modules/Auth/views/change-password.php'), [
             'title' => 'Change Password',
+            'forcedChange' => !empty((Auth::user() ?? [])['must_change_password']),
             'error' => Session::pullFlash('error'),
             'success' => Session::pullFlash('success'),
         ], null);

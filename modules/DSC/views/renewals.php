@@ -5,7 +5,7 @@
     <div class="toolbar"><div><div class="eyebrow">DSC Module</div><h3 style="margin:0 0 6px;">DSC Renewals</h3><div class="subtle">Track DSC expiry dates and renewal status.</div></div></div>
 
     <form method="get" action="<?= e(url('/dsc/renewals')) ?>" class="search-bar">
-        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Status</option><option value="NOT_DUE" <?= ($filters['status'] ?? '') === 'NOT_DUE' ? 'selected' : '' ?>>Not Due</option><option value="DUE" <?= ($filters['status'] ?? '') === 'DUE' ? 'selected' : '' ?>>Due</option><option value="IN_PROGRESS" <?= ($filters['status'] ?? '') === 'IN_PROGRESS' ? 'selected' : '' ?>>In Progress</option><option value="RENEWED" <?= ($filters['status'] ?? '') === 'RENEWED' ? 'selected' : '' ?>>Renewed</option><option value="EXPIRED" <?= ($filters['status'] ?? '') === 'EXPIRED' ? 'selected' : '' ?>>Expired</option></select>
+        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Statuses</option><option value="NOT_DUE" <?= ($filters['status'] ?? '') === 'NOT_DUE' ? 'selected' : '' ?>>Not Due</option><option value="DUE" <?= ($filters['status'] ?? '') === 'DUE' ? 'selected' : '' ?>>Due</option><option value="IN_PROGRESS" <?= ($filters['status'] ?? '') === 'IN_PROGRESS' ? 'selected' : '' ?>>In Progress</option><option value="RENEWED" <?= ($filters['status'] ?? '') === 'RENEWED' ? 'selected' : '' ?>>Renewed</option><option value="EXPIRED" <?= ($filters['status'] ?? '') === 'EXPIRED' ? 'selected' : '' ?>>Expired</option></select>
         <button type="submit" class="button">Filter</button>
     </form>
 

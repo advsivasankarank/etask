@@ -47,7 +47,7 @@
     <form method="get" action="<?= e(url('/documents')) ?>" class="search-bar">
         <input type="text" name="search" value="<?= e($filters['search'] ?? '') ?>" placeholder="Search by document name, category, client, or SO number...">
         <select name="verification_status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
-            <option value="">All Status</option>
+            <option value="">All Statuses</option>
             <option value="PENDING" <?= ($filters['verification_status'] ?? '') === 'PENDING' ? 'selected' : '' ?>>Pending</option>
             <option value="VERIFIED" <?= ($filters['verification_status'] ?? '') === 'VERIFIED' ? 'selected' : '' ?>>Verified</option>
             <option value="REJECTED" <?= ($filters['verification_status'] ?? '') === 'REJECTED' ? 'selected' : '' ?>>Rejected</option>
@@ -58,8 +58,8 @@
     <?php if (($documents['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No documents found matching your criteria.</div>
+            <div class="empty-state-title">No documents found</div>
+            <div class="empty-state-text">No documents match the current filters. Adjust the filters or upload a document through its linked workflow.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

@@ -17,15 +17,15 @@
     </form>
 
     <form method="get" action="<?= e(url('/accounts/followups')) ?>" class="search-bar">
-        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Status</option><?php foreach (['OPEN','FOLLOWED_UP','PROMISED','DISPUTED','CLOSED'] as $s): ?><option value="<?= e($s) ?>" <?= ($filters['status'] ?? '') === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?></select>
+        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Statuses</option><?php foreach (['OPEN','FOLLOWED_UP','PROMISED','DISPUTED','CLOSED'] as $s): ?><option value="<?= e($s) ?>" <?= ($filters['status'] ?? '') === $s ? 'selected' : '' ?>><?= e(label_case($s)) ?></option><?php endforeach; ?></select>
         <button type="submit" class="button">Filter</button>
     </form>
 
     <?php if (($followups['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No follow-up records found.</div>
+            <div class="empty-state-title">No collection follow-ups found</div>
+            <div class="empty-state-text">No follow-ups match the current filters. Adjust the filters or add a follow-up to an outstanding invoice.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

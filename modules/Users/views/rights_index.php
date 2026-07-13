@@ -9,7 +9,7 @@
     <div class="toolbar">
         <div>
             <div class="eyebrow">Rights Control</div>
-            <h1 style="margin:0 0 6px;">Roles &amp; Permissions</h1>
+            <h2 style="margin:0 0 6px;">Roles &amp; Permissions</h2>
             <div class="subtle">Select a user to review inherited role access and assign additional rights.</div>
         </div>
         <a href="<?= e(url('/users')) ?>" class="button button-secondary">Back to Users</a>

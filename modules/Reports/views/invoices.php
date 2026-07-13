@@ -20,7 +20,7 @@
             <select name="payment_status">
                 <option value="">All Payment Status</option>
                 <?php foreach (['UNPAID', 'PARTIALLY_PAID', 'PAID'] as $status): ?>
-                    <option value="<?= e($status) ?>" <?= ($filters['payment_status'] ?? '') === $status ? 'selected' : '' ?>><?= e($status) ?></option>
+                    <option value="<?= e($status) ?>" <?= ($filters['payment_status'] ?? '') === $status ? 'selected' : '' ?>><?= e(label_case($status)) ?></option>
                 <?php endforeach; ?>
             </select>
             <select name="invoice_type">
@@ -69,7 +69,7 @@
                                 <span class="subtle">Outstanding: <?= e(number_format((float) $row['outstanding_amount'], 2)) ?></span>
                             </td>
                             <td>
-                                <span class="chip chip-strong"><?= e($row['payment_status']) ?></span><br>
+                                <span class="chip chip-strong"><?= e(label_case((string) $row['payment_status'])) ?></span><br>
                                 <span class="subtle"><?= e($row['accounting_status']) ?></span>
                             </td>
                             <td><a href="<?= e(url('/billing/show?service_order_id=' . $row['service_order_id'])) ?>" class="button button-secondary">Open Billing</a></td>

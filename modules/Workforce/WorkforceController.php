@@ -24,7 +24,7 @@ final class WorkforceController
     public function index(): void
     {
         $content = View::render(base_path('modules/Workforce/views/index.php'), [
-            'title' => 'Workforce Module',
+            'title' => 'Workforce Dashboard',
             'activeMenu' => 'workforce',
             'summary' => $this->workforce->summaryCounts(),
             'success' => Session::pullFlash('success'),

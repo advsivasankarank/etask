@@ -12,8 +12,8 @@
     <?php if (($receipts['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No receipts found.</div>
+            <div class="empty-state-title">No receipts found</div>
+            <div class="empty-state-text">No receipts match the current search. Adjust the search or record an eligible payment first.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

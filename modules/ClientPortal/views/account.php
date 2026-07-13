@@ -708,7 +708,7 @@ function portalUpdateAreaLabel(string $linkedModule): string
                         <article class="portal-payment-card">
                             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
                                 <div>
-                                    <strong><?= e($payment['transaction_type']) ?> | INR <?= e(number_format((float) $payment['amount'], 2)) ?></strong>
+                                    <strong><?= e(label_case((string) $payment['transaction_type'])) ?> | <?= e(money_inr($payment['amount'])) ?></strong>
                                     <div class="portal-muted"><?= e($payment['so_no'] ?: '-') ?> | <?= e($payment['payment_mode']) ?> | <?= e($payment['payment_date']) ?></div>
                                 </div>
                                 <span class="portal-chip good"><?= e($payment['receipt_no'] ? 'Receipt Ready' : 'Receipt Pending') ?></span>

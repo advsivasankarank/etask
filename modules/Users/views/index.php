@@ -28,8 +28,8 @@
     <?php if ($users === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No users found.</div>
+            <div class="empty-state-title">No users found</div>
+            <div class="empty-state-text">No user accounts match the current filters. Adjust the filters or create a user if permitted.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

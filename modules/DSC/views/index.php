@@ -55,8 +55,8 @@
     <?php if (($dscList['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No DSC records found.</div>
+            <div class="empty-state-title">No DSC records found</div>
+            <div class="empty-state-text">No certificates match the current filters. Adjust the filters or add a DSC record if permitted.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

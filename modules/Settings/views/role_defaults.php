@@ -1,5 +1,5 @@
 <section class="panel">
-    <div class="toolbar"><div><div class="eyebrow">Settings Module</div><h3 style="margin:0 0 6px;">Role Defaults</h3><div class="subtle">Role default access profiles and configurations.</div></div><a href="<?= e(url('/settings')) ?>" class="button button-secondary">Back</a></div>
+    <div class="toolbar"><div><div class="eyebrow">Settings Reference</div><h3 style="margin:0 0 6px;">Role Access Reference</h3><div class="subtle">Read-only overview of default role access profiles.</div></div><a href="<?= e(url('/settings')) ?>" class="button button-secondary">Back</a></div>
     <?php if (!empty($success)): ?><div class="flash flash-success"><?= e($success) ?></div><?php endif; ?>
     <?php if (!empty($error)): ?><div class="flash" style="background:#fef3f2;color:#b42318;border:1px solid #fecdca;"><?= e($error) ?></div><?php endif; ?>
 

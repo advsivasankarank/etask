@@ -20,7 +20,7 @@
         <?php if (($logs ?? []) === []): ?><p class="subtle">No maintenance logs recorded.</p><?php else: ?>
             <div style="overflow:auto;"><table><thead><tr><th>Action</th><th>Note</th><th>By</th><th>At</th><th>Status</th></tr></thead><tbody>
             <?php foreach ($logs as $log): ?>
-                <tr><td><strong><?= e($log['action_type']) ?></strong></td><td><?= e($log['action_note'] ?: '-') ?></td><td><?= e($log['performed_by_name'] ?: '-') ?></td><td><?= e($log['performed_at']) ?></td><td><span class="chip"><?= e($log['status'] ?: '-') ?></span></td></tr>
+                <tr><td><strong><?= e(label_case((string) $log['action_type'])) ?></strong></td><td><?= e($log['action_note'] ?: '-') ?></td><td><?= e($log['performed_by_name'] ?: '-') ?></td><td><?= e($log['performed_at']) ?></td><td><span class="chip"><?= e(label_case((string) ($log['status'] ?: '-'))) ?></span></td></tr>
             <?php endforeach; ?>
             </tbody></table></div>
         <?php endif; ?>

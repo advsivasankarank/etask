@@ -25,8 +25,8 @@
     <?php if ($clients === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No clients found matching your search criteria.</div>
+            <div class="empty-state-title">No clients found</div>
+            <div class="empty-state-text">No client records match the current search. Clear the search or add a client if permitted.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap mobile-card-wrap">

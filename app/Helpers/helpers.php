@@ -128,14 +128,42 @@ if (!function_exists('should_use_index_routes')) {
 if (!function_exists('label_case')) {
     function label_case(string $key): string
     {
-        static $acronyms = ['sla', 'pso', 'dsc', 'gst', 'tds', 'pan', 'tan', 'itr', 'id', 'crm'];
-        $words = explode(' ', str_replace('_', ' ', $key));
+        static $labels = [
+            'N/A' => 'N/A',
+            'E-VERIFICATION' => 'e-Verification',
+            'E_VERIFICATION' => 'e-Verification',
+            'E_VERIFICATION_PENDING' => 'e-Verification Pending',
+            'E_VERIFICATION_DONE' => 'e-Verification Complete',
+            'CLIENT_CLARIFICATION_PENDING' => 'Client Clarification Pending',
+            'FOLLOWED_UP' => 'Followed Up',
+            'IN_PROGRESS' => 'In Progress',
+            'NOT_STORED' => 'Not Stored',
+            'SECURE_CUSTODY' => 'Secure Custody',
+            'WITH_CLIENT' => 'With Client',
+            'WITH_OFFICE' => 'With Office',
+            'WITH_STAFF' => 'With Staff',
+        ];
+
+        $normalized = strtoupper(trim($key));
+        if (isset($labels[$normalized])) {
+            return $labels[$normalized];
+        }
+
+        static $acronyms = ['sla', 'pso', 'dsc', 'gst', 'tds', 'pan', 'tan', 'itr', 'id', 'crm', 'arn'];
+        $words = preg_split('/[_\s]+/', trim($key)) ?: [];
         foreach ($words as &$word) {
             $word = in_array(strtolower($word), $acronyms, true)
                 ? strtoupper($word)
                 : ucfirst(strtolower($word));
         }
         return implode(' ', $words);
+    }
+}
+
+if (!function_exists('money_inr')) {
+    function money_inr(float|int|string|null $amount): string
+    {
+        return 'INR ' . number_format((float) ($amount ?? 0), 2, '.', ',');
     }
 }
 

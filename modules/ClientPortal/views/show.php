@@ -45,7 +45,7 @@
         </div>
         <div class="metric">
             <strong>Status</strong>
-            <div style="margin-top:8px;"><?= e($pso['current_status']) ?></div>
+            <div style="margin-top:8px;"><?= e(label_case((string) $pso['current_status'])) ?></div>
             <div style="margin-top:4px;color:#62748b;">Submitted: <?= e($pso['submitted_at']) ?></div>
         </div>
         <div class="metric">

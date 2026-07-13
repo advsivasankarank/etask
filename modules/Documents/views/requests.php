@@ -19,7 +19,7 @@
 
     <form method="get" action="<?= e(url('/documents/requests')) ?>" class="search-bar">
         <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
-            <option value="">All Status</option>
+            <option value="">All Statuses</option>
             <option value="REQUESTED" <?= ($filters['status'] ?? '') === 'REQUESTED' ? 'selected' : '' ?>>Requested</option>
             <option value="RECEIVED" <?= ($filters['status'] ?? '') === 'RECEIVED' ? 'selected' : '' ?>>Received</option>
             <option value="VERIFIED" <?= ($filters['status'] ?? '') === 'VERIFIED' ? 'selected' : '' ?>>Verified</option>
@@ -57,7 +57,7 @@
                             <td><?= e($req['document_category'] ?: '-') ?></td>
                             <td><?= e($req['due_date'] ?: '-') ?></td>
                             <td>
-                                <span class="chip <?= $req['status'] === 'REQUESTED' ? '' : ($req['status'] === 'CANCELLED' ? 'chip-strong' : '') ?>"><?= e($req['status']) ?></span>
+                                <span class="chip <?= $req['status'] === 'REQUESTED' ? '' : ($req['status'] === 'CANCELLED' ? 'chip-strong' : '') ?>"><?= e(label_case((string) $req['status'])) ?></span>
                             </td>
                             <td><?= e($req['requested_by_name'] ?: '-') ?></td>
                             <td>

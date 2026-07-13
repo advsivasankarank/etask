@@ -1,5 +1,5 @@
 <section class="panel">
-    <div class="toolbar"><div><div class="eyebrow">Settings Module</div><h3 style="margin:0 0 6px;">Document Categories</h3><div class="subtle">Manage document category definitions.</div></div><a href="<?= e(url('/settings')) ?>" class="button button-secondary">Back</a></div>
+    <div class="toolbar"><div><div class="eyebrow">Settings Reference</div><h3 style="margin:0 0 6px;">Document Category Reference</h3><div class="subtle">Read-only document classifications used by the document module.</div></div><a href="<?= e(url('/settings')) ?>" class="button button-secondary">Back</a></div>
     <?php if (!empty($success)): ?><div class="flash flash-success"><?= e($success) ?></div><?php endif; ?>
     <?php if (!empty($error)): ?><div class="flash" style="background:#fef3f2;color:#b42318;border:1px solid #fecdca;"><?= e($error) ?></div><?php endif; ?>
     <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin-bottom:16px;">

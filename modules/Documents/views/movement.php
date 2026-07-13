@@ -19,7 +19,7 @@
 
     <form method="get" action="<?= e(url('/documents/movement')) ?>" class="search-bar">
         <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;">
-            <option value="">All Status</option>
+            <option value="">All Statuses</option>
             <option value="OPEN" <?= ($filters['status'] ?? '') === 'OPEN' ? 'selected' : '' ?>>Open</option>
             <option value="RETURNED" <?= ($filters['status'] ?? '') === 'RETURNED' ? 'selected' : '' ?>>Returned</option>
             <option value="ARCHIVED" <?= ($filters['status'] ?? '') === 'ARCHIVED' ? 'selected' : '' ?>>Archived</option>
@@ -63,13 +63,13 @@
                         <tr>
                             <td><strong><?= e($mov['document_name'] ?: '-') ?></strong></td>
                             <td><?= e($mov['client_name'] ?: '-') ?></td>
-                            <td><span class="chip"><?= e($mov['movement_type']) ?></span></td>
+                            <td><span class="chip"><?= e(label_case((string) $mov['movement_type'])) ?></span></td>
                             <td><?= e($mov['from_user_name'] ?: $mov['from_location'] ?: '-') ?></td>
                             <td><?= e($mov['to_user_name'] ?: $mov['to_location'] ?: '-') ?></td>
                             <td><?= e($mov['purpose'] ?: '-') ?></td>
                             <td><?= e($mov['movement_date'] ?: '-') ?></td>
                             <td><?= e($mov['expected_return_date'] ?: '-') ?></td>
-                            <td><span class="chip <?= $mov['status'] === 'OPEN' ? '' : 'chip-strong' ?>"><?= e($mov['status']) ?></span></td>
+                            <td><span class="chip <?= $mov['status'] === 'OPEN' ? '' : 'chip-strong' ?>"><?= e(label_case((string) $mov['status'])) ?></span></td>
                             <td>
                                 <?php if ($mov['status'] === 'OPEN' && \App\Core\Auth::can('documents.movement.manage')): ?>
                                     <form method="post" action="<?= e(url('/documents/movement/return')) ?>" style="display:inline;">

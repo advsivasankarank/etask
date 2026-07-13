@@ -21,7 +21,7 @@
         <div class="metric">
             <strong>Payment Mode</strong>
             <div style="margin-top:8px;"><?= e($receipt['payment_mode'] ?: '-') ?></div>
-            <div style="margin-top:4px;color:#62748a;"><?= e($receipt['transaction_type'] ?: '-') ?></div>
+            <div style="margin-top:4px;color:#62748a;"><?= e(label_case((string) ($receipt['transaction_type'] ?: '-'))) ?></div>
         </div>
         <div class="metric">
             <strong>Amount</strong>

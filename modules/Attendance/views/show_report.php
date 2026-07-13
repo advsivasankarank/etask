@@ -18,7 +18,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="margin:0;font-size:1.6rem;font-weight:700;">Daily Work Report</h1>
+        <h2 style="margin:0;font-size:1.6rem;font-weight:700;">Daily Work Report</h2>
         <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem;">
             <?= e($report['staff_name'] ?? '') ?> &mdash; <?= e($report['report_date'] ?? '') ?>
         </p>
@@ -34,7 +34,7 @@
         <div>
             <span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:.85rem;font-weight:600;
                 background:<?= ($report['status'] ?? '') === 'SUBMITTED' ? 'rgba(4,120,87,0.1);color:var(--success)' : (($report['status'] ?? '') === 'REVIEWED' ? 'rgba(20,153,168,0.1);color:var(--primary)' : 'rgba(239,139,44,0.15);color:var(--accent)') ?>;">
-                <?= e($report['status'] ?? 'N/A') ?>
+                <?= e(label_case((string) ($report['status'] ?? 'N/A'))) ?>
             </span>
         </div>
     </div>

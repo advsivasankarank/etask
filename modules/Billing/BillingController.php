@@ -31,7 +31,7 @@ final class BillingController
         $pagination = $this->billing->paginateServiceOrdersForBilling($page, 12, $search);
 
         $content = View::render(base_path('modules/Billing/views/index.php'), [
-            'title' => 'Billing',
+            'title' => 'Service Order Billing',
             'activeMenu' => 'billing',
             'orders' => $pagination['items'],
             'pagination' => $pagination,
@@ -49,7 +49,7 @@ final class BillingController
         $dashboard = $this->billingService->billingDashboard($serviceOrderId);
 
         $content = View::render(base_path('modules/Billing/views/show.php'), [
-            'title' => 'Billing Workspace',
+            'title' => 'Service Order Billing',
             'activeMenu' => 'billing',
             'billing' => $dashboard,
             'success' => Session::pullFlash('success'),

@@ -13,7 +13,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="margin:0;font-size:1.6rem;font-weight:700;">Start Work</h1>
+        <h2 style="margin:0;font-size:1.6rem;font-weight:700;">Start Work</h2>
         <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem;">Log your work activity</p>
     </div>
     <a href="/attendance" class="button" style="background:var(--surface);border:1px solid var(--border);padding:10px 20px;border-radius:12px;">Back to Monitor</a>

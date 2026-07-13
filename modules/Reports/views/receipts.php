@@ -56,13 +56,13 @@
                                 <span class="subtle"><?= e($row['so_no'] ?: '-') ?></span>
                             </td>
                             <td>
-                                <?= e($row['payment_mode']) ?> / <?= e($row['transaction_type']) ?><br>
+                                <?= e(label_case((string) $row['payment_mode'])) ?> / <?= e(label_case((string) $row['transaction_type'])) ?><br>
                                 <span class="subtle">Ref: <?= e($row['reference_no'] ?: '-') ?></span><br>
                                 <span class="subtle">Allocations: <?= e((string) $row['allocation_count']) ?></span>
                             </td>
                             <td>
                                 <strong><?= e(number_format((float) $row['receipt_amount'], 2)) ?></strong><br>
-                                <span class="chip <?= ($row['payment_status'] ?? '') === 'SUCCESS' ? 'chip-strong' : '' ?>"><?= e($row['payment_status']) ?></span>
+                                <span class="chip <?= ($row['payment_status'] ?? '') === 'SUCCESS' ? 'chip-strong' : '' ?>"><?= e(label_case((string) $row['payment_status'])) ?></span>
                             </td>
                         </tr>
                     <?php endforeach; ?>

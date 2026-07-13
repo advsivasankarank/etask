@@ -8,15 +8,15 @@
 
     <form method="get" action="<?= e(url('/workforce/consultants')) ?>" class="search-bar">
         <input type="text" name="search" value="<?= e($filters['search'] ?? '') ?>" placeholder="Search by name, firm, PAN, or mobile...">
-        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Status</option><option value="ACTIVE" <?= ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' ?>>Active</option><option value="INACTIVE" <?= ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' ?>>Inactive</option></select>
+        <select name="status" style="padding:14px 15px;border:1px solid #d8e1eb;border-radius:12px;"><option value="">All Statuses</option><option value="ACTIVE" <?= ($filters['status'] ?? '') === 'ACTIVE' ? 'selected' : '' ?>>Active</option><option value="INACTIVE" <?= ($filters['status'] ?? '') === 'INACTIVE' ? 'selected' : '' ?>>Inactive</option></select>
         <button type="submit" class="button">Search</button>
     </form>
 
     <?php if (($consultants['items'] ?? []) === []): ?>
         <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No results</div>
-            <div class="empty-state-text">No consultants found.</div>
+            <div class="empty-state-title">No consultants found</div>
+            <div class="empty-state-text">No consultant master records match the current filters. Adjust the filters or add a consultant if permitted.</div>
         </div>
     <?php else: ?>
         <div class="table-wrap">

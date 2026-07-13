@@ -22,7 +22,7 @@
                 <div class="kpi-icon"><?= metric_icon_svg($tile['severity']) ?></div>
                 <div class="kpi-body">
                     <div class="kpi-label"><?= e($tile['label']) ?></div>
-                    <div class="kpi-value"><?= $tile['money'] ? 'INR ' . e(number_format((float) ($summary[$key] ?? 0), 0)) : e((string) ($summary[$key] ?? 0)) ?></div>
+                    <div class="kpi-value"><?= $tile['money'] ? e(money_inr($summary[$key] ?? 0)) : e((string) ($summary[$key] ?? 0)) ?></div>
                 </div>
             </div>
         <?php endforeach; ?>

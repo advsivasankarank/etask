@@ -26,7 +26,7 @@
             <select name="status">
                 <option value="">All Statuses</option>
                 <?php foreach (['ASSIGNED', 'DELIVERED', 'COMPLETED', 'CLOSED'] as $status): ?>
-                    <option value="<?= e($status) ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>><?= e($status) ?></option>
+                    <option value="<?= e($status) ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>><?= e(label_case($status)) ?></option>
                 <?php endforeach; ?>
             </select>
             <input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>">
@@ -64,7 +64,7 @@
                                 <span class="subtle"><?= e($row['company_name']) ?> | <?= e($row['service_type_name']) ?></span><br>
                                 <a href="<?= e(url('/consultants/show?service_order_id=' . $row['service_order_id'])) ?>" class="chip" style="margin-top:8px;">Open Workspace</a>
                             </td>
-                            <td><span class="chip chip-strong"><?= e($row['status']) ?></span></td>
+                            <td><span class="chip chip-strong"><?= e(label_case((string) $row['status'])) ?></span></td>
                             <td><?= e((string) $row['deliverable_count']) ?></td>
                             <td>
                                 Bills: <?= e((string) $row['bill_count']) ?><br>

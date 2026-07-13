@@ -9,7 +9,7 @@
             <tbody>
             <?php foreach (($rules ?? []) as $rule): ?>
                 <tr>
-                    <td><?= e($rule['reminder_type']) ?></td>
+                    <td><?= e(label_case((string) $rule['reminder_type'])) ?></td>
                     <td><?= e((string) $rule['day_offset']) ?></td>
                     <td><?= e($rule['target_type']) ?></td>
                     <td><?= e($rule['target_role_code'] ?: '-') ?></td>

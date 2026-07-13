@@ -372,9 +372,9 @@ $userName = (\App\Core\Auth::user())['full_name'] ?? '';
     <div class="cp-container">
         <div class="cp-card">
             <section class="cp-left">
-                <div class="eyebrow">Security Update</div>
-                <h1>Secure Your Account</h1>
-                <p class="copy-text">For your account protection, please create a new password before continuing to your workspace.</p>
+                <div class="eyebrow"><?= !empty($forcedChange) ? 'Security Update' : 'Account Security' ?></div>
+                <h1><?= !empty($forcedChange) ? 'Secure Your Account' : 'Change Password' ?></h1>
+                <p class="copy-text"><?= !empty($forcedChange) ? 'For your account protection, please create a new password before continuing to your workspace.' : 'Update your password whenever you need to strengthen or refresh your account security.' ?></p>
 
                 <?php if ($userName !== ''): ?>
                     <div class="welcome">Welcome back, <strong><?= e($userName) ?></strong></div>
@@ -405,9 +405,9 @@ $userName = (\App\Core\Auth::user())['full_name'] ?? '';
             </section>
 
             <section class="cp-right">
-                <div class="eyebrow">PASSWORD RESET REQUIRED</div>
+                <div class="eyebrow"><?= !empty($forcedChange) ? 'PASSWORD RESET REQUIRED' : 'PASSWORD UPDATE' ?></div>
                 <h2>Update Your Password</h2>
-                <p class="hint">Enter your current password and set a new secure password to continue.</p>
+                <p class="hint"><?= !empty($forcedChange) ? 'Enter your current password and set a new secure password to continue.' : 'Enter your current password, then choose and confirm a new password.' ?></p>
 
                 <?php if (!empty($error)): ?>
                     <div class="alert alert-error"><?= e($error) ?></div>

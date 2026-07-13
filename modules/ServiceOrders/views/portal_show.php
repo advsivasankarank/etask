@@ -449,7 +449,7 @@ $canUploadDocuments = \App\Core\Auth::canAny('service_orders.create', 'workflow.
 
             <?php if ($invoices !== []): ?>
                 <div class="portal-actions">
-                    <a href="<?= e(url('/client-portal/account')) ?>" class="button button-secondary">Open Billing Workspace</a>
+                    <a href="<?= e(url('/client-portal/account')) ?>" class="button button-secondary">Open Account &amp; Billing</a>
                 </div>
             <?php endif; ?>
         </div>
@@ -537,7 +537,7 @@ $canUploadDocuments = \App\Core\Auth::canAny('service_orders.create', 'workflow.
                         <article class="portal-update-card">
                             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
                                 <strong><?= e($item['title']) ?></strong>
-                                <span class="portal-chip"><?= e($item['status']) ?></span>
+                                <span class="portal-chip"><?= e(label_case((string) $item['status'])) ?></span>
                             </div>
                             <div class="portal-muted"><?= e($item['date'] ?: '-') ?></div>
                         </article>

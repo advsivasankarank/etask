@@ -9,5 +9,5 @@
         <?php endforeach; ?>
     </div>
 
-    <?php if (($summary ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No Data</div><p class="subtle" style="margin:8px 0 0;">No DSC data found.</p></div><?php endif; ?>
+    <?php if (($summary ?? []) === []): ?><div class="data-card" style="text-align:center;padding:40px;"><div class="eyebrow">No DSC report data</div><p class="subtle" style="margin:8px 0 0;">No DSC records are available for this report yet. Add certificate records to populate it.</p></div><?php endif; ?>
 </section>

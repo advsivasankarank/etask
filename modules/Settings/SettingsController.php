@@ -85,7 +85,7 @@ final class SettingsController
     public function serviceTypes(): void
     {
         $content = View::render(base_path('modules/Settings/views/service_types.php'), [
-            'title' => 'Service Type Settings',
+            'title' => 'Service Type Reference',
             'activeMenu' => 'settings',
             'serviceTypes' => $this->settings->allServiceTypes(),
             'success' => Session::pullFlash('success'),
@@ -128,7 +128,7 @@ final class SettingsController
     public function milestones(): void
     {
         $content = View::render(base_path('modules/Settings/views/milestones.php'), [
-            'title' => 'Milestone Settings',
+            'title' => 'Milestone Reference',
             'activeMenu' => 'settings',
             'milestones' => $this->settings->allMilestones(),
             'success' => Session::pullFlash('success'),
@@ -141,7 +141,7 @@ final class SettingsController
     public function reminderTemplates(): void
     {
         $content = View::render(base_path('modules/Settings/views/reminder_templates.php'), [
-            'title' => 'Reminder Templates',
+            'title' => 'Reminder Template Reference',
             'activeMenu' => 'settings',
             'templates' => $this->settings->allReminderTemplates(),
             'success' => Session::pullFlash('success'),
@@ -188,7 +188,7 @@ final class SettingsController
     public function roleDefaults(): void
     {
         $content = View::render(base_path('modules/Settings/views/role_defaults.php'), [
-            'title' => 'Role Defaults',
+            'title' => 'Role Access Reference',
             'activeMenu' => 'settings',
             'success' => Session::pullFlash('success'),
             'error' => Session::pullFlash('error'),
@@ -200,7 +200,7 @@ final class SettingsController
     public function documentCategories(): void
     {
         $content = View::render(base_path('modules/Settings/views/document_categories.php'), [
-            'title' => 'Document Categories',
+            'title' => 'Document Category Reference',
             'activeMenu' => 'settings',
             'success' => Session::pullFlash('success'),
             'error' => Session::pullFlash('error'),
@@ -212,7 +212,7 @@ final class SettingsController
     public function dscCategories(): void
     {
         $content = View::render(base_path('modules/Settings/views/dsc_categories.php'), [
-            'title' => 'DSC Categories',
+            'title' => 'DSC Category Reference',
             'activeMenu' => 'settings',
             'success' => Session::pullFlash('success'),
             'error' => Session::pullFlash('error'),
