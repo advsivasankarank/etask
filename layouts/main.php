@@ -70,6 +70,21 @@ if ($isPortalUser):
         }
         a { color: inherit; text-decoration: none; }
 
+        .skip-link {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #fff;
+            color: #0d3d4a;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(13, 61, 74, 0.24);
+            transform: translateY(-160%);
+        }
+        .skip-link:focus { transform: translateY(0); }
+
         .portal-shell {
             display: grid;
             grid-template-columns: 260px minmax(0, 1fr);
@@ -229,6 +244,23 @@ if ($isPortalUser):
             height: 22px;
         }
 
+        .portal-mobile-toggle:focus-visible,
+        .portal-nav a:focus-visible,
+        .portal-logout:focus-visible,
+        .skip-link:focus-visible {
+            outline: 3px solid #f6a54d;
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+
         .portal-sidebar-overlay {
             display: none;
             position: fixed;
@@ -286,13 +318,14 @@ if ($isPortalUser):
     </style>
 </head>
 <body>
+    <a class="skip-link" href="#portalMainContent">Skip to main content</a>
     <div class="portal-shell">
-        <aside class="portal-sidebar" id="portalSidebar">
+        <aside class="portal-sidebar" id="portalSidebar" aria-label="Client portal navigation">
             <div class="portal-brand">
                 <div class="portal-brand-logo"><span class="e">e-</span>Pani</div>
                 <div class="portal-brand-sub">Client Portal</div>
             </div>
-            <nav class="portal-nav">
+            <nav class="portal-nav" aria-label="Client portal">
                 <a href="<?= e(url('/client-portal/account')) ?>" class="<?= $requestUri === '/client-portal/account' ? 'active' : '' ?>">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
                     My Account
@@ -322,17 +355,17 @@ if ($isPortalUser):
             </div>
         </aside>
         <button type="button" class="portal-sidebar-overlay" id="portalSidebarOverlay" aria-label="Close portal navigation" tabindex="-1"></button>
-        <main class="portal-content">
-            <div class="portal-topbar">
+        <main class="portal-content" id="portalMainContent" tabindex="-1">
+            <header class="portal-topbar">
                 <div class="portal-topbar-left">
                     <button type="button" class="portal-mobile-toggle" id="portalMobileToggle" aria-label="Open portal navigation" aria-controls="portalSidebar" aria-expanded="false">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
                     </button>
                     <h1><?= e($title ?? 'Dashboard') ?></h1>
                 </div>
-            </div>
+            </header>
             <?php if (!empty($success)): ?>
-                <div class="flash flash-success"><?= e($success) ?></div>
+                <div class="flash flash-success" role="status" aria-live="polite"><?= e($success) ?></div>
             <?php endif; ?>
             <?= $content ?>
             <footer class="app-footer">e-Pani : Office Management Suite from E Tax Advisors Private Limited</footer>
@@ -343,13 +376,23 @@ if ($isPortalUser):
             const toggle = document.getElementById('portalMobileToggle');
             const sidebar = document.getElementById('portalSidebar');
             const overlay = document.getElementById('portalSidebarOverlay');
+            const skipLink = document.querySelector('.skip-link');
+            const mainContent = document.getElementById('portalMainContent');
+            if (skipLink && mainContent) {
+                skipLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    mainContent.focus();
+                    mainContent.scrollIntoView();
+                });
+            }
             if (!toggle || !sidebar || !overlay) return;
 
-            const closeNavigation = () => {
+            const closeNavigation = (restoreFocus = true) => {
                 sidebar.classList.remove('open');
                 overlay.classList.remove('active');
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.setAttribute('aria-label', 'Open portal navigation');
+                if (restoreFocus && window.innerWidth <= 900) toggle.focus();
             };
 
             const openNavigation = () => {
@@ -357,19 +400,36 @@ if ($isPortalUser):
                 overlay.classList.add('active');
                 toggle.setAttribute('aria-expanded', 'true');
                 toggle.setAttribute('aria-label', 'Close portal navigation');
+                (sidebar.querySelector('a.active') || sidebar.querySelector('a, button'))?.focus();
             };
 
             toggle.addEventListener('click', () => {
                 if (sidebar.classList.contains('open')) closeNavigation();
                 else openNavigation();
             });
-            overlay.addEventListener('click', closeNavigation);
-            sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeNavigation));
+            overlay.addEventListener('click', () => closeNavigation());
+            sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => closeNavigation(false)));
             document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') closeNavigation();
+                if (event.key === 'Escape' && sidebar.classList.contains('open')) closeNavigation();
             });
             window.addEventListener('resize', () => {
-                if (window.innerWidth > 900) closeNavigation();
+                if (window.innerWidth > 900) closeNavigation(false);
+            });
+            sidebar.querySelectorAll('svg').forEach((icon) => icon.setAttribute('aria-hidden', 'true'));
+            sidebar.querySelectorAll('a').forEach((link) => {
+                const label = link.querySelector('.sidebar-link-label');
+                if (label && !link.hasAttribute('aria-label')) link.setAttribute('aria-label', label.textContent.trim());
+            });
+            sidebar.querySelectorAll('a.active').forEach((link) => link.setAttribute('aria-current', 'page'));
+            document.querySelectorAll('.empty-state-icon').forEach((icon) => icon.setAttribute('aria-hidden', 'true'));
+            document.querySelectorAll('table thead th').forEach((heading) => heading.setAttribute('scope', 'col'));
+            document.querySelectorAll('.flash-success, .alert-success').forEach((message) => {
+                message.setAttribute('role', 'status');
+                message.setAttribute('aria-live', 'polite');
+            });
+            document.querySelectorAll('.flash:not(.flash-success), .alert-error').forEach((message) => {
+                message.setAttribute('role', 'alert');
+                message.setAttribute('aria-live', 'assertive');
             });
         })();
     </script>
@@ -419,6 +479,33 @@ if ($isPortalUser):
             overflow-x: clip;
         }
         a { color: inherit; text-decoration: none; }
+
+        .skip-link {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #fff;
+            color: #0d3d4a;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(13, 61, 74, 0.24);
+            transform: translateY(-160%);
+        }
+        .skip-link:focus { transform: translateY(0); }
+
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
 
         /* KPI cards */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
@@ -997,7 +1084,7 @@ if ($isPortalUser):
             display: grid;
             gap: 10px;
         }
-        .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.73rem; font-weight: 700; color: var(--accent); }
+        .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.73rem; font-weight: 700; color: #984807; }
         .chip {
             display: inline-flex;
             align-items: center;
@@ -1117,7 +1204,7 @@ if ($isPortalUser):
 
         /* Improved button styling */
         .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: var(--radius-md); font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-decoration: none; }
-        .btn-primary { background: var(--primary); color: #fff; border: 1px solid var(--primary); }
+        .btn-primary { background: var(--primary-dark); color: #fff; border: 1px solid var(--primary-dark); }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
         .btn-secondary:hover { background: #f8fafc; }
@@ -1126,9 +1213,22 @@ if ($isPortalUser):
         .btn-sm { padding: 6px 10px; font-size: 0.82rem; }
 
         /* Improved focus states for accessibility */
-        input:focus, select:focus, textarea:focus, button:focus, a:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
+        input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+            outline: 3px solid #0b6b78;
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            .badge, .chip, .button, .btn, .sidebar-link.active { border: 1px solid CanvasText; }
         }
 
         /* Improved card hover */
@@ -1228,13 +1328,14 @@ if ($isPortalUser):
     </style>
 </head>
 <body>
+    <a class="skip-link" href="#mainContent">Skip to main content</a>
     <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar" aria-label="Application navigation">
             <div class="sidebar-brand">
                 <div class="sidebar-brand-logo"><span class="e">e-</span><span class="sidebar-link-label">Pani</span></div>
                 <div class="sidebar-brand-sub">Office Management Suite</div>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" aria-label="Primary navigation">
                 <?php if (Auth::canAny('dashboard.admin', 'dashboard.crm', 'dashboard.accounts', 'dashboard.consultant', 'dashboard.client')): ?>
                 <a href="<?= e(url('/dashboard')) ?>" class="sidebar-link <?= $activeModule === 'dashboard' ? 'active' : '' ?>">
                     <svg class="sidebar-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
@@ -1509,25 +1610,25 @@ if ($isPortalUser):
                 </form>
             </div>
         </aside>
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
         <div class="main-area">
             <header class="topbar">
                 <div class="topbar-left">
-                    <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <button type="button" class="mobile-toggle" id="mobileToggle" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </button>
                     <h1 class="topbar-title"><?= e($title ?? 'Dashboard') ?></h1>
                 </div>
                 <div class="topbar-right">
                     <?php if ($hasUniversalSearch): ?>
-                    <a href="<?= e(url('/search')) ?>" class="topbar-search">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                    <a href="<?= e(url('/search')) ?>" class="topbar-search" aria-label="Open global search (keyboard shortcut Control K)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                         Search...
                         <kbd>Ctrl+K</kbd>
                     </a>
                     <?php endif; ?>
-                    <a href="<?= e(url($notificationLink)) ?>" class="topbar-link">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    <a href="<?= e(url($notificationLink)) ?>" class="topbar-link" aria-label="Open notifications">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
                     </a>
                     <a href="<?= e(url($profileLink)) ?>" class="topbar-link" style="gap:10px;" aria-label="Profile: <?= e($currentUser['full_name'] ?? 'User') ?>">
                         <span class="topbar-avatar"><?= e(strtoupper(substr((string) ($currentUser['full_name'] ?? 'U'), 0, 1))) ?></span>
@@ -1535,10 +1636,10 @@ if ($isPortalUser):
                     </a>
                 </div>
             </header>
-            <div class="content-area">
+            <main class="content-area" id="mainContent" tabindex="-1">
                 <?= $content ?>
                 <footer class="app-footer">e-Pani : Office Management Suite from E Tax Advisors Private Limited</footer>
-            </div>
+            </main>
         </div>
     </div>
     <script>
@@ -1546,18 +1647,100 @@ if ($isPortalUser):
         var toggle = document.getElementById('mobileToggle');
         var sidebar = document.getElementById('sidebar');
         var overlay = document.getElementById('sidebarOverlay');
+        var skipLink = document.querySelector('.skip-link');
+        var mainContent = document.getElementById('mainContent');
+        if (skipLink && mainContent) {
+            skipLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                mainContent.focus();
+                mainContent.scrollIntoView();
+            });
+        }
+        function closeNavigation(restoreFocus) {
+            if (!sidebar) return;
+            sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open navigation');
+                if (restoreFocus && window.innerWidth <= 900) toggle.focus();
+            }
+        }
+        function openNavigation() {
+            if (!sidebar || !toggle) return;
+            sidebar.classList.add('open');
+            if (overlay) overlay.classList.add('active');
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', 'Close navigation');
+            var destination = sidebar.querySelector('a.active') || sidebar.querySelector('a, button');
+            if (destination) destination.focus();
+        }
         if (toggle && sidebar) {
             toggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-                if (overlay) overlay.classList.toggle('active');
+                if (sidebar.classList.contains('open')) closeNavigation(true);
+                else openNavigation();
             });
         }
         if (overlay) {
             overlay.addEventListener('click', function() {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
+                closeNavigation(true);
             });
         }
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && sidebar && sidebar.classList.contains('open')) {
+                closeNavigation(true);
+            }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                var search = document.querySelector('.topbar-search');
+                if (search) {
+                    event.preventDefault();
+                    search.click();
+                }
+            }
+        });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 900) closeNavigation(false);
+        });
+
+        document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
+            link.setAttribute('aria-current', 'page');
+        });
+        document.querySelectorAll('.sidebar-link').forEach(function(link) {
+            var label = link.querySelector('.sidebar-link-label');
+            if (label && !link.hasAttribute('aria-label')) link.setAttribute('aria-label', label.textContent.trim());
+        });
+        document.querySelectorAll('.sidebar-link-icon, .quick-tile-icon svg, .stat-card-icon svg').forEach(function(icon) {
+            icon.setAttribute('aria-hidden', 'true');
+        });
+        document.querySelectorAll('.flash-success, .alert-success').forEach(function(message) {
+            message.setAttribute('role', 'status');
+            message.setAttribute('aria-live', 'polite');
+        });
+        document.querySelectorAll('.flash:not(.flash-success), .alert-error').forEach(function(message) {
+            message.setAttribute('role', 'alert');
+            message.setAttribute('aria-live', 'assertive');
+        });
+        document.querySelectorAll('table:not([aria-label])').forEach(function(table) {
+            if (table.querySelector('caption')) return;
+            var region = table.closest('section, .panel, .data-card');
+            var heading = region ? region.querySelector('h2, h3, h4, .section-title') : null;
+            table.setAttribute('aria-label', (heading ? heading.textContent.trim() : 'Application') + ' data');
+        });
+        document.querySelectorAll('table thead th').forEach(function(heading) {
+            heading.setAttribute('scope', 'col');
+        });
+        document.querySelectorAll('.empty-state-icon').forEach(function(icon) {
+            icon.setAttribute('aria-hidden', 'true');
+        });
+        document.querySelectorAll('input, select, textarea').forEach(function(control) {
+            if (control.type === 'hidden' || control.type === 'submit' || control.type === 'button') return;
+            var hasLabel = control.closest('label') || (control.id && document.querySelector('label[for="' + CSS.escape(control.id) + '"]'));
+            if (!hasLabel && !control.hasAttribute('aria-label') && !control.hasAttribute('aria-labelledby')) {
+                var source = control.getAttribute('placeholder') || control.getAttribute('name') || control.getAttribute('type') || 'field';
+                var label = source.replace(/[_-]+/g, ' ').replace(/\b\w/g, function(letter) { return letter.toUpperCase(); });
+                control.setAttribute('aria-label', label);
+            }
+        });
     })();
     </script>
 </body>

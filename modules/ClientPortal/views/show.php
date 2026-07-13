@@ -99,7 +99,7 @@
                 <form method="post" action="<?= e(url('/client-portal/pso/recommend')) ?>" style="display:grid;gap:10px;">
                     <?= \App\Core\Csrf::inputField() ?>
                     <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
-                    <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="CRM review remarks"></textarea>
+                    <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="CRM review remarks" aria-label="CRM review remarks"></textarea>
                     <button type="submit" class="button">Mark Under Review / Recommend Approval</button>
                 </form>
             </div>
@@ -110,7 +110,7 @@
                     <form method="post" action="<?= e(url('/client-portal/pso/approve')) ?>" style="display:grid;gap:10px;">
                         <?= \App\Core\Csrf::inputField() ?>
                         <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
-                        <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Conversion remarks"></textarea>
+                        <textarea name="remarks" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Conversion remarks" aria-label="Service order conversion remarks"></textarea>
                         <button type="submit" class="button">Convert to SO</button>
                     </form>
                 </div>
@@ -124,7 +124,7 @@
             <form method="post" action="<?= e(url('/client-portal/pso/reject')) ?>" style="display:grid;gap:10px;">
                 <?= \App\Core\Csrf::inputField() ?>
                 <input type="hidden" name="pso_id" value="<?= e($pso['id']) ?>">
-                <textarea name="reason" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Rejection reason" required></textarea>
+                <textarea name="reason" rows="4" style="padding:12px;border:1px solid #d8e1eb;border-radius:12px;resize:vertical;" placeholder="Rejection reason" aria-label="PSO rejection reason" required></textarea>
                 <button type="submit" class="button" style="background:#b42318;">Reject PSO</button>
             </form>
         </div>

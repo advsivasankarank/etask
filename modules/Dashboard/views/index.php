@@ -48,7 +48,7 @@
         <div style="display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1.4fr);gap:16px;">
             <div class="panel" style="box-shadow:none;">
                 <div class="eyebrow">Work In Progress</div>
-                <h4 class="section-title" style="margin-top:2px;">Open Service Orders by Stage</h4>
+                <h2 class="section-title" style="margin-top:2px;">Open Service Orders by Stage</h2>
                 <?php if (($dashboard['stageBreakdown'] ?? []) === []): ?>
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
@@ -68,7 +68,7 @@
                     ?>
                     <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
                         <div style="position:relative;width:150px;height:150px;flex-shrink:0;">
-                            <canvas id="stageDonutChart"></canvas>
+                            <canvas id="stageDonutChart" role="img" aria-label="Open service orders grouped by workflow stage"></canvas>
                         </div>
                         <div style="display:grid;gap:8px;flex:1;min-width:160px;">
                             <?php foreach ($stageLabels as $i => $stageLabel): ?>
@@ -110,9 +110,9 @@
 
             <div class="panel" style="box-shadow:none;">
                 <div class="eyebrow">Trend</div>
-                <h4 class="section-title" style="margin-top:2px;">Service Orders Created — Last 14 Days</h4>
+                <h2 class="section-title" style="margin-top:2px;">Service Orders Created — Last 14 Days</h2>
                 <div style="height:190px;">
-                    <canvas id="creationTrendChart"></canvas>
+                    <canvas id="creationTrendChart" role="img" aria-label="Service orders created each day during the last 14 days"></canvas>
                 </div>
                 <script>
                 (function() {
@@ -175,7 +175,7 @@
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                         <div>
                             <div class="eyebrow">Queue</div>
-                            <h4 style="margin:2px 0 0;font-size:15px;">Compliance Due This Week</h4>
+                            <h2 style="margin:2px 0 0;font-size:15px;">Compliance Due This Week</h2>
                         </div>
                         <span class="chip"><?= count($dashboard['complianceDueThisWeek'] ?? []) ?> items</span>
                     </div>
@@ -210,7 +210,7 @@
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                         <div>
                             <div class="eyebrow">Queue</div>
-                            <h4 style="margin:2px 0 0;font-size:15px;">Documents Awaiting Review</h4>
+                            <h2 style="margin:2px 0 0;font-size:15px;">Documents Awaiting Review</h2>
                         </div>
                         <span class="chip"><?= count($dashboard['documentsAwaitingReview'] ?? []) ?> items</span>
                     </div>
@@ -250,7 +250,7 @@
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                             <div>
                                 <div class="eyebrow">Queue</div>
-                                <h4 style="margin:2px 0 0;font-size:1rem;"><?= e(label_case((string) $queueName)) ?></h4>
+                                <h2 style="margin:2px 0 0;font-size:1rem;"><?= e(label_case((string) $queueName)) ?></h2>
                             </div>
                             <span class="chip"><?= count($rows) ?> items</span>
                         </div>
@@ -293,7 +293,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div>
                     <div class="eyebrow">Alerts</div>
-                    <h4 style="margin:2px 0 0;font-size:1rem;">Notifications</h4>
+                    <h2 style="margin:2px 0 0;font-size:1rem;">Notifications</h2>
                 </div>
                 <?php if (\App\Core\Auth::can('reminders.view')): ?>
                     <a href="<?= e(url('/reminders')) ?>" class="button button-secondary" style="padding:6px 12px;font-size:0.82rem;">Reminders</a>
@@ -321,7 +321,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div>
                     <div class="eyebrow">Quick Access</div>
-                    <h4 style="margin:2px 0 0;font-size:1rem;">Workspaces</h4>
+                    <h2 style="margin:2px 0 0;font-size:1rem;">Workspaces</h2>
                 </div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:8px;">
@@ -373,7 +373,7 @@
         <?php if (($dashboard['upcomingDeadlines'] ?? []) !== []): ?>
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);margin:0;">
             <div class="eyebrow">Schedule</div>
-            <h4 style="margin:2px 0 12px;font-size:15px;">Upcoming Deadlines</h4>
+            <h2 style="margin:2px 0 12px;font-size:15px;">Upcoming Deadlines</h2>
             <div style="display:grid;gap:10px;">
                 <?php foreach ($dashboard['upcomingDeadlines'] as $deadline): ?>
                     <?php $dueTimestamp = strtotime((string) $deadline['due_date']); ?>
@@ -396,7 +396,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <div>
                 <div class="eyebrow">Workspace</div>
-                <h4 style="margin:2px 0 0;">Session Info</h4>
+                <h2 style="margin:2px 0 0;">Session Info</h2>
             </div>
         </div>
         <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">

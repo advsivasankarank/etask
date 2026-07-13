@@ -577,14 +577,14 @@ function portalUpdateAreaLabel(string $linkedModule): string
                                     <?= \App\Core\Csrf::inputField() ?>
                                     <input type="hidden" name="invoice_id" value="<?= e((string) $invoice['id']) ?>">
                                     <div class="grid">
-                                        <input type="number" step="0.01" name="amount" value="<?= e(number_format($outstandingAmount, 2, '.', '')) ?>" placeholder="Payment amount">
-                                        <select name="payment_mode">
+                                        <input type="number" step="0.01" name="amount" value="<?= e(number_format($outstandingAmount, 2, '.', '')) ?>" placeholder="Payment amount" aria-label="Payment amount">
+                                        <select name="payment_mode" aria-label="Payment mode">
                                             <option value="BANK_TRANSFER">Bank Transfer</option>
                                             <option value="UPI">UPI</option>
                                             <option value="RAZORPAY">Razorpay</option>
                                         </select>
-                                        <input type="date" name="payment_date" value="<?= e(date('Y-m-d')) ?>">
-                                        <input type="text" name="reference_no" placeholder="UTR / Reference">
+                                        <input type="date" name="payment_date" value="<?= e(date('Y-m-d')) ?>" aria-label="Payment date">
+                                        <input type="text" name="reference_no" placeholder="UTR / Reference" aria-label="UTR or payment reference">
                                     </div>
                                     <button type="submit" class="button">Submit Payment</button>
                                 </form>
