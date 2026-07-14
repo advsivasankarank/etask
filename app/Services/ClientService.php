@@ -14,6 +14,7 @@ final class ClientService
 {
     private ClientRepository $clients;
     private DocumentUploadService $documentUploads;
+    private EmailNotificationChannel $emailNotifications;
     private EncryptionService $encryption;
     private UserService $users;
 
@@ -21,6 +22,7 @@ final class ClientService
     {
         $this->clients = new ClientRepository();
         $this->documentUploads = new DocumentUploadService();
+        $this->emailNotifications = new EmailNotificationChannel();
         $this->encryption = new EncryptionService();
         $this->users = new UserService();
     }
@@ -314,8 +316,8 @@ final class ClientService
         $usernameBasis = strtoupper(trim((string) ($input['username_basis'] ?? 'PAN')));
         $email = trim((string) ($input['contact_email'] ?? $input['email'] ?? ''));
 
-        if ($email === '') {
-            throw new RuntimeException('Contact email is required for portal registration.');
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            throw new RuntimeException('A valid contact email is required for portal registration.');
         }
 
         if ($password === '' || $confirmPassword === '') {
@@ -388,7 +390,8 @@ final class ClientService
                 trim((string) ($input['contact_name'] ?? $legalName)),
                 trim((string) ($input['contact_email'] ?? $input['email'] ?? '')),
                 trim((string) ($input['contact_mobile'] ?? $input['mobile'] ?? '')) ?: null,
-                null
+                null,
+                false
             );
 
             return $clientId;
@@ -396,16 +399,32 @@ final class ClientService
 
         $this->uploadIdentityDocuments($clientId, $files, (int) ($portalAccount['user_id'] ?? 0));
 
+        $loginUrl = url('/login?audience=portal');
+        $emailResult = $this->emailNotifications->send(
+            $email,
+            'Your e-Pani client portal account is ready',
+            "Hello " . trim((string) ($input['contact_name'] ?? $input['legal_name'] ?? 'Client')) . ",\n\n"
+                . "Your e-Pani client portal account has been created successfully.\n\n"
+                . "Username: " . (string) ($portalAccount['username'] ?? '') . "\n"
+                . "Login: " . $loginUrl . "\n\n"
+                . "Use the password you created during registration. For your security, your password is not included in this email.\n\n"
+                . "If you did not create this account, please contact our office immediately.\n\n"
+                . "Regards,\n"
+                . (string) config('app.mail_from_name', 'e-Pani')
+        );
+
         Logger::info('client.portal_registered', [
             'client_id' => $clientId,
             'username' => $portalAccount['username'] ?? null,
             'user_id' => $portalAccount['user_id'] ?? null,
+            'email_status' => $emailResult['status'] ?? 'FAILED',
         ]);
 
         return [
             'client_id' => $clientId,
             'user_id' => (int) ($portalAccount['user_id'] ?? 0),
             'username' => (string) ($portalAccount['username'] ?? ''),
+            'email_sent' => ($emailResult['status'] ?? 'FAILED') === 'SENT',
         ];
     }
 

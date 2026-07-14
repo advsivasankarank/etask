@@ -223,7 +223,13 @@ final class ClientController
                 'pan_document' => $request->file('pan_document'),
                 'aadhaar_document' => $request->file('aadhaar_document'),
             ]);
-            Session::flash('success', 'Portal account created successfully. Your username is ' . $result['username'] . '. Please sign in using the password you set.');
+            Session::flash('old_username', $result['username']);
+            Session::flash(
+                'success',
+                !empty($result['email_sent'])
+                    ? 'User created successfully. Your username and login instructions have been sent to your email.'
+                    : 'User created successfully. You can log in now using username ' . $result['username'] . ' and the password you created. Email delivery could not be confirmed.'
+            );
             redirect('/login?audience=portal');
         } catch (Throwable $throwable) {
             Session::flash('error', $throwable->getMessage());

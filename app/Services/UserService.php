@@ -140,7 +140,8 @@ final class UserService
         string $fullName,
         string $email,
         ?string $mobile = null,
-        ?int $actorId = null
+        ?int $actorId = null,
+        bool $mustChangePassword = true
     ): array {
         $fullName = trim($fullName);
         $email = strtolower(trim($email));
@@ -169,7 +170,7 @@ final class UserService
             'full_name' => $fullName,
             'email' => $email,
             'mobile' => trim((string) $mobile) ?: null,
-            'must_change_password' => 1,
+            'must_change_password' => $mustChangePassword ? 1 : 0,
         ]);
         $this->users->assignRole($userId, $clientRole, $actorId);
         $this->users->recordActivity($actorId, 'CREATE', $userId, 'Portal user created: ' . $normalizedUsername);
