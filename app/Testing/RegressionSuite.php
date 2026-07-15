@@ -343,14 +343,15 @@ final class RegressionSuite
         $superAdmin = $this->requireShared('super_admin');
         $crm = $this->requireShared('crm_user');
         $serviceTypeId = $this->serviceTypeIdByCode('GST');
+        $financialYearId = $this->activeFinancialYearId();
 
         $serviceOrderId = (new ServiceOrderService())->create([
             'client_id' => $client['id'],
             'service_type_id' => $serviceTypeId,
+            'financial_year_id' => $financialYearId,
             'work_basis' => 'MONTHLY',
             'compliance_subtype' => 'GSTR3B',
             'period_month' => 6,
-            'period_year' => 2026,
             'title' => 'Regression GST SO',
             'description' => 'Regression smoke test service order',
             'priority_level' => 'HIGH',
@@ -360,14 +361,15 @@ final class RegressionSuite
         $order = (new ServiceOrderRepository())->findDetailedById($serviceOrderId);
         $this->assertTrue($order !== null, 'Expected service order to be created.');
         $this->assertTrue(str_starts_with((string) $order['so_no'], 'SO/'), 'Expected SO number format to be generated.');
+        $this->assertTrue(str_contains((string) ($order['period_label'] ?? ''), 'FY '), 'Expected monthly period to include the selected FY.');
 
         $reminderServiceOrderId = (new ServiceOrderService())->create([
             'client_id' => $client['id'],
             'service_type_id' => $serviceTypeId,
+            'financial_year_id' => $financialYearId,
             'work_basis' => 'MONTHLY',
             'compliance_subtype' => 'GSTR1',
             'period_month' => 7,
-            'period_year' => 2026,
             'title' => 'Reminder Candidate SO',
             'description' => 'Kept in document pending for reminder smoke test',
             'priority_level' => 'MEDIUM',
@@ -1034,6 +1036,23 @@ final class RegressionSuite
         }
 
         return (int) $serviceTypeId;
+    }
+
+    private function activeFinancialYearId(): int
+    {
+        $financialYearId = $this->fetchValue(
+            "SELECT id
+             FROM financial_years
+             WHERE is_active = 1
+               AND CURDATE() BETWEEN start_date AND end_date
+             ORDER BY start_date DESC
+             LIMIT 1"
+        );
+        if ($financialYearId === false || $financialYearId === null) {
+            throw new RuntimeException('No active financial year covers the current regression date.');
+        }
+
+        return (int) $financialYearId;
     }
 
     private function userSessionById(int $userId): array

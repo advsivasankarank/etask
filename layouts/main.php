@@ -545,9 +545,16 @@ if ($isPortalUser):
             grid-template-columns: 76px minmax(0, 1fr);
             min-height: 100vh;
             max-width: 100%;
+            transition: grid-template-columns 0.18s ease;
         }
 
-        /* Sidebar: 76px icon rail, expands to 264px as a fixed overlay on hover */
+        .app-shell:has(.sidebar:hover),
+        .app-shell:has(.sidebar.open),
+        .app-shell:has(.sidebar.pinned) {
+            grid-template-columns: 264px minmax(0, 1fr);
+        }
+
+        /* Sidebar: 76px icon rail; desktop expansion reserves its full 264px column. */
         .sidebar {
             position: sticky;
             top: 0;
@@ -567,13 +574,14 @@ if ($isPortalUser):
         }
 
         .sidebar:hover,
-        .sidebar.open {
-            position: fixed;
+        .sidebar.open,
+        .sidebar.pinned {
             width: 264px;
             box-shadow: 8px 0 30px rgba(13, 61, 74, 0.16);
         }
 
         .sidebar-brand {
+            position: relative;
             padding: 24px 0;
             border-bottom: 1px solid rgba(13, 61, 74, 0.10);
             white-space: nowrap;
@@ -582,9 +590,43 @@ if ($isPortalUser):
         }
 
         .sidebar:hover .sidebar-brand,
-        .sidebar.open .sidebar-brand {
+        .sidebar.open .sidebar-brand,
+        .sidebar.pinned .sidebar-brand {
             padding: 24px 22px;
             text-align: left;
+        }
+
+        .sidebar-pin-toggle {
+            position: absolute;
+            top: 18px;
+            right: 14px;
+            display: none;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(13, 61, 74, 0.14);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--primary-dark);
+            cursor: pointer;
+        }
+
+        .sidebar:hover .sidebar-pin-toggle,
+        .sidebar.open .sidebar-pin-toggle,
+        .sidebar.pinned .sidebar-pin-toggle {
+            display: inline-flex;
+        }
+
+        .sidebar-pin-toggle:hover { background: #fff; }
+        .sidebar-pin-toggle:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+        .sidebar-pin-toggle svg { width: 17px; height: 17px; }
+        .sidebar-pin-toggle[aria-pressed="true"] {
+            background: var(--primary-dark);
+            color: #fff;
         }
 
         .sidebar-brand-logo {
@@ -666,21 +708,27 @@ if ($isPortalUser):
 
         .sidebar:hover .sidebar-link-label,
         .sidebar.open .sidebar-link-label,
+        .sidebar.pinned .sidebar-link-label,
         .sidebar:hover .sidebar-brand-sub,
         .sidebar.open .sidebar-brand-sub,
+        .sidebar.pinned .sidebar-brand-sub,
         .sidebar:hover .sidebar-group-label,
         .sidebar.open .sidebar-group-label,
+        .sidebar.pinned .sidebar-group-label,
         .sidebar:hover .sidebar-user-info,
         .sidebar.open .sidebar-user-info,
+        .sidebar.pinned .sidebar-user-info,
         .sidebar:hover .sidebar-logout,
-        .sidebar.open .sidebar-logout {
+        .sidebar.open .sidebar-logout,
+        .sidebar.pinned .sidebar-logout {
             display: block;
             opacity: 1;
             transition: opacity 0.15s ease 0.05s;
         }
 
         .sidebar:hover .sidebar-link-label,
-        .sidebar.open .sidebar-link-label { display: inline; flex: 1; }
+        .sidebar.open .sidebar-link-label,
+        .sidebar.pinned .sidebar-link-label { display: inline; flex: 1; }
 
         .sidebar-divider {
             height: 1px;
@@ -697,7 +745,8 @@ if ($isPortalUser):
         }
 
         .sidebar:hover .sidebar-footer,
-        .sidebar.open .sidebar-footer {
+        .sidebar.open .sidebar-footer,
+        .sidebar.pinned .sidebar-footer {
             padding: 16px 20px;
             display: block;
         }
@@ -711,7 +760,8 @@ if ($isPortalUser):
         }
 
         .sidebar:hover .sidebar-user,
-        .sidebar.open .sidebar-user {
+        .sidebar.open .sidebar-user,
+        .sidebar.pinned .sidebar-user {
             justify-content: flex-start;
         }
 
@@ -930,7 +980,10 @@ if ($isPortalUser):
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .app-shell { grid-template-columns: 1fr; }
+            .app-shell,
+            .app-shell:has(.sidebar:hover),
+            .app-shell:has(.sidebar.open),
+            .app-shell:has(.sidebar.pinned) { grid-template-columns: 1fr; }
             .main-area { grid-column: 1; }
             .sidebar {
                 position: fixed;
@@ -941,6 +994,7 @@ if ($isPortalUser):
             }
             .sidebar:hover { left: -264px; box-shadow: none; }
             .sidebar.open { left: 0; box-shadow: 8px 0 30px rgba(13, 61, 74, 0.16); }
+            .sidebar-pin-toggle { display: none !important; }
             .mobile-toggle { display: flex; }
             .content-area { padding: 20px 16px; }
             .topbar { padding: 14px 16px; }
@@ -1339,6 +1393,9 @@ if ($isPortalUser):
             <div class="sidebar-brand">
                 <div class="sidebar-brand-logo"><span class="e">e-</span><span class="sidebar-link-label">Pani</span></div>
                 <div class="sidebar-brand-sub">Office Management Suite</div>
+                <button type="button" class="sidebar-pin-toggle" id="sidebarPinToggle" aria-label="Keep sidebar expanded" aria-pressed="false" title="Keep sidebar expanded">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 17v5"/><path d="M5 3h14"/><path d="m7 3 1 8-3 3h14l-3-3 1-8"/></svg>
+                </button>
             </div>
             <nav class="sidebar-nav" aria-label="Primary navigation">
                 <?php if (Auth::canAny('dashboard.admin', 'dashboard.crm', 'dashboard.accounts', 'dashboard.consultant', 'dashboard.client')): ?>
@@ -1652,8 +1709,29 @@ if ($isPortalUser):
         var toggle = document.getElementById('mobileToggle');
         var sidebar = document.getElementById('sidebar');
         var overlay = document.getElementById('sidebarOverlay');
+        var pinToggle = document.getElementById('sidebarPinToggle');
         var skipLink = document.querySelector('.skip-link');
         var mainContent = document.getElementById('mainContent');
+        var sidebarPreferenceKey = 'epani.sidebar.pinned';
+        function setSidebarPinned(pinned, persist) {
+            if (!sidebar || !pinToggle) return;
+            sidebar.classList.toggle('pinned', pinned);
+            pinToggle.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+            pinToggle.setAttribute('aria-label', pinned ? 'Allow sidebar to collapse' : 'Keep sidebar expanded');
+            pinToggle.setAttribute('title', pinned ? 'Allow sidebar to collapse' : 'Keep sidebar expanded');
+            if (persist) {
+                try { window.localStorage.setItem(sidebarPreferenceKey, pinned ? '1' : '0'); } catch (error) {}
+            }
+        }
+        if (sidebar && pinToggle) {
+            var savedSidebarPreference = false;
+            try { savedSidebarPreference = window.localStorage.getItem(sidebarPreferenceKey) === '1'; } catch (error) {}
+            setSidebarPinned(savedSidebarPreference, false);
+            pinToggle.addEventListener('click', function() {
+                if (window.innerWidth <= 1024) return;
+                setSidebarPinned(!sidebar.classList.contains('pinned'), true);
+            });
+        }
         if (skipLink && mainContent) {
             skipLink.addEventListener('click', function(event) {
                 event.preventDefault();

@@ -16,6 +16,11 @@ if ($layout === false || $clientIndex === false) {
 
 $checks = [
     'app shell uses a shrink-safe content track' => str_contains($layout, 'grid-template-columns: 76px minmax(0, 1fr)'),
+    'expanded desktop sidebar reserves its full layout column' => str_contains($layout, '.app-shell:has(.sidebar:hover)')
+        && str_contains($layout, 'grid-template-columns: 264px minmax(0, 1fr)'),
+    'desktop sidebar can be pinned and remembers the preference' => str_contains($layout, 'id="sidebarPinToggle"')
+        && str_contains($layout, "sidebarPreferenceKey = 'epani.sidebar.pinned'")
+        && str_contains($layout, "sidebar.classList.toggle('pinned', pinned)"),
     'desktop main area remains in the content column while the sidebar expands' => preg_match('/\.main-area\s*\{[^}]*grid-column:\s*2;/s', $layout) === 1,
     'mobile main area returns to the single app-shell column' => str_contains($layout, '.main-area { grid-column: 1; }'),
     'main content can shrink inside the app shell' => preg_match('/\.main-area\s*\{[^}]*min-width:\s*0;/s', $layout) === 1,

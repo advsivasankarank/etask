@@ -13,6 +13,7 @@ use App\Repositories\ClientRepository;
 use App\Repositories\CompanyRepository;
 use App\Repositories\ConsultantRepository;
 use App\Repositories\DocumentRepository;
+use App\Repositories\FinancialYearRepository;
 use App\Repositories\ServiceOrderRepository;
 use App\Repositories\ServiceTypeRepository;
 use App\Services\BillingService;
@@ -28,6 +29,7 @@ final class ServiceOrderController
     private ServiceTypeRepository $serviceTypes;
     private CompanyRepository $companies;
     private DocumentRepository $documents;
+    private FinancialYearRepository $financialYears;
     private ConsultantRepository $consultants;
     private ServiceOrderService $serviceOrderService;
     private WorkflowService $workflows;
@@ -41,6 +43,7 @@ final class ServiceOrderController
         $this->serviceTypes = new ServiceTypeRepository();
         $this->companies = new CompanyRepository();
         $this->documents = new DocumentRepository();
+        $this->financialYears = new FinancialYearRepository();
         $this->consultants = new ConsultantRepository();
         $this->serviceOrderService = new ServiceOrderService();
         $this->workflows = new WorkflowService();
@@ -92,12 +95,23 @@ final class ServiceOrderController
             $old['client_id'] = $clientId;
         }
 
+        $financialYears = $this->financialYears->allActive();
+        if (empty($old['financial_year_id'])) {
+            foreach ($financialYears as $financialYear) {
+                if ((int) ($financialYear['is_current'] ?? 0) === 1) {
+                    $old['financial_year_id'] = (int) $financialYear['id'];
+                    break;
+                }
+            }
+        }
+
         $content = View::render(base_path('modules/ServiceOrders/views/create.php'), [
             'title' => 'Create Service Order',
             'activeMenu' => 'service_orders',
             'clients' => $this->clients->allActive(),
             'serviceTypes' => $this->serviceTypes->allActive(),
             'companies' => $this->companies->allActive(),
+            'financialYears' => $financialYears,
             'old' => $old,
             'error' => Session::pullFlash('error'),
             'priorityOptions' => ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
@@ -106,9 +120,9 @@ final class ServiceOrderController
             'yesNoOptions' => ['YES' => 'Yes', 'NO' => 'No'],
             'quarterOptions' => ['Q1', 'Q2', 'Q3', 'Q4'],
             'monthOptions' => [
-                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
-                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
-                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December',
+                4 => 'April', 5 => 'May', 6 => 'June', 7 => 'July',
+                8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November',
+                12 => 'December', 1 => 'January', 2 => 'February', 3 => 'March',
             ],
             'gstSubtypeOptions' => ['GSTR1', 'GSTR3B', 'GSTR9', 'GSTR9C', 'OTHER'],
         ]);
@@ -122,6 +136,7 @@ final class ServiceOrderController
             'client_id' => (int) $request->input('client_id', 0),
             'service_type_id' => (int) $request->input('service_type_id', 0),
             'company_id' => (int) $request->input('company_id', 0),
+            'financial_year_id' => (int) $request->input('financial_year_id', 0),
             'title' => trim((string) $request->input('title', '')),
             'description' => trim((string) $request->input('description', '')),
             'priority_level' => (string) $request->input('priority_level', 'MEDIUM'),

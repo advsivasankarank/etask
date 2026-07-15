@@ -4,6 +4,12 @@ $serviceTypeCompanyMap = [];
 foreach ($serviceTypes as $serviceType) {
     $serviceTypeCompanyMap[(string) $serviceType['id']] = (string) ($serviceType['default_company_id'] ?? '');
 }
+$quarterLabels = [
+    'Q1' => 'Q1 (April - June)',
+    'Q2' => 'Q2 (July - September)',
+    'Q3' => 'Q3 (October - December)',
+    'Q4' => 'Q4 (January - March)',
+];
 ?>
 <section class="panel">
     <div class="toolbar">
@@ -82,12 +88,23 @@ foreach ($serviceTypes as $serviceType) {
         <div class="panel" style="box-shadow:none;background:linear-gradient(180deg,#fff,#f6faf7);">
             <div class="eyebrow">Work Period</div>
             <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">
+                <label style="display:grid;gap:8px;">
+                    <span>Financial Year *</span>
+                    <select name="financial_year_id" id="financial_year_id" required>
+                        <option value="">Select financial year</option>
+                        <?php foreach ($financialYears as $financialYear): ?>
+                            <option value="<?= e((string) $financialYear['id']) ?>" <?= (string) ($old['financial_year_id'] ?? '') === (string) $financialYear['id'] ? 'selected' : '' ?>>
+                                <?= e($financialYear['label']) ?><?= (int) ($financialYear['is_current'] ?? 0) === 1 ? ' (Current)' : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
                 <label id="work-basis-wrap" style="display:grid;gap:8px;">
-                    <span>Work Basis</span>
-                    <select name="work_basis" id="work_basis">
-                        <option value="">Select basis</option>
+                    <span>Filing Frequency *</span>
+                    <select name="work_basis" id="work_basis" required>
                         <?php foreach ($workBasisOptions as $basis): ?>
-                            <option value="<?= e($basis) ?>" <?= (string) ($old['work_basis'] ?? '') === $basis ? 'selected' : '' ?>><?= e($basis) ?></option>
+                            <option value="<?= e($basis) ?>" <?= (string) ($old['work_basis'] ?? 'ANNUAL') === $basis ? 'selected' : '' ?>><?= e(ucfirst(strtolower($basis))) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
@@ -100,11 +117,6 @@ foreach ($serviceTypes as $serviceType) {
                             <option value="<?= e($subtype) ?>" <?= (string) ($old['compliance_subtype'] ?? '') === $subtype ? 'selected' : '' ?>><?= e($subtype) ?></option>
                         <?php endforeach; ?>
                     </select>
-                </label>
-
-                <label id="assessment-year-wrap" style="display:grid;gap:8px;">
-                    <span>Assessment Year</span>
-                    <input type="text" name="assessment_year" id="assessment_year" value="<?= e($old['assessment_year'] ?? '') ?>" placeholder="Example: 2026-27">
                 </label>
 
                 <label id="itr-case-wrap" style="display:grid;gap:8px;">
@@ -142,14 +154,9 @@ foreach ($serviceTypes as $serviceType) {
                     <select name="period_quarter" id="period_quarter">
                         <option value="">Select quarter</option>
                         <?php foreach ($quarterOptions as $quarter): ?>
-                            <option value="<?= e($quarter) ?>" <?= (string) ($old['period_quarter'] ?? '') === $quarter ? 'selected' : '' ?>><?= e($quarter) ?></option>
+                            <option value="<?= e($quarter) ?>" <?= (string) ($old['period_quarter'] ?? '') === $quarter ? 'selected' : '' ?>><?= e($quarterLabels[$quarter] ?? $quarter) ?></option>
                         <?php endforeach; ?>
                     </select>
-                </label>
-
-                <label id="period-year-wrap" style="display:grid;gap:8px;">
-                    <span>Year</span>
-                    <input type="number" name="period_year" id="period_year" value="<?= e((string) ($old['period_year'] ?? '')) ?>" min="2000" max="2100">
                 </label>
             </div>
         </div>
@@ -180,7 +187,6 @@ foreach ($serviceTypes as $serviceType) {
         const companySelect = document.getElementById('company_id');
         const workBasisSelect = document.getElementById('work_basis');
         const gstSubtypeSelect = document.getElementById('compliance_subtype');
-        const assessmentYearWrap = document.getElementById('assessment-year-wrap');
         const itrCaseWrap = document.getElementById('itr-case-wrap');
         const itrTaxAuditWrap = document.getElementById('itr-tax-audit-wrap');
         const itrCaseSelect = document.getElementById('itr_case_nature');
@@ -188,7 +194,6 @@ foreach ($serviceTypes as $serviceType) {
         const gstSubtypeWrap = document.getElementById('gst-subtype-wrap');
         const monthWrap = document.getElementById('period-month-wrap');
         const quarterWrap = document.getElementById('period-quarter-wrap');
-        const yearWrap = document.getElementById('period-year-wrap');
         const map = <?= json_encode($serviceTypeCompanyMap, JSON_THROW_ON_ERROR) ?>;
         const serviceTypeMeta = <?= json_encode(array_map(static fn ($serviceType) => [
             'id' => (string) $serviceType['id'],
@@ -216,17 +221,15 @@ foreach ($serviceTypes as $serviceType) {
             const itrCase = itrCaseSelect.value;
 
             toggle(gstSubtypeWrap, serviceCode === 'GST');
-            toggle(assessmentYearWrap, serviceCode === 'ITR');
             toggle(itrCaseWrap, serviceCode === 'ITR');
             toggle(itrTaxAuditWrap, serviceCode === 'ITR' && itrCase === 'BUSINESS');
 
             if (serviceCode === 'ITR') {
                 workBasisSelect.value = 'ANNUAL';
                 workBasisSelect.setAttribute('disabled', 'disabled');
-                toggle(workBasisWrap, false);
+                toggle(workBasisWrap, true);
                 toggle(monthWrap, false);
                 toggle(quarterWrap, false);
-                toggle(yearWrap, false);
                 return;
             }
 
@@ -238,7 +241,6 @@ foreach ($serviceTypes as $serviceType) {
                 workBasisSelect.setAttribute('disabled', 'disabled');
                 toggle(monthWrap, false);
                 toggle(quarterWrap, false);
-                toggle(yearWrap, false);
                 return;
             }
 
@@ -249,7 +251,6 @@ foreach ($serviceTypes as $serviceType) {
             workBasisSelect.removeAttribute('disabled');
             toggle(monthWrap, workBasisSelect.value === 'MONTHLY');
             toggle(quarterWrap, workBasisSelect.value === 'QUARTERLY');
-            toggle(yearWrap, workBasisSelect.value === 'MONTHLY' || workBasisSelect.value === 'QUARTERLY');
         }
 
         serviceTypeSelect.addEventListener('change', applyDefaultCompany);

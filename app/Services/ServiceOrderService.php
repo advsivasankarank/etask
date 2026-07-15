@@ -68,9 +68,10 @@ final class ServiceOrderService
                 throw new RuntimeException('A mapped company is required for the selected service type.');
             }
 
-            $financialYear = $this->financialYears->current(new DateTimeImmutable());
+            $financialYearId = (int) ($input['financial_year_id'] ?? 0);
+            $financialYear = $this->financialYears->findActiveById($financialYearId);
             if ($financialYear === null) {
-                throw new RuntimeException('No financial year is configured for the current date.');
+                throw new RuntimeException('Please select a valid financial year.');
             }
 
             $workflow = $this->workflows->activeByServiceType($serviceTypeId);
@@ -317,9 +318,7 @@ final class ServiceOrderService
         $periodYear = (int) ($input['period_year'] ?? 0);
 
         if ($serviceCode === 'ITR') {
-            if ($assessmentYear === '') {
-                throw new RuntimeException('Assessment Year is required for ITR service orders.');
-            }
+            $assessmentYear = $this->assessmentYearForFinancialYear($financialYear);
 
             return [
                 'work_basis' => 'ANNUAL',
@@ -357,9 +356,13 @@ final class ServiceOrderService
         }
 
         if ($workBasis === 'MONTHLY') {
-            if ($periodMonth < 1 || $periodMonth > 12 || $periodYear < 2000) {
-                throw new RuntimeException('Month and year are required for monthly service orders.');
+            if ($periodMonth < 1 || $periodMonth > 12) {
+                throw new RuntimeException('A month is required for monthly service orders.');
             }
+
+            $periodYear = $periodMonth >= 4
+                ? (int) (new DateTimeImmutable((string) $financialYear['start_date']))->format('Y')
+                : (int) (new DateTimeImmutable((string) $financialYear['end_date']))->format('Y');
 
             return [
                 'work_basis' => 'MONTHLY',
@@ -368,14 +371,23 @@ final class ServiceOrderService
                 'period_month' => $periodMonth,
                 'period_quarter' => null,
                 'period_year' => $periodYear,
-                'period_label' => date('F', mktime(0, 0, 0, $periodMonth, 1)) . ' ' . $periodYear,
+                'period_label' => date('F', mktime(0, 0, 0, $periodMonth, 1)) . ' ' . $periodYear
+                    . ' - ' . (string) ($financialYear['label'] ?? ''),
             ];
         }
 
         if ($workBasis === 'QUARTERLY') {
-            if (!in_array($periodQuarter, ['Q1', 'Q2', 'Q3', 'Q4'], true) || $periodYear < 2000) {
-                throw new RuntimeException('Quarter and year are required for quarterly service orders.');
+            if (!in_array($periodQuarter, ['Q1', 'Q2', 'Q3', 'Q4'], true)) {
+                throw new RuntimeException('A quarter is required for quarterly service orders.');
             }
+
+            $periodYear = (int) (new DateTimeImmutable((string) $financialYear['start_date']))->format('Y');
+            $quarterLabels = [
+                'Q1' => 'Q1 (April-June)',
+                'Q2' => 'Q2 (July-September)',
+                'Q3' => 'Q3 (October-December)',
+                'Q4' => 'Q4 (January-March)',
+            ];
 
             return [
                 'work_basis' => 'QUARTERLY',
@@ -384,7 +396,7 @@ final class ServiceOrderService
                 'period_month' => null,
                 'period_quarter' => $periodQuarter,
                 'period_year' => $periodYear,
-                'period_label' => $periodQuarter . ' ' . $periodYear,
+                'period_label' => $quarterLabels[$periodQuarter] . ' - ' . (string) ($financialYear['label'] ?? ''),
             ];
         }
 
@@ -397,6 +409,14 @@ final class ServiceOrderService
             'period_year' => null,
             'period_label' => (string) ($financialYear['label'] ?? 'Annual'),
         ];
+    }
+
+    private function assessmentYearForFinancialYear(array $financialYear): string
+    {
+        $assessmentStartYear = (int) (new DateTimeImmutable((string) $financialYear['end_date']))->format('Y');
+        $assessmentEndYear = $assessmentStartYear + 1;
+
+        return sprintf('%d-%02d', $assessmentStartYear, $assessmentEndYear % 100);
     }
 
     private function resolveItrCaseMetadata(array $input, array $serviceType): array
