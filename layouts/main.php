@@ -552,6 +552,8 @@ if ($isPortalUser):
             position: sticky;
             top: 0;
             left: 0;
+            grid-column: 1;
+            grid-row: 1;
             height: 100vh;
             width: 76px;
             background: #ecf2f2;
@@ -768,6 +770,8 @@ if ($isPortalUser):
         .main-area {
             display: flex;
             flex-direction: column;
+            grid-column: 2;
+            grid-row: 1;
             min-height: 100vh;
             min-width: 0;
             width: 100%;
@@ -927,6 +931,7 @@ if ($isPortalUser):
         /* Responsive */
         @media (max-width: 1024px) {
             .app-shell { grid-template-columns: 1fr; }
+            .main-area { grid-column: 1; }
             .sidebar {
                 position: fixed;
                 left: -264px;
