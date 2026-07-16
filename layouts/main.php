@@ -592,7 +592,8 @@ if ($isPortalUser):
         .sidebar:hover .sidebar-brand,
         .sidebar.open .sidebar-brand,
         .sidebar.pinned .sidebar-brand {
-            padding: 24px 22px;
+            min-height: 92px;
+            padding: 20px 62px 18px 22px;
             text-align: left;
         }
 
@@ -631,15 +632,21 @@ if ($isPortalUser):
 
         .sidebar-brand-logo {
             font-family: var(--font-display);
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 700;
+            line-height: 1.2;
             color: var(--dark-teal);
         }
+
+        .sidebar:hover .sidebar-brand-logo,
+        .sidebar.open .sidebar-brand-logo,
+        .sidebar.pinned .sidebar-brand-logo { font-size: 24px; }
 
         .sidebar-brand-logo .e { color: var(--accent); }
 
         .sidebar-brand-sub {
             font-size: 11px;
+            line-height: 1.35;
             color: #5b7b83;
             margin-top: 4px;
             letter-spacing: 0.03em;
@@ -1391,7 +1398,7 @@ if ($isPortalUser):
     <div class="app-shell">
         <aside class="sidebar" id="sidebar" aria-label="Application navigation">
             <div class="sidebar-brand">
-                <div class="sidebar-brand-logo"><span class="e">e-</span><span class="sidebar-link-label">Pani</span></div>
+                <div class="sidebar-brand-logo"><span class="e">e-</span><span class="sidebar-brand-name">Pani</span></div>
                 <div class="sidebar-brand-sub">Office Management Suite</div>
                 <button type="button" class="sidebar-pin-toggle" id="sidebarPinToggle" aria-label="Keep sidebar expanded" aria-pressed="false" title="Keep sidebar expanded">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 17v5"/><path d="M5 3h14"/><path d="m7 3 1 8-3 3h14l-3-3 1-8"/></svg>

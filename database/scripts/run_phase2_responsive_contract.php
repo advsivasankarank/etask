@@ -21,6 +21,8 @@ $checks = [
     'desktop sidebar can be pinned and remembers the preference' => str_contains($layout, 'id="sidebarPinToggle"')
         && str_contains($layout, "sidebarPreferenceKey = 'epani.sidebar.pinned'")
         && str_contains($layout, "sidebar.classList.toggle('pinned', pinned)"),
+    'complete e-Pani wordmark remains visible in the collapsed rail' => str_contains($layout, 'class="sidebar-brand-name">Pani</span>')
+        && !str_contains($layout, '<span class="sidebar-link-label">Pani</span>'),
     'desktop main area remains in the content column while the sidebar expands' => preg_match('/\.main-area\s*\{[^}]*grid-column:\s*2;/s', $layout) === 1,
     'mobile main area returns to the single app-shell column' => str_contains($layout, '.main-area { grid-column: 1; }'),
     'main content can shrink inside the app shell' => preg_match('/\.main-area\s*\{[^}]*min-width:\s*0;/s', $layout) === 1,
